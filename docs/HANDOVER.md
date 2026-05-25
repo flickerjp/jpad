@@ -603,3 +603,13 @@
 
 **参照:** `git show a1fe620` / `git log -1 a1fe620`
 
+
+<!-- handover:auto:12b4f9b2b6a1239104f47416e75d6242f4b07122 -->
+### 2026-05-25 19:33:39 +0900 — `12b4f9b` — main
+
+**件名:** Keep JChord App Store identity: bundle ID and build 117.
+
+**作者:** FLICKER <tonekeisuke@gmail.com>
+
+**参照:** `git show 12b4f9b` / `git log -1 12b4f9b`
+
