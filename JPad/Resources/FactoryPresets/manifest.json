@@ -1,0 +1,9 @@
+{
+  "presets": [
+    "TinyTone",
+    "TinyPiano",
+    "TinyStrings",
+    "TinyOrgan",
+    "TinySynth"
+  ]
+}

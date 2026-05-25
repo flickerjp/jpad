@@ -1,0 +1,7 @@
+.DerivedData/
+DerivedData/
+**/.swiftpm/
+*.xcuserstate
+**/xcuserdata/
+.DS_Store
+HOLD

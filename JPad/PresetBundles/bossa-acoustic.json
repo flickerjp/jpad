@@ -1,0 +1,381 @@
+{
+  "id": "bossa-acoustic",
+  "appName": "JChord",
+  "version": 2,
+  "setName": "Bossa Acoustic",
+  "description": "Bossa-style acoustic guitar",
+  "contentType": "chordSet",
+  "author": "Flicker",
+  "license": "JChord Sample License",
+  "instrumentType": "acousticGuitar",
+  "category": "bossa",
+  "tags": [
+    "bossa",
+    "acoustic guitar",
+    "jazz",
+    "latin",
+    "practice",
+    "original"
+  ],
+  "defaultPlaybackMode": "bassChord",
+  "autoBassOctave": false,
+  "defaultChannel": 1,
+  "defaultVelocity": 88,
+  "maxNotesPerPad": 4,
+  "copyrightPolicy": {
+    "isOriginalGenericProgression": true,
+    "avoidSpecificSongTitles": true,
+    "notes": "This sample uses generic bossa-nova and jazz harmony vocabulary only. It should not be labeled with or marketed as a recreation of any copyrighted song."
+  },
+  "arrangement": [
+    {
+      "section": "A",
+      "description": "Soft major-key bossa entrance with ii–V color.",
+      "padSequence": [
+        0,
+        2,
+        7,
+        0,
+        4,
+        9,
+        2,
+        7
+      ]
+    },
+    {
+      "section": "B",
+      "description": "Bridge-like lift with subdominant and half-diminished colors.",
+      "padSequence": [
+        5,
+        6,
+        11,
+        5,
+        3,
+        8,
+        10,
+        7
+      ]
+    },
+    {
+      "section": "C",
+      "description": "Return section with chromatic passing dominant colors.",
+      "padSequence": [
+        9,
+        2,
+        7,
+        0,
+        1,
+        6,
+        10,
+        0
+      ]
+    }
+  ],
+  "pads": [
+    {
+      "id": 0,
+      "name": "Cmaj9",
+      "displayName": "Cmaj9",
+      "label": "Cmaj9",
+      "role": "Imaj9",
+      "sectionHint": [
+        "A",
+        "C"
+      ],
+      "bassNotes": [
+        48
+      ],
+      "chordNotes": [
+        52,
+        59,
+        62
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    },
+    {
+      "id": 1,
+      "name": "C#dim7",
+      "displayName": "C#dim7",
+      "label": "C#dim7",
+      "role": "#Idim7 passing",
+      "sectionHint": [
+        "C"
+      ],
+      "bassNotes": [
+        49
+      ],
+      "chordNotes": [
+        55,
+        58,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    },
+    {
+      "id": 2,
+      "name": "Dm9",
+      "displayName": "Dm9",
+      "label": "Dm9",
+      "role": "IIm9",
+      "sectionHint": [
+        "A",
+        "C"
+      ],
+      "bassNotes": [
+        50
+      ],
+      "chordNotes": [
+        53,
+        60,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    },
+    {
+      "id": 3,
+      "name": "Eb7(9)",
+      "displayName": "Eb7(9)",
+      "label": "Eb7(9)",
+      "role": "bIII7 color",
+      "sectionHint": [
+        "B"
+      ],
+      "bassNotes": [
+        51
+      ],
+      "chordNotes": [
+        55,
+        61,
+        65
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    },
+    {
+      "id": 4,
+      "name": "Em7",
+      "displayName": "Em7",
+      "label": "Em7",
+      "role": "IIIm7",
+      "sectionHint": [
+        "A"
+      ],
+      "bassNotes": [
+        40
+      ],
+      "chordNotes": [
+        47,
+        55,
+        59
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    },
+    {
+      "id": 5,
+      "name": "Fmaj9",
+      "displayName": "Fmaj9",
+      "label": "Fmaj9",
+      "role": "IVmaj9",
+      "sectionHint": [
+        "B"
+      ],
+      "bassNotes": [
+        41
+      ],
+      "chordNotes": [
+        48,
+        55,
+        60
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    },
+    {
+      "id": 6,
+      "name": "F#m7b5",
+      "displayName": "F#m7b5",
+      "label": "F#m7b5",
+      "role": "#IVm7b5",
+      "sectionHint": [
+        "B",
+        "C"
+      ],
+      "bassNotes": [
+        42
+      ],
+      "chordNotes": [
+        48,
+        52,
+        57
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    },
+    {
+      "id": 7,
+      "name": "G13",
+      "displayName": "G13",
+      "label": "G13",
+      "role": "V13",
+      "sectionHint": [
+        "A",
+        "B",
+        "C"
+      ],
+      "bassNotes": [
+        43
+      ],
+      "chordNotes": [
+        47,
+        53,
+        57
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    },
+    {
+      "id": 8,
+      "name": "Abmaj7#11",
+      "displayName": "Abmaj7#11",
+      "label": "Abmaj7#11",
+      "role": "bVImaj7#11",
+      "sectionHint": [
+        "B"
+      ],
+      "bassNotes": [
+        44
+      ],
+      "chordNotes": [
+        48,
+        55,
+        62
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    },
+    {
+      "id": 9,
+      "name": "Am9",
+      "displayName": "Am9",
+      "label": "Am9",
+      "role": "VIm9",
+      "sectionHint": [
+        "A",
+        "C"
+      ],
+      "bassNotes": [
+        45
+      ],
+      "chordNotes": [
+        48,
+        55,
+        59
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    },
+    {
+      "id": 10,
+      "name": "Bb13",
+      "displayName": "Bb13",
+      "label": "Bb13",
+      "role": "bVII13",
+      "sectionHint": [
+        "B",
+        "C"
+      ],
+      "bassNotes": [
+        46
+      ],
+      "chordNotes": [
+        50,
+        56,
+        60
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    },
+    {
+      "id": 11,
+      "name": "Bm7b5",
+      "displayName": "Bm7b5",
+      "label": "Bm7b5",
+      "role": "VIIm7b5",
+      "sectionHint": [
+        "B"
+      ],
+      "bassNotes": [
+        47
+      ],
+      "chordNotes": [
+        53,
+        57,
+        62
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bossa_guitar_comp"
+    }
+  ],
+  "arpeggioPatterns": [
+    {
+      "id": "bossa_guitar_comp",
+      "name": "Bossa Guitar Comp",
+      "description": "Simple guitar-style bass then upper-note comp pattern. Designed for compact 4-note pads.",
+      "steps": [
+        {
+          "beat": 0.0,
+          "target": "bass",
+          "velocity": 92,
+          "duration": 0.35
+        },
+        {
+          "beat": 0.5,
+          "target": "chord",
+          "velocity": 74,
+          "duration": 0.3
+        },
+        {
+          "beat": 1.0,
+          "target": "bass",
+          "velocity": 84,
+          "duration": 0.25
+        },
+        {
+          "beat": 1.5,
+          "target": "chord",
+          "velocity": 70,
+          "duration": 0.35
+        }
+      ]
+    },
+    {
+      "id": "bossa_thumb_chord",
+      "name": "Bossa Thumb + Chord",
+      "description": "Alternative pattern: bass thumb followed by a light chord stab.",
+      "steps": [
+        {
+          "beat": 0.0,
+          "target": "bass",
+          "velocity": 92,
+          "duration": 0.4
+        },
+        {
+          "beat": 0.75,
+          "target": "chord",
+          "velocity": 72,
+          "duration": 0.35
+        },
+        {
+          "beat": 1.25,
+          "target": "chord",
+          "velocity": 66,
+          "duration": 0.25
+        }
+      ]
+    }
+  ]
+}

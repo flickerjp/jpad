@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>JPad Preset</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>jpd</string>
+				<string>jch</string>
+				<string>jchord</string>
+				<string>jchord.json</string>
+				<string>jchord.zip</string>
+				<string>zip</string>
+			</array>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.flickerproduct.jpad</string>
+			</array>
+		</dict>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>JPad Preset</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.flickerproduct.jpad</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>jpd</string>
+					<string>jch</string>
+					<string>jchord</string>
+					<string>jchord.json</string>
+					<string>jchord.zip</string>
+				</array>
+				<key>public.mime-type</key>
+				<string>application/vnd.flickerproduct.jpad-preset</string>
+			</dict>
+		</dict>
+	</array>
+</dict>
+</plist>

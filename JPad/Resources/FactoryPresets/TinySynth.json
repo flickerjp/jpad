@@ -1,0 +1,63 @@
+{
+  "createdAt": "2026-05-23T12:06:23Z",
+  "engine": "TinyTone",
+  "metadata": {
+    "author": "JPad Dev",
+    "benchmarkHint": "",
+    "notes": "JPad factory TinySynth",
+    "source": "TinyToneTuner",
+    "tags": [
+      "factory",
+      "jpad"
+    ]
+  },
+  "parameters": {
+    "amp": {
+      "pan": 0,
+      "velocitySensitivity": 1.0,
+      "volume": 0.3
+    },
+    "effects": {
+      "delayAmount": 0.11,
+      "limiterEnabled": false,
+      "outputGain": 0,
+      "reverbAmount": 0.26
+    },
+    "envelope": {
+      "attack": 0.051,
+      "decay": 1.121,
+      "release": 0.28,
+      "sustain": 0.18
+    },
+    "filter": {
+      "cutoff": 50,
+      "drive": 0.18,
+      "enabled": true,
+      "resonance": 0.26,
+      "type": "bandPass"
+    },
+    "modulation": {
+      "filterModulation": 0,
+      "lfoDepth": 0,
+      "lfoEnabled": false,
+      "lfoRate": 0.05,
+      "pitchModulation": 0,
+      "vibratoAmount": 0
+    },
+    "oscillator": {
+      "detune": 3.83,
+      "fineTune": -1,
+      "level": 0.5,
+      "octave": 0,
+      "secondaryEnabled": true,
+      "secondaryFineTune": 3,
+      "secondaryLevel": 0.13,
+      "secondarySemitone": 7,
+      "secondaryWaveform": "saw",
+      "semitone": 0,
+      "waveform": "saw"
+    }
+  },
+  "patchName": "TinySynth",
+  "schemaVersion": 1
+}

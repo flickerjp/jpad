@@ -1,0 +1,361 @@
+{
+  "id": "j-neo-soul",
+  "appName": "JChord",
+  "version": 2,
+  "setName": "Japanese R&B Neo-Soul",
+  "description": "A bright, modern Japanese R&B",
+  "copyrightPolicy": {
+    "source": "original_generic_sample",
+    "notes": "Avoids reproducing specific copyrighted songs, melodies, riffs, or artist-identifying arrangements. Intended for broad 2020s Japanese R&B / neo-soul practice and performance."
+  },
+  "category": "rnb",
+  "instrumentType": "electricPiano",
+  "tone": [
+    "Japanese R&B",
+    "neo-soul",
+    "bright",
+    "piano",
+    "electric piano",
+    "vocal accompaniment"
+  ],
+  "defaultPlaybackMode": "bassChord",
+  "autoBassOctave": false,
+  "defaultChannel": 1,
+  "defaultVelocity": 88,
+  "maxNotesPerPad": 4,
+  "pads": [
+    {
+      "id": 0,
+      "name": "C",
+      "displayName": "C",
+      "label": "Cmaj9",
+      "role": "Imaj9 / bright tonic",
+      "bassNotes": [
+        36
+      ],
+      "chordNotes": [
+        52,
+        59,
+        62
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    },
+    {
+      "id": 1,
+      "name": "C#",
+      "displayName": "Db",
+      "label": "Dbmaj9#11",
+      "role": "bIImaj9#11 / color lift",
+      "bassNotes": [
+        37
+      ],
+      "chordNotes": [
+        53,
+        60,
+        67
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    },
+    {
+      "id": 2,
+      "name": "D",
+      "displayName": "D",
+      "label": "Dm9",
+      "role": "IIm9 / smooth pre-dominant",
+      "bassNotes": [
+        38
+      ],
+      "chordNotes": [
+        53,
+        60,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    },
+    {
+      "id": 3,
+      "name": "D#",
+      "displayName": "Eb",
+      "label": "Ebmaj9",
+      "role": "bIIImaj9 / warm modal color",
+      "bassNotes": [
+        39
+      ],
+      "chordNotes": [
+        55,
+        62,
+        65
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    },
+    {
+      "id": 4,
+      "name": "E",
+      "displayName": "E",
+      "label": "E7sus4(9)",
+      "role": "III7sus / soulful secondary dominant",
+      "bassNotes": [
+        40
+      ],
+      "chordNotes": [
+        57,
+        62,
+        66
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    },
+    {
+      "id": 5,
+      "name": "F",
+      "displayName": "F",
+      "label": "Fmaj9",
+      "role": "IVmaj9 / open bright subdominant",
+      "bassNotes": [
+        41
+      ],
+      "chordNotes": [
+        57,
+        64,
+        67
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    },
+    {
+      "id": 6,
+      "name": "F#",
+      "displayName": "F#",
+      "label": "F#m7b5",
+      "role": "#IVm7b5 / passing color",
+      "bassNotes": [
+        42
+      ],
+      "chordNotes": [
+        52,
+        57,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    },
+    {
+      "id": 7,
+      "name": "G",
+      "displayName": "G",
+      "label": "G13sus",
+      "role": "V13sus / gospel-R&B dominant",
+      "bassNotes": [
+        43
+      ],
+      "chordNotes": [
+        53,
+        57,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    },
+    {
+      "id": 8,
+      "name": "G#",
+      "displayName": "Ab",
+      "label": "Abmaj9",
+      "role": "bVImaj9 / dreamy borrowed color",
+      "bassNotes": [
+        44
+      ],
+      "chordNotes": [
+        55,
+        60,
+        67
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    },
+    {
+      "id": 9,
+      "name": "A",
+      "displayName": "A",
+      "label": "Am9",
+      "role": "VIm9 / mellow minor tonic color",
+      "bassNotes": [
+        45
+      ],
+      "chordNotes": [
+        55,
+        60,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    },
+    {
+      "id": 10,
+      "name": "A#",
+      "displayName": "Bb",
+      "label": "Bb13",
+      "role": "bVII13 / lift into chorus",
+      "bassNotes": [
+        46
+      ],
+      "chordNotes": [
+        53,
+        57,
+        62
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    },
+    {
+      "id": 11,
+      "name": "B",
+      "displayName": "B",
+      "label": "Bm11",
+      "role": "VIIm11 / floating leading minor",
+      "bassNotes": [
+        47
+      ],
+      "chordNotes": [
+        57,
+        62,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "soft_rnb_comp"
+    }
+  ],
+  "arrangement": {
+    "description": "Original generic A/B/C section progression ideas for bright modern Japanese R&B / neo-soul vocal accompaniment. Pads remain ordered chromatically, while these sequences show suggested section flow.",
+    "sections": [
+      {
+        "name": "A",
+        "feel": "bright verse / vocal-friendly",
+        "padSequence": [
+          0,
+          4,
+          9,
+          5,
+          2,
+          7,
+          0,
+          7
+        ],
+        "chordSequence": [
+          "Cmaj9",
+          "E7sus4(9)",
+          "Am9",
+          "Fmaj9",
+          "Dm9",
+          "G13sus",
+          "Cmaj9",
+          "G13sus"
+        ]
+      },
+      {
+        "name": "B",
+        "feel": "pre-chorus / rising harmonic color",
+        "padSequence": [
+          5,
+          6,
+          11,
+          4,
+          9,
+          2,
+          7,
+          10
+        ],
+        "chordSequence": [
+          "Fmaj9",
+          "F#m7b5",
+          "Bm11",
+          "E7sus4(9)",
+          "Am9",
+          "Dm9",
+          "G13sus",
+          "Bb13"
+        ]
+      },
+      {
+        "name": "C",
+        "feel": "chorus / open and uplifting",
+        "padSequence": [
+          0,
+          3,
+          8,
+          10,
+          5,
+          2,
+          7,
+          0
+        ],
+        "chordSequence": [
+          "Cmaj9",
+          "Ebmaj9",
+          "Abmaj9",
+          "Bb13",
+          "Fmaj9",
+          "Dm9",
+          "G13sus",
+          "Cmaj9"
+        ]
+      }
+    ]
+  },
+  "arpeggioPatterns": [
+    {
+      "id": "soft_rnb_comp",
+      "name": "Soft R&B Comp",
+      "description": "Gentle bass then soft chord stab for vocal accompaniment.",
+      "steps": [
+        {
+          "beat": 0.0,
+          "target": "bass",
+          "velocity": 88,
+          "duration": 0.55
+        },
+        {
+          "beat": 0.5,
+          "target": "chord",
+          "velocity": 76,
+          "duration": 0.8
+        },
+        {
+          "beat": 1.5,
+          "target": "chord",
+          "velocity": 66,
+          "duration": 0.45
+        }
+      ]
+    },
+    {
+      "id": "late_push_comp",
+      "name": "Late Push Comp",
+      "description": "A slightly late second chord push for modern R&B groove.",
+      "steps": [
+        {
+          "beat": 0.0,
+          "target": "bass",
+          "velocity": 86,
+          "duration": 0.45
+        },
+        {
+          "beat": 0.25,
+          "target": "chord",
+          "velocity": 74,
+          "duration": 0.55
+        },
+        {
+          "beat": 1.75,
+          "target": "chord",
+          "velocity": 82,
+          "duration": 0.35
+        }
+      ]
+    }
+  ]
+}

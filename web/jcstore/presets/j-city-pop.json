@@ -1,0 +1,356 @@
+{
+  "id": "j-city-pop",
+  "appName": "JChord",
+  "version": 2,
+  "setName": "City Pop Bright m7/M7",
+  "description": "Bright Japanese city-pop chord",
+  "author": "Flicker",
+  "license": "JChord Sample License",
+  "contentType": "chordSet",
+  "instrumentType": "electricPiano",
+  "category": "cityPop",
+  "tags": [
+    "city-pop",
+    "bright",
+    "m7",
+    "maj7",
+    "electric-piano",
+    "japanese-pop",
+    "generic"
+  ],
+  "defaultPlaybackMode": "bassChord",
+  "autoBassOctave": false,
+  "defaultChannel": 1,
+  "defaultVelocity": 90,
+  "maxNotesPerPad": 4,
+  "policy": {
+    "copyrightSafe": true,
+    "note": "Generic bright city-pop harmony. Avoids using song titles, artist names, melodies, riffs, or exact song forms."
+  },
+  "pads": [
+    {
+      "id": 0,
+      "name": "C",
+      "displayName": "C",
+      "label": "Cmaj9",
+      "role": "Imaj9",
+      "bassNotes": [
+        36
+      ],
+      "chordNotes": [
+        52,
+        55,
+        59
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "A: bright tonic major 9"
+    },
+    {
+      "id": 1,
+      "name": "C#",
+      "displayName": "Db",
+      "label": "Dbmaj7#11",
+      "role": "bIImaj7#11",
+      "bassNotes": [
+        37
+      ],
+      "chordNotes": [
+        53,
+        60,
+        67
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "C: chromatic bright lift"
+    },
+    {
+      "id": 2,
+      "name": "D",
+      "displayName": "D",
+      "label": "Dm9",
+      "role": "IIm9",
+      "bassNotes": [
+        38
+      ],
+      "chordNotes": [
+        53,
+        57,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "A: smooth ii minor 9"
+    },
+    {
+      "id": 3,
+      "name": "D#",
+      "displayName": "Eb",
+      "label": "Ebmaj7",
+      "role": "bIIImaj7",
+      "bassNotes": [
+        39
+      ],
+      "chordNotes": [
+        55,
+        58,
+        62
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "B: modal bright major 7"
+    },
+    {
+      "id": 4,
+      "name": "E",
+      "displayName": "E",
+      "label": "Em7",
+      "role": "IIIm7",
+      "bassNotes": [
+        40
+      ],
+      "chordNotes": [
+        55,
+        59,
+        62
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "A/B: diatonic minor 7 color"
+    },
+    {
+      "id": 5,
+      "name": "F",
+      "displayName": "F",
+      "label": "Fmaj9",
+      "role": "IVmaj9",
+      "bassNotes": [
+        41
+      ],
+      "chordNotes": [
+        57,
+        60,
+        67
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "A: sunny IV major 9"
+    },
+    {
+      "id": 6,
+      "name": "F#",
+      "displayName": "F#",
+      "label": "F#m7",
+      "role": "#IVm7",
+      "bassNotes": [
+        42
+      ],
+      "chordNotes": [
+        57,
+        61,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "B: chromatic minor 7 passing"
+    },
+    {
+      "id": 7,
+      "name": "G",
+      "displayName": "G",
+      "label": "G13",
+      "role": "V13",
+      "bassNotes": [
+        43
+      ],
+      "chordNotes": [
+        53,
+        57,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "A/C: bright dominant 13"
+    },
+    {
+      "id": 8,
+      "name": "G#",
+      "displayName": "Ab",
+      "label": "Abmaj7",
+      "role": "bVImaj7",
+      "bassNotes": [
+        44
+      ],
+      "chordNotes": [
+        55,
+        60,
+        63
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "C: borrowed major 7 color"
+    },
+    {
+      "id": 9,
+      "name": "A",
+      "displayName": "A",
+      "label": "Am9",
+      "role": "VIm9",
+      "bassNotes": [
+        45
+      ],
+      "chordNotes": [
+        55,
+        60,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "A/B: soft relative minor 9"
+    },
+    {
+      "id": 10,
+      "name": "A#",
+      "displayName": "Bb",
+      "label": "Bbmaj7",
+      "role": "bVIImaj7",
+      "bassNotes": [
+        46
+      ],
+      "chordNotes": [
+        57,
+        62,
+        65
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "C: open major 7 lift"
+    },
+    {
+      "id": 11,
+      "name": "B",
+      "displayName": "B",
+      "label": "Bm7",
+      "role": "VIIm7",
+      "bassNotes": [
+        47
+      ],
+      "chordNotes": [
+        57,
+        62,
+        66
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "city_pop_syncopated_stab",
+      "sectionHint": "B/C: smooth minor 7 approach"
+    }
+  ],
+  "arrangement": {
+    "description": "Generic A/B/C section suggestions for preview and practice. Pads remain arranged in low-key chromatic order.",
+    "sections": [
+      {
+        "name": "A",
+        "feel": "bright verse / chorus starter",
+        "padOrder": [
+          0,
+          4,
+          9,
+          2,
+          7,
+          0,
+          5,
+          7
+        ]
+      },
+      {
+        "name": "B",
+        "feel": "pre-chorus lift with minor 7 and major 7 colors",
+        "padOrder": [
+          5,
+          6,
+          11,
+          4,
+          9,
+          2,
+          7,
+          7
+        ]
+      },
+      {
+        "name": "C",
+        "feel": "open refrain / bridge colors",
+        "padOrder": [
+          0,
+          10,
+          9,
+          8,
+          5,
+          2,
+          7,
+          0
+        ]
+      }
+    ]
+  },
+  "arpeggioPatterns": [
+    {
+      "id": "city_pop_syncopated_stab",
+      "name": "City Pop Syncopated Stab",
+      "description": "Short bass then bright chord stab for electric piano or clean guitar comping.",
+      "steps": [
+        {
+          "beat": 0.0,
+          "target": "bass",
+          "velocity": 96,
+          "duration": 0.35
+        },
+        {
+          "beat": 0.5,
+          "target": "chord",
+          "velocity": 82,
+          "duration": 0.45
+        },
+        {
+          "beat": 1.5,
+          "target": "chord",
+          "velocity": 72,
+          "duration": 0.3
+        }
+      ]
+    },
+    {
+      "id": "soft_up_broken",
+      "name": "Soft Up Broken",
+      "description": "Bass followed by upper chord tones ascending; useful for gentle city-pop intros.",
+      "steps": [
+        {
+          "beat": 0.0,
+          "target": "bass",
+          "velocity": 92,
+          "duration": 0.35
+        },
+        {
+          "beat": 0.5,
+          "target": "chordNote",
+          "index": 0,
+          "velocity": 74,
+          "duration": 0.25
+        },
+        {
+          "beat": 0.75,
+          "target": "chordNote",
+          "index": 1,
+          "velocity": 74,
+          "duration": 0.25
+        },
+        {
+          "beat": 1.0,
+          "target": "chordNote",
+          "index": 2,
+          "velocity": 78,
+          "duration": 0.35
+        }
+      ]
+    }
+  ]
+}

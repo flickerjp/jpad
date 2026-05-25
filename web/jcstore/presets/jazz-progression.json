@@ -1,0 +1,287 @@
+{
+  "id": "jazz-standard",
+  "appName": "JChord",
+  "version": 2,
+  "setName": "Generic Jazz progression",
+  "description": "Generic jazz progression set.",
+  "copyrightPolicy": "Original generic practice material. Do not name or market this as a specific existing song or artist style.",
+  "defaultPlaybackMode": "bassChord",
+  "autoBassOctave": true,
+  "defaultChannel": 1,
+  "defaultVelocity": 92,
+  "pads": [
+    {
+      "id": 0,
+      "name": "C",
+      "displayName": "C",
+      "label": "Cmaj9",
+      "role": "A: Imaj9 / home",
+      "section": "A",
+      "progressionOrder": 1,
+      "bassNotes": [
+        36,
+        48
+      ],
+      "chordNotes": [
+        52,
+        55,
+        59,
+        62
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    },
+    {
+      "id": 1,
+      "name": "C#",
+      "displayName": "Db",
+      "label": "Db7#11",
+      "role": "C: bII7 / color dominant",
+      "section": "C",
+      "progressionOrder": 9,
+      "bassNotes": [
+        37,
+        49
+      ],
+      "chordNotes": [
+        53,
+        59,
+        63,
+        67
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    },
+    {
+      "id": 2,
+      "name": "D",
+      "displayName": "D",
+      "label": "Dm9",
+      "role": "A: IIm9",
+      "section": "A",
+      "progressionOrder": 2,
+      "bassNotes": [
+        38,
+        50
+      ],
+      "chordNotes": [
+        53,
+        57,
+        60,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    },
+    {
+      "id": 3,
+      "name": "D#",
+      "displayName": "Eb",
+      "label": "Ebmaj9",
+      "role": "B: bIIImaj9",
+      "section": "B",
+      "progressionOrder": 5,
+      "bassNotes": [
+        39,
+        51
+      ],
+      "chordNotes": [
+        55,
+        58,
+        62,
+        65
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    },
+    {
+      "id": 4,
+      "name": "E",
+      "displayName": "E",
+      "label": "E7alt",
+      "role": "B: III7alt / secondary",
+      "section": "B",
+      "progressionOrder": 6,
+      "bassNotes": [
+        40,
+        52
+      ],
+      "chordNotes": [
+        56,
+        62,
+        65,
+        70
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    },
+    {
+      "id": 5,
+      "name": "F",
+      "displayName": "F",
+      "label": "Fmaj9",
+      "role": "A: IVmaj9",
+      "section": "A",
+      "progressionOrder": 4,
+      "bassNotes": [
+        41,
+        53
+      ],
+      "chordNotes": [
+        57,
+        60,
+        64,
+        67
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    },
+    {
+      "id": 6,
+      "name": "F#",
+      "displayName": "F#",
+      "label": "F#m7b5",
+      "role": "B: #IVm7b5",
+      "section": "B",
+      "progressionOrder": 7,
+      "bassNotes": [
+        42,
+        54
+      ],
+      "chordNotes": [
+        57,
+        60,
+        64,
+        71
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    },
+    {
+      "id": 7,
+      "name": "G",
+      "displayName": "G",
+      "label": "G13",
+      "role": "A: V13",
+      "section": "A",
+      "progressionOrder": 3,
+      "bassNotes": [
+        43,
+        55
+      ],
+      "chordNotes": [
+        53,
+        57,
+        59,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    },
+    {
+      "id": 8,
+      "name": "G#",
+      "displayName": "Ab",
+      "label": "Abmaj9",
+      "role": "C: bVImaj9",
+      "section": "C",
+      "progressionOrder": 10,
+      "bassNotes": [
+        44,
+        56
+      ],
+      "chordNotes": [
+        60,
+        63,
+        67,
+        70
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    },
+    {
+      "id": 9,
+      "name": "A",
+      "displayName": "A",
+      "label": "Am9",
+      "role": "B: VIm9",
+      "section": "B",
+      "progressionOrder": 8,
+      "bassNotes": [
+        45,
+        57
+      ],
+      "chordNotes": [
+        55,
+        60,
+        64,
+        71
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    },
+    {
+      "id": 10,
+      "name": "A#",
+      "displayName": "Bb",
+      "label": "Bb13",
+      "role": "C: bVII13",
+      "section": "C",
+      "progressionOrder": 11,
+      "bassNotes": [
+        46,
+        58
+      ],
+      "chordNotes": [
+        53,
+        57,
+        62,
+        67
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    },
+    {
+      "id": 11,
+      "name": "B",
+      "displayName": "B",
+      "label": "Bm7b5",
+      "role": "C: VIIm7b5 / leading",
+      "section": "C",
+      "progressionOrder": 12,
+      "bassNotes": [
+        47,
+        59
+      ],
+      "chordNotes": [
+        50,
+        53,
+        57,
+        60
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "bass_chord_stab"
+    }
+  ],
+  "arpeggioPatterns": [
+    {
+      "id": "bass_chord_stab",
+      "name": "Bass + Chord Stab",
+      "description": "Root bass followed by a short shell-voicing stab.",
+      "steps": [
+        {
+          "beat": 0.0,
+          "target": "bass",
+          "velocity": 100,
+          "duration": 0.45
+        },
+        {
+          "beat": 0.5,
+          "target": "chord",
+          "velocity": 78,
+          "duration": 0.4
+        }
+      ]
+    }
+  ]
+}

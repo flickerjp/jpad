@@ -1,0 +1,63 @@
+{
+  "createdAt": "2026-05-23T12:06:23Z",
+  "engine": "TinyTone",
+  "metadata": {
+    "author": "JPad Dev",
+    "benchmarkHint": "Safe reference",
+    "notes": "JPad factory TinyTone derived from TinyPianoEngine.swift",
+    "source": "TinyToneTuner",
+    "tags": [
+      "factory",
+      "jpad"
+    ]
+  },
+  "parameters": {
+    "amp": {
+      "pan": 0,
+      "velocitySensitivity": 1.0,
+      "volume": 0.7
+    },
+    "effects": {
+      "delayAmount": 0.06,
+      "limiterEnabled": false,
+      "outputGain": -8.5,
+      "reverbAmount": 0
+    },
+    "envelope": {
+      "attack": 0.003,
+      "decay": 4,
+      "release": 0.08,
+      "sustain": 1
+    },
+    "filter": {
+      "cutoff": 50,
+      "drive": 0.01,
+      "enabled": true,
+      "resonance": 0,
+      "type": "bandPass"
+    },
+    "modulation": {
+      "filterModulation": 0.05,
+      "lfoDepth": 1,
+      "lfoEnabled": false,
+      "lfoRate": 0.05,
+      "pitchModulation": 0.91,
+      "vibratoAmount": 0
+    },
+    "oscillator": {
+      "detune": 0,
+      "fineTune": 0,
+      "level": 1,
+      "octave": 0,
+      "secondaryEnabled": true,
+      "secondaryFineTune": 16,
+      "secondaryLevel": 0.99,
+      "secondarySemitone": 12,
+      "secondaryWaveform": "sine",
+      "semitone": 0,
+      "waveform": "sine"
+    }
+  },
+  "patchName": "TinyOrgan",
+  "schemaVersion": 1
+}

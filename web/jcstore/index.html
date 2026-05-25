@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>jcstore — JPad Presets</title>
+    <meta
+      name="description"
+      content="Official JPad preset catalog. Preview chord pads in the browser and import the same sets in the JPad app STORE tab."
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="brand">
+        <span class="brand-mark">JPad</span>
+        <span class="brand-sub">jcstore</span>
+      </div>
+      <p class="tagline">公式プリセットカタログ</p>
+      <p class="tagline-en">Official preset catalog for JPad</p>
+    </header>
+
+    <main class="layout">
+      <section class="panel intro">
+        <h1 class="intro-title">ワンキーで複雑なボイシングを試聴</h1>
+        <p class="intro-lead">
+          このサイトは <strong>JPad</strong> 向けの STORE 用プリセットを公開しています。カードを開いてパッドをタップすると Web MIDI で試聴できます（Chrome 推奨）。
+        </p>
+        <p class="intro-lead intro-lead-en">
+          Preview rich chord voicings from a single key. Import the same sets in the
+          <strong>JPad</strong> app under <strong>MY SETS → STORE</strong>.
+        </p>
+        <ol class="steps">
+          <li>iPhone / iPad に <strong>JPad</strong> をインストール</li>
+          <li>アプリで <strong>MY SETS</strong> → <strong>STORE</strong> を開く</li>
+          <li>一覧から同じタイトルのセットをタップして取り込み</li>
+        </ol>
+        <p id="midi-status" class="midi-status" aria-live="polite">MIDI: checking…</p>
+      </section>
+
+      <section id="catalog" class="catalog" aria-live="polite">
+        <p class="loading">Loading manifest…</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>© FLICKER PRODUCT · <span lang="en">JPad MIDI chord pads</span></p>
+      <p class="footer-meta">
+        <code>manifest.json</code> · <code>presets/*.json</code> ·
+        <code>/jcstore/</code>
+      </p>
+    </footer>
+
+    <script src="js/app.js" type="module"></script>
+  </body>
+</html>

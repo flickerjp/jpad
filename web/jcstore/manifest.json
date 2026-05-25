@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "updatedAt": "2026-05-19T09:38:40Z",
+  "baseURL": "https://flicker-jp.com/jcstore/",
+  "presets": [
+    {
+      "id": "bossa-acoustic",
+      "title": "Bossa Acoustic",
+      "description": "Bossa-style acoustic guitar",
+      "publishedAt": "2026-05-19",
+      "path": "presets/bossa-acoustic.json"
+    },
+    {
+      "id": "classic-hard-rock-organ-generic-1",
+      "title": "Classic Hard Rock Organ",
+      "description": "Classic Hard Rock organ chord",
+      "publishedAt": "2026-05-19",
+      "path": "presets/hard-rock-organ.json"
+    },
+    {
+      "id": "j-city-pop",
+      "title": "City Pop Bright m7/M7",
+      "description": "Bright Japanese city-pop chord",
+      "publishedAt": "2026-05-19",
+      "path": "presets/j-city-pop.json"
+    },
+    {
+      "id": "j-neo-soul",
+      "title": "Japanese R&B Neo-Soul",
+      "description": "A bright, modern Japanese R&B",
+      "publishedAt": "2026-05-19",
+      "path": "presets/j-neo-soul.json"
+    },
+    {
+      "id": "jazz-standard",
+      "title": "Generic Jazz progression",
+      "description": "Generic jazz progression set.",
+      "publishedAt": "2026-05-19",
+      "path": "presets/jazz-progression.json"
+    }
+  ]
+}

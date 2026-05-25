@@ -1,0 +1,326 @@
+{
+  "id": "classic-hard-rock-organ-generic-1",
+  "appName": "JChord",
+  "version": 2,
+  "setName": "Classic Hard Rock Organ",
+  "description": "Classic Hard Rock organ chord",
+  "copyrightPolicy": "This is an original generic practice set. It does not reproduce or name any copyrighted song, artist-specific song progression, melody, riff, or arrangement.",
+  "defaultPlaybackMode": "bassChord",
+  "autoBassOctave": false,
+  "defaultChannel": 1,
+  "defaultVelocity": 104,
+  "instrumentType": "rockOrgan",
+  "category": "hardRock",
+  "tags": [
+    "hard-rock",
+    "rock-organ",
+    "classic-rock",
+    "hammond-style",
+    "no-power-chords",
+    "generic"
+  ],
+  "maxNotesPerPad": 4,
+  "voicingPolicy": "Each pad uses 3 or 4 total notes. No pad is a 2-note root-fifth power chord.",
+  "pads": [
+    {
+      "id": 0,
+      "name": "C",
+      "displayName": "C",
+      "label": "C5add9",
+      "role": "I rock sus/add9",
+      "section": "A",
+      "bassNotes": [
+        36
+      ],
+      "chordNotes": [
+        55,
+        60,
+        62
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    },
+    {
+      "id": 1,
+      "name": "C#",
+      "displayName": "Db",
+      "label": "Db7sus4",
+      "role": "bII dominant sus",
+      "section": "C",
+      "bassNotes": [
+        37
+      ],
+      "chordNotes": [
+        56,
+        61,
+        66
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    },
+    {
+      "id": 2,
+      "name": "D",
+      "displayName": "D",
+      "label": "Dm7",
+      "role": "ii minor rock color",
+      "section": "A",
+      "bassNotes": [
+        38
+      ],
+      "chordNotes": [
+        57,
+        62,
+        65
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    },
+    {
+      "id": 3,
+      "name": "D#",
+      "displayName": "Eb",
+      "label": "Ebmaj7#11",
+      "role": "bIII bright organ",
+      "section": "B",
+      "bassNotes": [
+        39
+      ],
+      "chordNotes": [
+        58,
+        62,
+        67
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    },
+    {
+      "id": 4,
+      "name": "E",
+      "displayName": "E",
+      "label": "E7#9",
+      "role": "III altered rock organ",
+      "section": "B",
+      "bassNotes": [
+        40
+      ],
+      "chordNotes": [
+        56,
+        62,
+        67
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    },
+    {
+      "id": 5,
+      "name": "F",
+      "displayName": "F",
+      "label": "F6/9",
+      "role": "IV warm organ",
+      "section": "A",
+      "bassNotes": [
+        41
+      ],
+      "chordNotes": [
+        57,
+        62,
+        67
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    },
+    {
+      "id": 6,
+      "name": "F#",
+      "displayName": "F#",
+      "label": "F#7sus4",
+      "role": "tritone sus dominant",
+      "section": "C",
+      "bassNotes": [
+        42
+      ],
+      "chordNotes": [
+        59,
+        64,
+        66
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    },
+    {
+      "id": 7,
+      "name": "G",
+      "displayName": "G",
+      "label": "G7sus4",
+      "role": "V rock sus",
+      "section": "A",
+      "bassNotes": [
+        43
+      ],
+      "chordNotes": [
+        55,
+        60,
+        65
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    },
+    {
+      "id": 8,
+      "name": "G#",
+      "displayName": "Ab",
+      "label": "Abmaj7",
+      "role": "bVI dramatic",
+      "section": "B",
+      "bassNotes": [
+        44
+      ],
+      "chordNotes": [
+        56,
+        60,
+        63
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    },
+    {
+      "id": 9,
+      "name": "A",
+      "displayName": "A",
+      "label": "Am7",
+      "role": "vi minor organ",
+      "section": "C",
+      "bassNotes": [
+        45
+      ],
+      "chordNotes": [
+        55,
+        60,
+        64
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    },
+    {
+      "id": 10,
+      "name": "A#",
+      "displayName": "Bb",
+      "label": "Bbadd9",
+      "role": "bVII rock add9",
+      "section": "B",
+      "bassNotes": [
+        46
+      ],
+      "chordNotes": [
+        58,
+        62,
+        65
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    },
+    {
+      "id": 11,
+      "name": "B",
+      "displayName": "B",
+      "label": "B7b9",
+      "role": "VII tension dominant",
+      "section": "C",
+      "bassNotes": [
+        47
+      ],
+      "chordNotes": [
+        57,
+        62,
+        66
+      ],
+      "playbackMode": "bassChord",
+      "arpeggioPattern": "organ_stab"
+    }
+  ],
+  "arrangement": {
+    "description": "Generic A/B/C hard-rock organ movement. Pad list remains in low chromatic key order for copyright-safe sample distribution.",
+    "sections": [
+      {
+        "name": "A",
+        "pattern": [
+          "C5add9",
+          "G7sus4",
+          "F6/9",
+          "C5add9",
+          "Bbadd9",
+          "G7sus4"
+        ]
+      },
+      {
+        "name": "B",
+        "pattern": [
+          "Am7",
+          "Ebmaj7#11",
+          "F6/9",
+          "E7#9",
+          "Abmaj7",
+          "G7sus4"
+        ]
+      },
+      {
+        "name": "C",
+        "pattern": [
+          "D7sus4",
+          "F#7sus4",
+          "B7b9",
+          "E7#9",
+          "G7sus4",
+          "C5add9"
+        ]
+      }
+    ]
+  },
+  "arpeggioPatterns": [
+    {
+      "id": "organ_stab",
+      "name": "Organ Stab",
+      "description": "Immediate full chord stab with short gate for rock organ comping.",
+      "steps": [
+        {
+          "beat": 0.0,
+          "target": "bass",
+          "velocity": 104,
+          "duration": 0.55
+        },
+        {
+          "beat": 0.0,
+          "target": "chord",
+          "velocity": 96,
+          "duration": 0.55
+        }
+      ]
+    },
+    {
+      "id": "organ_push",
+      "name": "Organ Push",
+      "description": "Syncopated organ stab pattern for hard-rock comping preview.",
+      "steps": [
+        {
+          "beat": 0.0,
+          "target": "chord",
+          "velocity": 100,
+          "duration": 0.25
+        },
+        {
+          "beat": 0.75,
+          "target": "chord",
+          "velocity": 90,
+          "duration": 0.25
+        },
+        {
+          "beat": 1.5,
+          "target": "chord",
+          "velocity": 108,
+          "duration": 0.35
+        }
+      ]
+    }
+  ]
+}
