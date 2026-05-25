@@ -593,3 +593,13 @@
 
 **参照:** `git show cccfe57` / `git log -1 cccfe57`
 
+
+<!-- handover:auto:a1fe6201418ddd819b358138bbae60f04634c769 -->
+### 2026-05-25 19:29:16 +0900 — `a1fe620` — main
+
+**件名:** Initial import from JChord as standalone JPad repository.
+
+**作者:** FLICKER <tonekeisuke@gmail.com>
+
+**参照:** `git show a1fe620` / `git log -1 a1fe620`
+
