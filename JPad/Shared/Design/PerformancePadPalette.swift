@@ -46,16 +46,9 @@ enum PerformancePadPalette {
         return m >= 0 ? m : m + modulus
     }
 
-    /// メイン画面背景（ダークより一段暗く、パッドの発光を立たせる）
+    /// メイン画面背景（DARK と同じグレー。パッド色だけ FLASH 演出）
     static var screenBackground: LinearGradient {
-        LinearGradient(
-            colors: [
-                Color(red: 0.02, green: 0.03, blue: 0.06),
-                Color(red: 0.01, green: 0.015, blue: 0.03)
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
+        JPadChromeTheme.mainScreenBackground
     }
 
     /// Launchpad 系: 連続位相＋明度（待機スキャナー／ビートパルス）

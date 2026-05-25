@@ -149,11 +149,8 @@ struct PadEditorRootKeyboardView: View {
     }
 
     private func keyForeground(isSelected: Bool, isRegistered: Bool, isSounding: Bool) -> Color {
-        if isSounding {
-            return .white.opacity(0.96)
-        }
-        if style.usesMidiAccentHighlight, isRegistered {
-            return JChordTheme.midiDeviceSelectedForeground
+        if isSounding || (style.usesMidiAccentHighlight && (isSelected || isRegistered)) {
+            return JPadChromeTheme.buttonLabelFilled
         }
         return JChordTheme.text
     }
@@ -162,8 +159,14 @@ struct PadEditorRootKeyboardView: View {
         if isSounding {
             return AnyShapeStyle(JChordTheme.padActiveBackground)
         }
-        if style.usesMidiAccentHighlight, isRegistered {
-            return AnyShapeStyle(JChordTheme.midiDeviceSelectedBackground)
+        if style.usesMidiAccentHighlight {
+            if isSelected {
+                return AnyShapeStyle(JPadChromeTheme.accentGradient)
+            }
+            if isRegistered {
+                return AnyShapeStyle(JPadChromeTheme.buttonIdleFill)
+            }
+            return AnyShapeStyle(style.keyIdleBackground)
         }
         if isSelected {
             return AnyShapeStyle(style.keySelectedBackground)
@@ -177,12 +180,12 @@ struct PadEditorRootKeyboardView: View {
         }
         if style.usesMidiAccentHighlight {
             if isSelected {
-                return JChordTheme.midiDeviceSelectedBorder
+                return JPadChromeTheme.accentMid.opacity(0.55)
             }
             if isRegistered {
-                return JChordTheme.midiDeviceSelectedBorder
+                return JPadChromeTheme.buttonIdleBorder
             }
-            return JChordTheme.padBorder
+            return JPadChromeTheme.panelBorder
         }
         return Color.clear
     }

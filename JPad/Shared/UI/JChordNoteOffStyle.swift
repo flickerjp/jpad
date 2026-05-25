@@ -45,16 +45,6 @@ struct JChordNoteOffStyle: ButtonStyle {
         if isLocked {
             return AnyShapeStyle(JChordTheme.padActionLockedBackground)
         }
-        return AnyShapeStyle(
-            LinearGradient(
-                colors: [
-                    Color(red: 0.17, green: 0.20, blue: 0.28),
-                    Color(red: 0.10, green: 0.13, blue: 0.20),
-                    Color(red: 0.07, green: 0.09, blue: 0.15),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
+        return AnyShapeStyle(Color.clear)
     }
 }

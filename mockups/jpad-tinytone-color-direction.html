@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JPad TinyTone UI Direction</title>
+  <style>
+    :root {
+      --app-bg: #333333;
+      --panel: #3d3d3d;
+      --panel-2: #454545;
+      --panel-border: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.90);
+      --muted: rgba(255,255,255,.80);
+      --quiet: rgba(255,255,255,.58);
+      --pad-top: #4a4a4a;
+      --pad-bottom: #2d2d2d;
+      --pad-border: rgba(255,255,255,.18);
+      --accent-light: #f5ad52;
+      --accent-mid: #db7a1a;
+      --accent-deep: #ad5705;
+      --green: #5dcc75;
+      --radius: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #242424;
+      color: var(--text);
+      padding: 28px;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: end;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .note {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      max-width: 720px;
+    }
+
+    .meta {
+      color: var(--quiet);
+      font-size: 12px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(360px, 414px) minmax(360px, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .phone {
+      background: var(--app-bg);
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 28px;
+      padding: 14px 10px 12px;
+      box-shadow: 0 18px 42px rgba(0,0,0,.35);
+    }
+
+    .screen {
+      height: 760px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--app-bg);
+      display: grid;
+      grid-template-rows: 46px 1fr 78px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 36px 1fr 36px;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius);
+      border: 1px solid var(--panel-border);
+      background: var(--panel);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .set-name {
+      min-width: 0;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+
+    .status {
+      color: var(--quiet);
+      font-size: 10px;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 4px;
+      border-radius: 50%;
+      background: var(--green);
+      vertical-align: 0;
+    }
+
+    .pad-grid {
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: 1fr;
+      gap: 8px;
+    }
+
+    .pad {
+      border-radius: 10px;
+      border: 1.25px solid var(--pad-border);
+      background: linear-gradient(145deg, var(--pad-top), var(--pad-bottom));
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: end;
+      min-height: 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .pad.active {
+      color: rgba(255,255,255,.96);
+      border-color: rgba(245,173,82,.54);
+      background: linear-gradient(145deg, var(--accent-light), var(--accent-mid) 55%, var(--accent-deep));
+      box-shadow: 0 0 0 2px rgba(245,173,82,.12), 0 0 22px rgba(219,122,26,.22);
+    }
+
+    .pad.flash-blue {
+      border-color: rgba(118,158,184,.42);
+      box-shadow: inset 0 0 22px rgba(118,158,184,.18);
+    }
+
+    .pad.flash-green {
+      border-color: rgba(135,174,139,.42);
+      box-shadow: inset 0 0 22px rgba(135,174,139,.16);
+    }
+
+    .pad-title {
+      font-size: 18px;
+      line-height: 1.08;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .pad-sub {
+      margin-top: 3px;
+      color: rgba(255,255,255,.62);
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .bottom {
+      padding: 8px 10px 10px;
+      border-top: 1px solid rgba(255,255,255,.07);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .action {
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 750;
+      display: grid;
+      place-items: center;
+    }
+
+    .action.hold {
+      border-color: rgba(245,173,82,.55);
+      color: #ffe1bd;
+      background: rgba(219,122,26,.22);
+    }
+
+    .panel {
+      background: var(--app-bg);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(110px, 1fr));
+      gap: 8px;
+    }
+
+    .swatch {
+      min-height: 76px;
+      border-radius: var(--radius);
+      border: 1px solid var(--panel-border);
+      padding: 9px;
+      background: var(--fill);
+      color: var(--label, var(--text));
+      display: flex;
+      flex-direction: column;
+      justify-content: end;
+    }
+
+    .swatch strong {
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .swatch code {
+      margin-top: 4px;
+      color: currentColor;
+      opacity: .76;
+      font-size: 11px;
+    }
+
+    .rules {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+    .rule {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .rule b {
+      display: block;
+      color: var(--text);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .flash-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .flash {
+      height: 70px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(145deg, #474747, #303030);
+      box-shadow: inset 0 0 24px var(--glow);
+      display: grid;
+      place-items: center;
+      color: rgba(255,255,255,.86);
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    @media (max-width: 860px) {
+      body { padding: 16px; }
+      header { display: block; }
+      .meta { text-align: left; margin-top: 8px; }
+      .layout { grid-template-columns: 1fr; }
+      .phone { max-width: 414px; }
+      .swatches { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+      .rules { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>JPad UI Refresh / TinyTone Alignment</h1>
+        <p class="note">色トークン確認用。実装モックは <code>jpad-main-screen.html</code> を正とする。FLASH は現行 Launchpad 5 色（暗いグレー FLASH は使わない）。</p>
+      </div>
+      <div class="meta">Target: build 118+<br>Not a web page design</div>
+    </header>
+
+    <section class="layout">
+      <div class="phone">
+        <div class="screen">
+          <div class="topbar">
+            <div class="icon-btn">‹</div>
+            <div class="set-name">
+              J Neo Soul
+              <div class="status"><span class="dot"></span>TinyTone ready</div>
+            </div>
+            <div class="icon-btn">⚙</div>
+          </div>
+
+          <div class="pad-grid">
+            <div class="pad"><div class="pad-title">maj9</div><div class="pad-sub">C</div></div>
+            <div class="pad active"><div class="pad-title">m11</div><div class="pad-sub">D</div></div>
+            <div class="pad"><div class="pad-title">13sus</div><div class="pad-sub">G</div></div>
+            <div class="pad flash-blue"><div class="pad-title">add9</div><div class="pad-sub">F</div></div>
+            <div class="pad"><div class="pad-title">7alt</div><div class="pad-sub">Bb</div></div>
+            <div class="pad flash-green"><div class="pad-title">m9</div><div class="pad-sub">A</div></div>
+            <div class="pad"><div class="pad-title">dim7</div><div class="pad-sub">B</div></div>
+            <div class="pad"><div class="pad-title">6/9</div><div class="pad-sub">Eb</div></div>
+            <div class="pad"><div class="pad-title">sus4</div><div class="pad-sub">G</div></div>
+            <div class="pad"><div class="pad-title">m7</div><div class="pad-sub">C</div></div>
+            <div class="pad"><div class="pad-title">maj7</div><div class="pad-sub">F</div></div>
+            <div class="pad"><div class="pad-title">7</div><div class="pad-sub">G</div></div>
+          </div>
+
+          <div class="bottom">
+            <div class="action">RESET</div>
+            <div class="action hold">HOLD</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid; gap:14px;">
+        <section class="panel">
+          <h2>Color Tokens</h2>
+          <div class="swatches">
+            <div class="swatch" style="--fill:#333333"><strong>appBackground</strong><code>#333333</code></div>
+            <div class="swatch" style="--fill:#3d3d3d"><strong>panelBackground</strong><code>#3D3D3D</code></div>
+            <div class="swatch" style="--fill:#4a4a4a"><strong>padIdleTop</strong><code>#4A4A4A</code></div>
+            <div class="swatch" style="--fill:#2d2d2d"><strong>padIdleBottom</strong><code>#2D2D2D</code></div>
+            <div class="swatch" style="--fill:linear-gradient(145deg,#f5ad52,#db7a1a 55%,#ad5705);--label:#fff"><strong>TinyTone Orange</strong><code>#F5AD52 / #DB7A1A / #AD5705</code></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Implementation Rules</h2>
+          <div class="rules">
+            <div class="rule"><b>PAD idle</b>グレー面を基本にする。待機状態をオレンジやカラフルな面にしない。</div>
+            <div class="rule"><b>PAD active</b>タップ、発音中、HOLD active だけ TinyTone オレンジのグラデーションを使う。</div>
+            <div class="rule"><b>Typography</b>UI ラベルは 10-12pt、セット名は 15pt 目安。PAD 名のみ 18-22pt で残す。</div>
+            <div class="rule"><b>Chrome</b>角丸は 8-10pt 基準。大きいカード感や濃紺グラデーションを減らす。</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>FLASH Direction</h2>
+          <div class="flash-row">
+            <div class="flash" style="--glow:rgba(245,173,82,.34)">Amber</div>
+            <div class="flash" style="--glow:rgba(155,165,172,.24)">Cool Gray</div>
+            <div class="flash" style="--glow:rgba(118,158,184,.28)">Soft Blue</div>
+            <div class="flash" style="--glow:rgba(135,174,139,.26)">Soft Green</div>
+            <div class="flash" style="--glow:rgba(161,139,178,.24)">Soft Violet</div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

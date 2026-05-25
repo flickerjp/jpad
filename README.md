@@ -31,8 +31,8 @@ Scheme: **JPad**
 ## App Store identity (unchanged from JChord)
 
 - Bundle ID: `com.flickerproduct.jchord` (same App Store app)
-- Build (`CURRENT_PROJECT_VERSION`): **117** — continue incrementing from JChord; do not reset
-- Marketing version: `1.0.17`
+- Build (`CURRENT_PROJECT_VERSION`): **118** — continue incrementing from JChord; do not reset
+- Marketing version: `1.0.18`
 - Pro subscription: `com.jflickeys.jchord.pro.yearly`
 
 Preset file extensions (`.jchord`, `.jpd`, etc.) remain compatible.

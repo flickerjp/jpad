@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct PadView: View {
+    /// EDIT 時のコード名（待機）
+    private static let editModeChordColor = Color.white.opacity(0.5)
+
     let pad: PadDefinition
     let visualStyle: PadVisualStyle
     let isMidiReady: Bool
@@ -104,6 +107,7 @@ struct PadView: View {
     }
 
     private var padOpacity: Double {
+        if isEditMode, isMidiReady { return 1 }
         guard !isMidiReady else { return 1 }
         return usesPerformanceLook ? 0.7 : 0.55
     }
@@ -132,42 +136,23 @@ struct PadView: View {
     @ViewBuilder
     private var editPianoPreviewControl: some View {
         let controlSize = min(52, max(44, sideLength * 0.32))
-        let controlShape = RoundedRectangle(cornerRadius: 10, style: .continuous)
-        Image(systemName: Self.editNotesIconName)
-            .font(.system(size: controlSize * 0.52, weight: .semibold))
-            .foregroundStyle(editPianoPreviewForeground)
-            .frame(width: controlSize, height: controlSize)
-            .background(editPianoPreviewBackground, in: controlShape)
-            .overlay(
-                controlShape
-                    .strokeBorder(editPianoPreviewBorder, lineWidth: isPianoPreviewPressed || isPlaying ? 1.6 : 1.25)
-            )
-            .padding(10)
-            .contentShape(controlShape)
-            .gesture(editPianoPreviewGesture)
-            .accessibilityAddTraits(.isButton)
-            .accessibilityLabel(L10n.string("main.edit_pad_preview.accessibility"))
-    }
+        let isPressed = isPianoPreviewPressed || isPlaying
+        let shape = RoundedRectangle(
+            cornerRadius: JPadPianoChromeStyle.cornerRadius(for: controlSize),
+            style: .continuous
+        )
 
-    private var editPianoPreviewForeground: Color {
-        if isPianoPreviewPressed || isPlaying {
-            return .white.opacity(0.96)
-        }
-        return JChordTheme.midiAccentGlyph
-    }
-
-    private var editPianoPreviewBackground: some ShapeStyle {
-        if isPianoPreviewPressed || isPlaying {
-            return AnyShapeStyle(JChordTheme.padActiveBackground)
-        }
-        return AnyShapeStyle(JChordTheme.midiDeviceSelectedBackground)
-    }
-
-    private var editPianoPreviewBorder: Color {
-        if isPianoPreviewPressed || isPlaying {
-            return Color.white.opacity(0.28)
-        }
-        return JChordTheme.midiDeviceSelectedBorder
+        JPadPianoChromeIcon(
+            size: controlSize,
+            isPressed: isPressed,
+            isEnabled: isMidiReady,
+            editMode: true
+        )
+        .padding(10)
+        .contentShape(shape)
+        .gesture(editPianoPreviewGesture)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel(L10n.string("main.edit_pad_preview.accessibility"))
     }
 
     private var labelContent: some View {
@@ -225,6 +210,9 @@ struct PadView: View {
     private var foregroundColor: Color {
         if usesPerformanceLook {
             return PerformancePadPalette.labelForeground
+        }
+        if isEditMode {
+            return isVisuallyActive ? .white.opacity(0.96) : Self.editModeChordColor
         }
         if isVisuallyActive {
             return .white.opacity(0.96)

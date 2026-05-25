@@ -33,7 +33,7 @@ final class MidiOutputService: ObservableObject {
     @Published var isTestNoteEnabled = false
     @Published var midiChannel: Int = 1
     @Published private(set) var previewSoundPresetOptions: [PreviewSoundPresetOption] = []
-    @Published private(set) var selectedPreviewSoundPresetID = PreviewSoundPresetIDs.tinyTone
+    @Published private(set) var selectedPreviewSoundPresetID = PreviewSoundPresetIDs.tinyPiano
 
     private var outputChannelIndex: UInt8 = 0
     private var velocity: UInt8
@@ -867,16 +867,16 @@ final class MidiOutputService: ObservableObject {
         if let stored, previewSoundPresetOptions.contains(where: { $0.id == stored }) {
             resolved = stored
         } else {
-            resolved = PreviewSoundPresetIDs.tinyTone
+            resolved = PreviewSoundPresetIDs.tinyPiano
         }
 
         selectedPreviewSoundPresetID = resolved
         do {
             try applyPreviewSoundPreset(id: resolved, startEngineIfNeeded: false)
         } catch {
-            selectedPreviewSoundPresetID = PreviewSoundPresetIDs.tinyTone
-            UserDefaults.standard.set(PreviewSoundPresetIDs.tinyTone, forKey: Self.previewSoundSelectedPresetIDKey)
-            try? applyPreviewSoundPreset(id: PreviewSoundPresetIDs.tinyTone, startEngineIfNeeded: false)
+            selectedPreviewSoundPresetID = PreviewSoundPresetIDs.tinyPiano
+            UserDefaults.standard.set(PreviewSoundPresetIDs.tinyPiano, forKey: Self.previewSoundSelectedPresetIDKey)
+            try? applyPreviewSoundPreset(id: PreviewSoundPresetIDs.tinyPiano, startEngineIfNeeded: false)
         }
     }
 

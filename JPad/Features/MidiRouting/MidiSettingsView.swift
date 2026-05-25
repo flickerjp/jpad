@@ -45,17 +45,16 @@ struct MidiSettingsView: View {
                     SettingsCreditFooter(text: AppBuildIdentity.settingsCreditMarqueeText)
                         .padding(.horizontal, 18)
                         .padding(.vertical, 10)
-                        .background(JChordTheme.popupPanel)
                 }
 
                 Button {
                     dismiss()
                 } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(JChordTheme.text)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(JPadChromeTheme.primaryLabel)
                         .frame(width: 36, height: 36)
-                        .background(Color.white.opacity(0.08), in: Circle())
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 12)
@@ -67,7 +66,7 @@ struct MidiSettingsView: View {
         .jChordPopupSheetBackground()
         .jChordSheetOuterBorder()
         .fullScreenCover(isPresented: $isShowingHelpGuide) {
-            OnboardingView(midiService: midiService, style: .help) {
+            GarageBandHelpView {
                 isShowingHelpGuide = false
             }
         }

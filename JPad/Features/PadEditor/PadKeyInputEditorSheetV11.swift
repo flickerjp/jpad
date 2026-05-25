@@ -251,20 +251,34 @@ struct PadKeyInputEditorSheetV11: View {
     ) -> some View {
         if showsCancelButton {
             HStack(spacing: padLayout.gridSpacing) {
-                Button(leadingTitle, action: leadingAction)
-                    .buttonStyle(JChordEditorActionButtonStyle(primary: leadingIsPrimary))
-                    .frame(width: v11FooterButtonWidth, height: metrics.actionButtonHeight)
+                JPadChromeDockButton(
+                    title: leadingTitle,
+                    style: .outline,
+                    width: v11FooterButtonWidth,
+                    height: metrics.actionButtonHeight,
+                    action: leadingAction
+                )
 
-                Button(L10n.string("pad_editor.set"), action: onSet)
-                    .buttonStyle(JChordEditorActionButtonStyle(primary: true))
-                    .frame(width: v11FooterButtonWidth, height: metrics.actionButtonHeight)
+                JPadChromeDockButton(
+                    title: L10n.string("pad_editor.set"),
+                    style: .accentToggle,
+                    isOn: true,
+                    width: v11FooterButtonWidth,
+                    height: metrics.actionButtonHeight,
+                    action: onSet
+                )
             }
             .frame(width: metrics.v11PopupInnerWidth, height: metrics.actionButtonHeight)
         } else {
-            Button(L10n.string("pad_editor.set"), action: onSet)
-                .buttonStyle(JChordEditorActionButtonStyle(primary: true))
-                .frame(width: v11FooterButtonWidth, height: metrics.actionButtonHeight)
-                .frame(width: metrics.v11PopupInnerWidth, height: metrics.actionButtonHeight)
+            JPadChromeDockButton(
+                title: L10n.string("pad_editor.set"),
+                style: .accentToggle,
+                isOn: true,
+                width: v11FooterButtonWidth,
+                height: metrics.actionButtonHeight,
+                action: onSet
+            )
+            .frame(width: metrics.v11PopupInnerWidth, height: metrics.actionButtonHeight)
         }
     }
 
@@ -480,7 +494,7 @@ struct PadKeyInputEditorSheetV11: View {
     }
 }
 
-/// 鍵盤アイコン試聴（TEST NOTE と同じ渋オレンジ／押下で明るいオレンジ）。
+/// 鍵盤アイコン試聴（EDIT パッド右上と同じ TinyTone オレンジ＋白鍵盤）。
 private struct PadEditorPianoPreviewButton: View {
     let usesMidiAccentIdle: Bool
     let size: CGFloat
@@ -488,62 +502,32 @@ private struct PadEditorPianoPreviewButton: View {
 
     @State private var isPressed = false
 
-    private var iconShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: max(10, size * 0.22), style: .continuous)
-    }
-
     var body: some View {
-        Image(systemName: PadView.editNotesIconName)
-            .font(.system(size: size * 0.52, weight: .semibold))
-            .foregroundStyle(foregroundColor)
-            .frame(width: size, height: size)
-            .background(backgroundFill, in: iconShape)
-            .overlay(iconShape.strokeBorder(borderColor, lineWidth: isPressed ? 2 : 1))
-            .contentShape(iconShape)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        guard usesMidiAccentIdle, !isPressed else { return }
-                        isPressed = true
-                        onPressChanged(true)
-                    }
-                    .onEnded { _ in
-                        releaseIfNeeded()
-                    }
-            )
-            .onDisappear {
-                releaseIfNeeded()
-            }
-    }
+        let shape = RoundedRectangle(
+            cornerRadius: JPadPianoChromeStyle.cornerRadius(for: size),
+            style: .continuous
+        )
 
-    private var foregroundColor: Color {
-        if isPressed {
-            return .white.opacity(0.96)
+        JPadPianoChromeIcon(
+            size: size,
+            isPressed: isPressed,
+            isEnabled: usesMidiAccentIdle
+        )
+        .contentShape(shape)
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    guard usesMidiAccentIdle, !isPressed else { return }
+                    isPressed = true
+                    onPressChanged(true)
+                }
+                .onEnded { _ in
+                    releaseIfNeeded()
+                }
+        )
+        .onDisappear {
+            releaseIfNeeded()
         }
-        if usesMidiAccentIdle {
-            return JChordTheme.midiAccentGlyph
-        }
-        return JChordTheme.text.opacity(0.45)
-    }
-
-    private var backgroundFill: some ShapeStyle {
-        if isPressed {
-            return AnyShapeStyle(JChordTheme.padActiveBackground)
-        }
-        if usesMidiAccentIdle {
-            return AnyShapeStyle(JChordTheme.midiDeviceSelectedBackground)
-        }
-        return AnyShapeStyle(Color.clear)
-    }
-
-    private var borderColor: Color {
-        if isPressed {
-            return Color.white.opacity(0.28)
-        }
-        if usesMidiAccentIdle {
-            return JChordTheme.midiDeviceSelectedBorder
-        }
-        return Color.clear
     }
 
     private func releaseIfNeeded() {

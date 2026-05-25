@@ -37,41 +37,30 @@ struct JChordDeviceRow: View {
 
     private var foregroundColor: Color {
         guard isEnabled else { return JChordTheme.muted }
-        if isSelected {
-            return JChordTheme.midiDeviceSelectedForeground
-        }
-        if isReceiving {
-            return JChordTheme.midiDeviceSelectedForeground
+        if isHighlighted {
+            return JPadOrangeChromeStyle.foreground(isPressed: false, isAccentOn: false)
         }
         return JChordTheme.text
     }
 
     private var subtitleColor: Color {
-        if isSelected {
-            return JChordTheme.midiDeviceSelectedSubtitle
-        }
-        if isReceiving {
-            return JChordTheme.midiDeviceSelectedSubtitle
+        if isHighlighted {
+            return JPadOrangeChromeStyle.foreground(isPressed: false, isAccentOn: false).opacity(0.82)
         }
         return JChordTheme.muted
     }
 
+    /// PAD OUT / MIDI IN の選択・Active は ORANGE-A。
     private var backgroundStyle: AnyShapeStyle {
-        if isReceiving {
-            return AnyShapeStyle(JChordTheme.midiDeviceSelectedBackground)
-        }
-        if isSelected {
-            return AnyShapeStyle(JChordTheme.midiDeviceSelectedBackground)
+        if isHighlighted {
+            return JPadOrangeChromeStyle.background(isPressed: false, isAccentOn: false)
         }
         return AnyShapeStyle(Color.white.opacity(0.05))
     }
 
     private var borderColor: Color {
-        if isSelected {
-            return JChordTheme.midiDeviceSelectedBorder
-        }
-        if isReceiving {
-            return JChordTheme.midiDeviceSelectedBorder
+        if isHighlighted {
+            return JPadOrangeChromeStyle.border(isPressed: false, isAccentOn: false)
         }
         return Color.white.opacity(0.1)
     }

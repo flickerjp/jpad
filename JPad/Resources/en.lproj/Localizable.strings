@@ -69,7 +69,7 @@
 "alert.duplicate_requires_pro" = "Duplicating sets requires JPad Pro.";
 
 /* JPad Yearly */
-"pro.picker.purchase" = "Buy";
+"pro.picker.purchase" = "BUY";
 "pro.picker.purchase.accessibility" = "Buy JPad Yearly";
 "pro.upgrade.purchase_success" = "JPad Yearly is now active. You can share, import, and duplicate sets.";
 "pro.upgrade.title" = "JPad Yearly";
@@ -119,7 +119,8 @@
 
 /* Onboarding */
 "onboarding.title" = "Welcome to JPad";
-"onboarding.subtitle" = "Connect with GarageBand and start playing.";
+"onboarding.subtitle" = "Play right away with TinyTone's built-in sounds. Choose your sound and pad style below.";
+"help.garageband.title" = "Connecting to GarageBand";
 "onboarding.garageband.title" = "GarageBand Setup";
 "onboarding.garageband.step1" = "Open GarageBand and create a song, or open one you already use.";
 "onboarding.garageband.step2" = "Add a Software Instrument track (Keyboard, Synth, etc.).";
@@ -128,10 +129,13 @@
 "onboarding.garageband.step5" = "Hold TEST NOTE and confirm GarageBand receives MIDI.";
 "onboarding.continue" = "Continue to JPad";
 "onboarding.close" = "Close";
+"onboarding.sound" = "SOUND";
+"onboarding.note" = "NOTE";
+"onboarding.note.accessibility" = "Preview selected sound";
 
 /* Settings */
-"settings.help" = "HELP";
-"settings.help.accessibility" = "Open setup guide";
+"settings.help" = "Connecting to GarageBand";
+"settings.help.accessibility" = "Open GarageBand connection guide";
 "settings.preview_sound.label" = "PRESET";
 "settings.preview_sound.picker.accessibility" = "Built-in sound preset";
 "settings.preview_sound.load.accessibility" = "Load custom TinyTone JSON as the sixth preset";
@@ -158,7 +162,7 @@
 "settings.pad_out.tiny_piano" = "TinyTone";
 "settings.pad_out.tiny_piano.subtitle" = "Built-in lightweight sound for checking notes and chords.";
 "settings.pad_out.tiny_piano.helper" = "Plays pads inside the app. When Active, TEST NOTE and performance pads use this sound.";
-"settings.keyboard_in" = "KEYBOARD IN";
+"settings.keyboard_in" = "MIDI IN";
 "settings.pad_out_ch" = "MIDI OUT CH";
 "settings.test_note" = "TEST NOTE";
 "settings.test_note.accessibility" = "Test note";

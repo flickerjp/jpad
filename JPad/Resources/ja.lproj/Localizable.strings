@@ -110,7 +110,8 @@
 
 /* Onboarding（日本語） */
 "onboarding.title" = "JPadへようこそ";
-"onboarding.subtitle" = "GarageBandと連携して演奏を始めましょう";
+"onboarding.subtitle" = "TinyToneの内蔵音源ですぐに弾けます。音色とパッドの見た目は下で設定できます。";
+"help.garageband.title" = "GarageBandとつなぐには";
 "onboarding.garageband.title" = "GarageBand の設定";
 "onboarding.garageband.step1" = "GarageBand を開き、曲を新規作成するか、既存の曲を開きます。";
 "onboarding.garageband.step2" = "ソフトウェア楽器トラック（キーボード、シンセなど）を追加します。";
@@ -119,10 +120,13 @@
 "onboarding.garageband.step5" = "TEST NOTE を押し続け、GarageBand に MIDI が届くことを確認します。";
 "onboarding.continue" = "JPad をはじめる";
 "onboarding.close" = "閉じる";
+"onboarding.sound" = "SOUND";
+"onboarding.note" = "NOTE";
+"onboarding.note.accessibility" = "選択中の音色を試聴";
 
 /* Settings（PAD OUT 以下は英語のまま） */
-"settings.help" = "HELP";
-"settings.help.accessibility" = "Open setup guide";
+"settings.help" = "GarageBandとつなぐには";
+"settings.help.accessibility" = "GarageBandとつなぐ手順を開く";
 "settings.preview_sound.label" = "PRESET";
 "settings.preview_sound.picker.accessibility" = "内蔵音色プリセット";
 "settings.preview_sound.load.accessibility" = "TinyTone JSON を6番目のカスタム音色として読み込む";
@@ -149,7 +153,7 @@
 "settings.pad_out.tiny_piano" = "TinyTone";
 "settings.pad_out.tiny_piano.subtitle" = "Built-in lightweight sound for checking notes and chords.";
 "settings.pad_out.tiny_piano.helper" = "アプリ内でパッド音を鳴らします。Active 表示のとき TEST NOTE と演奏パッドがこの音源を使います。";
-"settings.keyboard_in" = "KEYBOARD IN";
+"settings.keyboard_in" = "MIDI IN";
 "settings.pad_out_ch" = "MIDI OUT CH";
 "settings.test_note" = "TEST NOTE";
 "settings.test_note.accessibility" = "Test note";

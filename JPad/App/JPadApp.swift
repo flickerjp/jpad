@@ -10,7 +10,7 @@ struct JPadApp: App {
         WindowGroup {
             Group {
                 if showOnboarding {
-                    OnboardingView(midiService: viewModel.midiService, style: .firstLaunch) {
+                    OnboardingView(midiService: viewModel.midiService) {
                         OnboardingStore.markCompleted()
                         showOnboarding = false
                         viewModel.consumePendingPresetImportIfNeeded()

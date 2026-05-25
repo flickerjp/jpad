@@ -76,7 +76,7 @@ struct MainView: View {
                     if usesPerformanceMainChrome {
                         PerformancePadPalette.screenBackground
                     } else {
-                        JChordTheme.background
+                        JPadChromeTheme.mainScreenBackground
                     }
                 }
                 .ignoresSafeArea()
@@ -355,7 +355,7 @@ struct MainView: View {
                 PadView(
                     pad: pad,
                     visualStyle: padVisualStyleForPad,
-                    isMidiReady: viewModel.canEditPads && !viewModel.isPadEditMode,
+                    isMidiReady: viewModel.canEditPads,
                     isEditMode: viewModel.isPadEditMode,
                     isSelected: viewModel.isPadEditMode && viewModel.selectedPadID == pad.id,
                     isPlaying: viewModel.canEditPads && viewModel.playingPadID == pad.id,
@@ -836,15 +836,12 @@ struct MainView: View {
             .padding(.horizontal, layout.isLandscape ? 120 : 100)
 
             HStack(spacing: 8) {
-                Button(viewModel.isPadEditMode ? L10n.string("main.done") : L10n.string("main.edit")) {
-                    viewModel.toggleEditMode()
-                }
-                .buttonStyle(
-                    JChordTopActionStyle(
-                        compact: layout.cellSide < 64,
-                        isActive: viewModel.isPadEditMode,
-                        appearance: viewModel.canEditPads ? .midiAccentToggle : .neutral
-                    )
+                JPadChromeDockButton(
+                    title: viewModel.isPadEditMode ? L10n.string("main.done") : L10n.string("main.edit"),
+                    style: viewModel.isPadEditMode ? .accentToggle : .outline,
+                    isOn: viewModel.isPadEditMode,
+                    size: .compact,
+                    action: { viewModel.toggleEditMode() }
                 )
                 .disabled(!viewModel.canEditPads)
                 .opacity(viewModel.canEditPads ? 1 : 0.35)
@@ -894,8 +891,8 @@ struct MainView: View {
     ) -> some View {
         HStack(alignment: .center, spacing: layout.midiSliderLabelSpacing) {
             Text(title)
-                .font(.system(size: layout.midiSliderLabelSize, weight: .bold))
-                .foregroundStyle(JChordTheme.muted)
+                .font(.system(size: layout.midiSliderLabelSize, weight: .semibold))
+                .foregroundStyle(JPadChromeTheme.primaryLabel)
                 .frame(width: layout.midiSliderLabelWidth, alignment: .leading)
 
             JChordMidiSlider(
@@ -910,69 +907,50 @@ struct MainView: View {
     }
 
     private func bottomButtons(layout: JChordPadLayout) -> some View {
-        HStack(spacing: layout.gridSpacing) {
-            setCycleButton(
-                title: "<",
-                layout: layout,
-                enabled: viewModel.canNavigateRotationSlots,
-                accessibilityLabel: L10n.string("main.set_previous.accessibility"),
+        let side = layout.noteOffHeight
+        let dockFontSize = JPadOrangeChromeStyle.metrics(for: .standard).fontSize
+
+        return HStack(spacing: layout.gridSpacing) {
+            JPadSetCycleChevronButton(
+                systemImage: "chevron.left",
+                isEnabled: viewModel.canNavigateRotationSlots,
+                size: side,
                 action: { viewModel.selectPreviousRotationSlot() }
             )
+            .accessibilityLabel(L10n.string("main.set_previous.accessibility"))
 
-            Button(L10n.string("main.reset")) {
-                viewModel.sendAllNotesOff()
-            }
-            .buttonStyle(
-                JChordNoteOffStyle(
-                    primary: true,
-                    fontSize: layout.noteOffFontSize,
-                    height: layout.noteOffHeight
-                )
+            JPadChromeDockButton(
+                title: L10n.string("main.reset"),
+                style: .outline,
+                fontSize: dockFontSize,
+                width: layout.cellSide,
+                height: layout.noteOffHeight,
+                action: { viewModel.sendAllNotesOff() }
             )
-            .frame(width: layout.cellSide, height: layout.noteOffHeight)
             .accessibilityLabel(L10n.string("main.reset"))
 
-            Button(L10n.string("main.hold")) {
-                viewModel.toggleHold()
-            }
-            .buttonStyle(
-                JChordNoteOffStyle(
-                    isActive: viewModel.isHoldEnabled,
-                    fontSize: layout.noteOffFontSize,
-                    height: layout.noteOffHeight
-                )
+            JPadChromeDockButton(
+                title: L10n.string("main.hold"),
+                style: .accentToggle,
+                isOn: viewModel.isHoldEnabled,
+                fontSize: dockFontSize,
+                width: layout.cellSide,
+                height: layout.noteOffHeight,
+                action: { viewModel.toggleHold() }
             )
             .jChordGentlePulse(viewModel.isHoldEnabled)
-            .frame(width: layout.cellSide, height: layout.noteOffHeight)
+            .accessibilityLabel(L10n.string("main.hold"))
 
-            setCycleButton(
-                title: ">",
-                layout: layout,
-                enabled: viewModel.canNavigateRotationSlots,
-                accessibilityLabel: L10n.string("main.set_next.accessibility"),
+            JPadSetCycleChevronButton(
+                systemImage: "chevron.right",
+                isEnabled: viewModel.canNavigateRotationSlots,
+                size: side,
                 action: { viewModel.selectNextRotationSlot() }
             )
+            .accessibilityLabel(L10n.string("main.set_next.accessibility"))
         }
         .frame(height: layout.noteOffHeight)
         .frame(maxWidth: .infinity, alignment: .center)
-    }
-
-    private func setCycleButton(
-        title: String,
-        layout: JChordPadLayout,
-        enabled: Bool,
-        accessibilityLabel: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: layout.noteOffFontSize, weight: .heavy))
-                .foregroundStyle(enabled ? JChordTheme.text : JChordTheme.muted.opacity(0.5))
-                .frame(width: layout.noteOffHeight, height: layout.noteOffHeight)
-        }
-        .buttonStyle(.plain)
-        .disabled(!enabled)
-        .accessibilityLabel(accessibilityLabel)
     }
 }
 

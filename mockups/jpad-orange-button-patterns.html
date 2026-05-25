@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JPad オレンジボタン（統一仕様）</title>
+  <style>
+    :root {
+      --app-bg: #333;
+      --panel: #3d3d3d;
+      --panel-border: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.90);
+      --muted: rgba(255,255,255,.80);
+      --quiet: rgba(255,255,255,.55);
+      --accent-light: #f5ad52;
+      --accent-mid: #db7a1a;
+      --accent-deep: #ad5705;
+      --grad: linear-gradient(180deg, var(--accent-light) 0%, var(--accent-mid) 52%, var(--accent-deep) 100%);
+      --idle-fill: rgba(219, 122, 26, 0.32);
+      --idle-border: #db7a1a;
+      --grey-grad: linear-gradient(135deg, #4a4a4a, #2e2e2e);
+      --outline: rgba(255,255,255,.85);
+      --r: 14px;
+      --h-std: 44px;
+      --h-sm: 28px;
+      --fs-std: 16px;
+      --fs-sm: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #242424; color: var(--text); padding: 28px 20px 40px; line-height: 1.5; }
+    main { max-width: 720px; margin: 0 auto; display: grid; gap: 20px; }
+    h1 { margin: 0; font-size: 24px; }
+    h2 { margin: 0 0 10px; font-size: 15px; color: var(--accent-light); }
+    p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+    .panel { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 14px; padding: 18px; }
+    .hero { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; padding: 16px; background: rgba(0,0,0,.25); border-radius: 12px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 800; border: 1px solid transparent; user-select: none;
+    }
+    .std { height: var(--h-std); min-width: 96px; padding: 0 14px; border-radius: var(--r); font-size: var(--fs-std); }
+    .pill { height: var(--h-sm); padding: 0 12px; border-radius: 999px; font-size: var(--fs-sm); }
+    .a { background: var(--idle-fill); border-color: var(--idle-border); color: var(--text); }
+    .g { background: var(--grad); border-color: rgba(255,255,255,.28); color: rgba(255,255,255,.95); }
+    .grey { background: var(--grey-grad); border-color: var(--panel-border); color: var(--quiet); }
+    .white { background: transparent; border-color: var(--outline); color: var(--text); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--panel-border); vertical-align: top; }
+    th { color: var(--quiet); width: 30%; }
+    code { font-size: 11px; color: #f0c080; }
+    .id { font-size: 11px; font-weight: 800; color: var(--accent-light); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>オレンジボタン — 3 種類だけ</h1>
+      <p>指示はこの3つ＋白枠・グレーで足ります。実装は <code>JPadOrangeChromeStyle.swift</code>。</p>
+    </header>
+
+    <section class="panel">
+      <h2>1. ORANGE-A — 待機・選択（形の正解 = DARK）</h2>
+      <div class="hero">
+        <span class="btn std a">DARK</span>
+        <span class="btn std a">NOTE</span>
+        <span class="btn std a">HOLD</span>
+      </div>
+      <table>
+        <tr><th>寸法</th><td>高さ <strong>44</strong> · 角丸 <strong>14</strong> · 文字 <strong>16pt heavy</strong></td></tr>
+        <tr><th>色</th><td>地 <code>buttonIdleFill</code> · 枠 <code>buttonIdleBorder</code> · 字 <code>primaryLabel</code></td></tr>
+        <tr><th>使う場面</th><td>PAD STYLE 選択中、NOTE 待機、HOLD オフ、SET オフ、EDIT オフ</td></tr>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>2. ORANGE-G — 押下・オン（色の正解 = NOTE 押下、形は A と同じ）</h2>
+      <div class="hero">
+        <span class="btn std g">NOTE</span>
+        <span class="btn std g">Continue</span>
+        <span class="btn std g">HOLD</span>
+      </div>
+      <table>
+        <tr><th>寸法</th><td><strong>A と同じ</strong>（44 · 14 · 16pt heavy）</td></tr>
+        <tr><th>色</th><td>地 <code>accentGradient</code> · 枠 白 28% · 字 <code>buttonLabelFilled</code></td></tr>
+        <tr><th>使う場面</th><td>NOTE 押し続け、Continue、HOLD オン、SET オン、EDIT 編集中</td></tr>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>3. COMPACT — 小（OCT+ サイズ・両端丸）</h2>
+      <div class="hero">
+        <span class="btn pill a">OCT +</span>
+        <span class="btn pill g">OCT +</span>
+        <span class="btn pill a">TEST</span>
+        <span class="btn pill white">LOAD</span>
+      </div>
+      <table>
+        <tr><th>寸法</th><td>高さ <strong>28</strong> · <strong>カプセル</strong>（完全丸端）· 文字 <strong>12pt heavy</strong></td></tr>
+        <tr><th>色</th><td>オレンジは A / G と同じ。白枠のみ <span class="id">WHITE</span></td></tr>
+        <tr><th>使う場面</th><td>上部 OCT±、設定 TEST NOTE / Buy / LOAD、メイン EDIT（小）</td></tr>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>対照（オレンジ以外）</h2>
+      <div class="hero">
+        <span class="btn std grey">FLASH</span>
+        <span class="btn std white">RESET</span>
+      </div>
+      <p><span class="id">GREY</span> 未選択 PAD STYLE · <span class="id">WHITE</span> LOAD / RESET / 閉じる</p>
+    </section>
+
+    <section class="panel" style="font-size:12px;color:var(--quiet)">
+      <p style="margin:0">メイン下部 HOLD/RESET は幅だけパッドセル幅・高さはレイアウト依存（52 等）でも <strong>角 14・16pt heavy</strong> は A/G に合わせる。</p>
+    </section>
+  </main>
+</body>
+</html>

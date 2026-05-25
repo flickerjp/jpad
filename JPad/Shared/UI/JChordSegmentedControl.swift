@@ -19,7 +19,7 @@ struct JChordSegmentedControl<Option: Hashable>: View {
                         .padding(.vertical, 12)
                         .background(
                             selection == option
-                                ? Color.white.opacity(0.14)
+                                ? JPadChromeTheme.buttonIdleFill
                                 : Color.clear,
                             in: RoundedRectangle(cornerRadius: 14, style: .continuous)
                         )
@@ -31,10 +31,10 @@ struct JChordSegmentedControl<Option: Hashable>: View {
         if showsOuterChrome {
             control
                 .padding(6)
-                .background(Color.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .background(JPadChromeTheme.panelBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
+                        .strokeBorder(JPadChromeTheme.panelBorder, lineWidth: 1)
                 )
         } else {
             control

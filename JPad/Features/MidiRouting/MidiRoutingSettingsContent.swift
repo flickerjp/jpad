@@ -2,9 +2,15 @@ import SwiftUI
 
 /// PAD OUT 以降の MIDI ルーティング UI（設定画面・初回オンボーディングで共有）。
 struct MidiRoutingSettingsContent: View {
+    enum Presentation {
+        case settings
+        case welcome
+    }
+
     @ObservedObject var midiService: MidiOutputService
     @AppStorage(PadVisualStyleSettings.storageKey) private var padVisualStyleRaw = PadVisualStyle.dark.rawValue
     let testPadWidth: CGFloat
+    var presentation: Presentation = .settings
     var onHelpTapped: (() -> Void)? = nil
     var onPreviewSoundLoadTapped: (() -> Void)? = nil
     var proMembershipStatus: ProSubscriptionStatus? = nil
@@ -13,33 +19,48 @@ struct MidiRoutingSettingsContent: View {
     /// 横画面などで TEST NOTE / Buy 行を左半分に収める最大幅
     var compactPanelMaxWidth: CGFloat? = nil
 
+    private var showsDeviceRouting: Bool { presentation == .settings }
+
     var body: some View {
+        switch presentation {
+        case .welcome:
+            welcomeSettingsBody
+        case .settings:
+            settingsBody
+        }
+    }
+
+    private var settingsBody: some View {
         VStack(spacing: 12) {
-            settingsCard {
-                fieldTitle(L10n.string("settings.pad_out"))
-                deviceSection(
-                    items: midiService.padOutputChoices.map { padOutputChoiceItem($0) },
-                    onSelect: { midiService.selectPadOutput(uniqueID: $0) },
-                    selectedItemsUseActiveStyle: true
-                )
+            if showsDeviceRouting {
+                settingsCard {
+                    fieldTitle(L10n.string("settings.pad_out"))
+                    deviceSection(
+                        items: midiService.padOutputChoices.map { padOutputChoiceItem($0) },
+                        onSelect: { midiService.selectPadOutput(uniqueID: $0) },
+                        selectedItemsUseActiveStyle: true
+                    )
 
-                if midiService.outputRoute == .tinyPiano, !midiService.isInternalPreviewReady {
-                    Text(midiService.lastMidiEventDescription)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(Color.orange.opacity(0.9))
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if midiService.outputRoute == .tinyPiano, !midiService.isInternalPreviewReady {
+                        Text(midiService.lastMidiEventDescription)
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(JPadChromeTheme.accentLight)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    fieldTitle(L10n.string("settings.keyboard_in"))
+                        .padding(.top, 6)
+                    deviceSection(
+                        items: midiService.filteredKeyboardInputs.map { keyboardInputDeviceItem($0) },
+                        onSelect: { midiService.selectKeyboardInput(uniqueID: $0) }
+                    )
                 }
-
-                fieldTitle(L10n.string("settings.keyboard_in"))
-                    .padding(.top, 6)
-                deviceSection(
-                    items: midiService.filteredKeyboardInputs.map { keyboardInputDeviceItem($0) },
-                    onSelect: { midiService.selectKeyboardInput(uniqueID: $0) }
-                )
             }
 
             settingsCard {
-                previewSoundPresetRow
+                settingsControlsRow {
+                    previewSoundPresetRow
+                }
             }
 
             settingsCard {
@@ -65,6 +86,113 @@ struct MidiRoutingSettingsContent: View {
         .frame(maxWidth: compactPanelMaxWidth ?? .infinity, alignment: .leading)
     }
 
+    private var welcomeSettingsBody: some View {
+        settingsCard {
+            fieldTitle(L10n.string("onboarding.sound"))
+            welcomeSoundAndNoteRow
+
+            fieldTitle(L10n.string("settings.pad_style"))
+                .padding(.top, 8)
+            welcomePadStylePicker
+        }
+        .frame(maxWidth: welcomePanelMaxWidth, alignment: .center)
+    }
+
+    private var welcomePanelMaxWidth: CGFloat {
+        min(max(testPadWidth * 3.2, 300), 380)
+    }
+
+    private var welcomeSoundAndNoteRow: some View {
+        HStack(spacing: 0) {
+            Spacer(minLength: 0)
+            HStack(alignment: .center, spacing: 10) {
+                Menu {
+                    ForEach(midiService.previewSoundPresetOptions) { option in
+                        Button(option.displayName) {
+                            midiService.selectPreviewSoundPreset(id: option.id)
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(selectedPreviewSoundName)
+                            .font(.system(size: 22, weight: .heavy))
+                            .foregroundStyle(JChordTheme.text)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(JPadChromeTheme.accentLight)
+                    }
+                }
+                .accessibilityLabel(L10n.string("settings.preview_sound.picker.accessibility"))
+
+                JChordTestNotePadButton(
+                    titleKey: "onboarding.note",
+                    appearance: .welcomeCompact
+                ) { isPressed in
+                    midiService.setTestNoteEnabled(isPressed)
+                }
+                .accessibilityLabel(L10n.string("onboarding.note.accessibility"))
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var selectedPreviewSoundName: String {
+        midiService.previewSoundPresetOptions
+            .first(where: { $0.id == midiService.selectedPreviewSoundPresetID })?
+            .displayName ?? L10n.string("settings.preview_sound.label")
+    }
+
+    private var welcomePadStylePicker: some View {
+        HStack(spacing: 10) {
+            welcomePadStyleOption(
+                style: .dark,
+                title: L10n.string("settings.pad_style.dark")
+            )
+            welcomePadStyleOption(
+                style: .performance,
+                title: L10n.string("settings.pad_style.performance")
+            )
+        }
+    }
+
+    private func welcomePadStyleOption(style: PadVisualStyle, title: String) -> some View {
+        let metrics = JPadOrangeChromeStyle.metrics(for: .standard)
+        let isSelected = padStyleBinding.wrappedValue == style
+        return Button {
+            padStyleBinding.wrappedValue = style
+        } label: {
+            Text(title)
+                .font(.system(size: metrics.fontSize, weight: metrics.fontWeight))
+                .foregroundStyle(
+                    isSelected
+                        ? JPadOrangeChromeStyle.foreground(isPressed: false, isAccentOn: false)
+                        : JPadOrangeChromeStyle.unselectedGreyForeground()
+                )
+                .frame(maxWidth: .infinity)
+                .frame(height: metrics.height)
+                .background(
+                    isSelected
+                        ? JPadOrangeChromeStyle.background(isPressed: false, isAccentOn: false)
+                        : JPadOrangeChromeStyle.unselectedGreyBackground(),
+                    in: Capsule(style: .continuous)
+                )
+                .overlay {
+                    Capsule(style: .continuous)
+                        .strokeBorder(
+                            isSelected
+                                ? JPadOrangeChromeStyle.border(isPressed: false, isAccentOn: false)
+                                : JPadOrangeChromeStyle.unselectedGreyBorder(),
+                            lineWidth: 1
+                        )
+                }
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
     private var usesCompactLeadingLayout: Bool {
         compactPanelMaxWidth != nil
     }
@@ -80,6 +208,20 @@ struct MidiRoutingSettingsContent: View {
         max(settingsActionButtonWidth * 2 + 12, 200)
     }
 
+    /// プリセット名（TinyStrings 等）が折り返さない左列幅
+    private var presetPickerColumnWidth: CGFloat {
+        max(settingsActionButtonWidth, 132)
+    }
+
+    /// LOAD / TEST NOTE の右列を揃えた行幅
+    private var settingsAlignedRowWidth: CGFloat {
+        max(settingsControlsRowWidth, presetPickerColumnWidth + 12 + settingsActionButtonWidth)
+    }
+
+    private var settingsLeadingColumnWidth: CGFloat {
+        settingsAlignedRowWidth - 12 - settingsActionButtonWidth
+    }
+
     private var midiOutAndTestNoteControls: some View {
         HStack(alignment: .bottom, spacing: 12) {
             JChordMidiChannelWheelPicker(
@@ -90,17 +232,16 @@ struct MidiRoutingSettingsContent: View {
                 width: settingsActionButtonWidth,
                 height: settingsActionButtonHeight
             )
-            .frame(width: settingsActionButtonWidth)
+            .frame(width: settingsLeadingColumnWidth)
 
             JChordTestNotePadButton(
                 isMidiOutputActive: midiService.hasActiveMidiOutput,
-                width: settingsActionButtonWidth,
-                height: settingsActionButtonHeight
+                width: settingsActionButtonWidth
             ) { isPressed in
                 midiService.setTestNoteEnabled(isPressed)
             }
         }
-        .frame(width: settingsControlsRowWidth)
+        .frame(width: settingsAlignedRowWidth)
     }
 
     private func settingsControlsRow<Content: View>(@ViewBuilder content: () -> Content) -> some View {
@@ -112,49 +253,51 @@ struct MidiRoutingSettingsContent: View {
     private var settingsCardInnerHorizontalInset: CGFloat { 14 }
 
     private var previewSoundPresetRow: some View {
-        HStack(alignment: .center, spacing: 10) {
-            Picker(
-                "",
-                selection: Binding(
-                    get: { midiService.selectedPreviewSoundPresetID },
-                    set: { midiService.selectPreviewSoundPreset(id: $0) }
-                )
-            ) {
+        HStack(alignment: .center, spacing: 12) {
+            Menu {
                 ForEach(midiService.previewSoundPresetOptions) { option in
-                    Text(option.displayName).tag(option.id)
+                    Button(option.displayName) {
+                        midiService.selectPreviewSoundPreset(id: option.id)
+                    }
                 }
+            } label: {
+                HStack(spacing: 6) {
+                    Text(selectedPreviewSoundName)
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(JChordTheme.text)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(JPadChromeTheme.accentLight)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .labelsHidden()
-            .pickerStyle(.menu)
-            .tint(JChordTheme.text)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(width: settingsLeadingColumnWidth, alignment: .leading)
+            .accessibilityLabel(L10n.string("settings.preview_sound.picker.accessibility"))
 
             if let onPreviewSoundLoadTapped {
-                Button(action: onPreviewSoundLoadTapped) {
-                    Text(L10n.string("settings.load"))
-                }
-                .buttonStyle(
-                    JChordNoteOffStyle(
-                        isLocked: true,
-                        lockedForegroundOpacity: 0.8,
-                        fontSize: 13,
-                        height: settingsActionButtonHeight,
-                        fixedWidth: settingsActionButtonWidth
-                    )
+                JPadChromeDockButton(
+                    title: L10n.string("settings.load"),
+                    style: .outline,
+                    size: .compact,
+                    width: settingsActionButtonWidth,
+                    action: onPreviewSoundLoadTapped
                 )
                 .accessibilityLabel(L10n.string("settings.preview_sound.load.accessibility"))
             }
         }
+        .frame(width: settingsAlignedRowWidth)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(L10n.string("settings.preview_sound.picker.accessibility"))
     }
 
     private func footerActions(onHelpTapped: @escaping () -> Void) -> some View {
         Button(action: onHelpTapped) {
-            Text(L10n.string("settings.help"))
-                .font(.caption2.weight(.semibold))
+            Text(L10n.string("help.garageband.title"))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(JChordTheme.muted)
                 .underline()
+                .multilineTextAlignment(.center)
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, alignment: .center)
@@ -175,7 +318,7 @@ struct MidiRoutingSettingsContent: View {
                 if usesCompactLeadingLayout {
                     HStack(alignment: .center, spacing: 12) {
                         Text(status.statusLabel)
-                            .font(.subheadline.weight(.heavy))
+                            .font(.system(size: proStatusLabelFontSize, weight: .heavy))
                             .foregroundStyle(JChordTheme.text)
                         proPurchaseButton(action: onProPurchaseTap)
                     }
@@ -183,7 +326,7 @@ struct MidiRoutingSettingsContent: View {
                 } else {
                     HStack(alignment: .center, spacing: 0) {
                         Text(status.statusLabel)
-                            .font(.subheadline.weight(.heavy))
+                            .font(.system(size: proStatusLabelFontSize, weight: .heavy))
                             .foregroundStyle(JChordTheme.text)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .multilineTextAlignment(.center)
@@ -229,17 +372,17 @@ struct MidiRoutingSettingsContent: View {
         .accessibilityLabel(status.accessibilityLabel)
     }
 
+    private var proStatusLabelFontSize: CGFloat { 15 }
+
     private func proPurchaseButton(action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(L10n.string("pro.picker.purchase"))
-        }
-        .buttonStyle(
-            JChordNoteOffStyle(
-                isActive: true,
-                fontSize: 14,
-                height: settingsActionButtonHeight,
-                fixedWidth: settingsActionButtonWidth
-            )
+        JPadChromeDockButton(
+            title: L10n.string("pro.picker.purchase"),
+            style: .accentToggle,
+            isOn: true,
+            size: .compact,
+            fontSize: proStatusLabelFontSize + 2,
+            width: settingsActionButtonWidth,
+            action: action
         )
         .fixedSize()
         .accessibilityLabel(L10n.string("pro.picker.purchase.accessibility"))

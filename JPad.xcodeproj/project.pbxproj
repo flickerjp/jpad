@@ -9,8 +9,10 @@
 /* Begin PBXBuildFile section */
 		0010D0592EDF4947BCA38C55 /* MidiOutputRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126A32CF4B36D42CB712060 /* MidiOutputRoute.swift */; };
 		017FF71CA9DE9CBF62D77BA7 /* RootPitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7637D225C4106EA4A6264514 /* RootPitch.swift */; };
+		040521F670AFC3CCD11FEFC1 /* GarageBandHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26B5AD511BEC93BD54B316FC /* GarageBandHelpView.swift */; };
 		057021AD0C510B6C28B8A48A /* JcstorePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD20C5D8F477C4FF108F6728 /* JcstorePickerView.swift */; };
 		06296A1247B8EF065EAF76BE /* MidiPadOutputChoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B31B9257B74A152DDCFD905 /* MidiPadOutputChoice.swift */; };
+		0E7E80FB52CABBC9D7FC68B2 /* JPadChromeTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 348E8FC24214573EF63701DC /* JPadChromeTheme.swift */; };
 		1376FB2EC9C9E6189C7F1124 /* PadPerformanceEffectEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8992229409394647DACDD628 /* PadPerformanceEffectEngine.swift */; };
 		1DB45C71B699D2C09921DD6F /* PresetLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA8A3140FD41AFF39BF400D /* PresetLoader.swift */; };
 		1F7E134163E8AC87F4CF980E /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75742CFA7452676A6A107F0B /* OnboardingView.swift */; };
@@ -58,11 +60,14 @@
 		7C2964E0F6608EAB88020B6C /* JChordPresetUTType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3196298AD1E785464638B7C /* JChordPresetUTType.swift */; };
 		7C3743C56369DCC37340E0A8 /* PadInputNotesEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C2E75C685C2C78AF6A6577 /* PadInputNotesEditorSheet.swift */; };
 		7C5420DD292904BBA3D5C5A6 /* PresetRenameSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 240ABA865E09D58A81DF6869 /* PresetRenameSheet.swift */; };
+		7D86854274CC34A9C9E88956 /* JPadPianoChromeIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00F301F4723F0D8729075E0 /* JPadPianoChromeIcon.swift */; };
 		823561462DF103A1AEF5277B /* PadDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98489FFF71356A36ED438E03 /* PadDefinition.swift */; };
 		83725A860D021AC17A2369B3 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12695359AB2F07493C02CD47 /* MainView.swift */; };
 		84417FE76C45701D22A644BB /* PresetImportExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2464E6E425C28AAFF14C80D /* PresetImportExportService.swift */; };
 		854C6828C83542727642CEBB /* ProSubscriptionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5841BB53D2FA060EA6160C2 /* ProSubscriptionStatus.swift */; };
+		88B992A4A16E198C3A69C85D /* JPadOrangeChromeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43CCAF7A27C46B06B5E8029C /* JPadOrangeChromeStyle.swift */; };
 		89791D7CFF7F62E0A3A8DA00 /* JChordNoteOffStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C731F374412B8EB754348DBF /* JChordNoteOffStyle.swift */; };
+		8E6A0B169F78ACA96DC3734F /* JPadChromeDockButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031168BD61F41004E0EF7118 /* JPadChromeDockButton.swift */; };
 		92093069654AD0669CE56B75 /* en.lproj in Resources */ = {isa = PBXBuildFile; fileRef = CF100516E6CFBA0531EA9705 /* en.lproj */; };
 		9646320ACC08EA81008A1E36 /* PadPerformanceVisualLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778D321368CD258C49C45FEB /* PadPerformanceVisualLayer.swift */; };
 		9983FD4A3DEDC88EBE782E0D /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = AEE99CE7DDB2B8D8BA3B4823 /* manifest.json */; };
@@ -72,6 +77,7 @@
 		A043BAE0C046B8582A2B12B6 /* PadEditorSectionExpansionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27029DA3D85BD1CB5962AAF /* PadEditorSectionExpansionStore.swift */; };
 		A4292104DBB6506CDB9C6BB4 /* MidiPerformanceSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD5DD7D2449105D09B9A4E3A /* MidiPerformanceSettings.swift */; };
 		A8CC986D2B22EC8563C59A08 /* PadEditorNotesEditorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4B50850B802F667AD9721D /* PadEditorNotesEditorFactory.swift */; };
+		A954FB67D256C16D80BDBF0D /* JPadChromeIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4522E4D2869C85E4BEEBC7D1 /* JPadChromeIconButton.swift */; };
 		AA03ED366D394B4A16D30D0C /* PresetLibraryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F094BE40E640C01583BBB342 /* PresetLibraryModels.swift */; };
 		AB38CB02D4C04026802EC504 /* PresetRotationSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C10CE734DF72E9441574D5D /* PresetRotationSettings.swift */; };
 		AB6A58D08B0E0D95C1425195 /* BundledPresetDeletionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26BA201AB3F57569FF0D5EA /* BundledPresetDeletionStore.swift */; };
@@ -118,6 +124,7 @@
 		01C82B89F6371623C0A24EC0 /* MidiMessageBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiMessageBuilder.swift; sourceTree = "<group>"; };
 		027130F2CE15C10EAB2F3D86 /* MidiSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiSettingsView.swift; sourceTree = "<group>"; };
 		027B0DFC1CE605D42E6E9BB1 /* PadEditorMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadEditorMetrics.swift; sourceTree = "<group>"; };
+		031168BD61F41004E0EF7118 /* JPadChromeDockButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JPadChromeDockButton.swift; sourceTree = "<group>"; };
 		0CCAC1E69512311F0782509F /* PadEditorUIVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadEditorUIVersion.swift; sourceTree = "<group>"; };
 		0FE59D8C6965FE5DFBA18E1B /* Entitlement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entitlement.swift; sourceTree = "<group>"; };
 		0FF16FC5B16D555E56755DAF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -126,15 +133,19 @@
 		12695359AB2F07493C02CD47 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		1BF29C26329EBA08E51494B2 /* PadEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadEditorView.swift; sourceTree = "<group>"; };
 		240ABA865E09D58A81DF6869 /* PresetRenameSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetRenameSheet.swift; sourceTree = "<group>"; };
+		26B5AD511BEC93BD54B316FC /* GarageBandHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarageBandHelpView.swift; sourceTree = "<group>"; };
 		2BD38C8E81D7E9D3AA70697C /* Preset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preset.swift; sourceTree = "<group>"; };
 		2BE4D378E8C4E26EC1F38393 /* JChordDeviceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JChordDeviceRow.swift; sourceTree = "<group>"; };
 		2ED8F3870A2F3EBB5E12FD4B /* JChordTopActionStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JChordTopActionStyle.swift; sourceTree = "<group>"; };
+		348E8FC24214573EF63701DC /* JPadChromeTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JPadChromeTheme.swift; sourceTree = "<group>"; };
 		397F207E87686F5284383E63 /* JcstoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JcstoreModels.swift; sourceTree = "<group>"; };
 		3B1DA3EC62B78B050CF11CC8 /* PadEditorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadEditorViewModel.swift; sourceTree = "<group>"; };
 		3F7EE3204B0E72C938D64F1A /* ActiveMidiNote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveMidiNote.swift; sourceTree = "<group>"; };
 		3FF641CBAF4407F9B7D89259 /* MidiAudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiAudioSession.swift; sourceTree = "<group>"; };
 		42D0D33A5D22373174363C7B /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
+		43CCAF7A27C46B06B5E8029C /* JPadOrangeChromeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JPadOrangeChromeStyle.swift; sourceTree = "<group>"; };
 		4426E23B9186DFFB4964FE00 /* ProPurchaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProPurchaseService.swift; sourceTree = "<group>"; };
+		4522E4D2869C85E4BEEBC7D1 /* JPadChromeIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JPadChromeIconButton.swift; sourceTree = "<group>"; };
 		48C2E75C685C2C78AF6A6577 /* PadInputNotesEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadInputNotesEditorSheet.swift; sourceTree = "<group>"; };
 		4B58D3CFA895046D717AD4F1 /* MidiNoteFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiNoteFormatter.swift; sourceTree = "<group>"; };
 		4C730F0812F9EFEE34279AE7 /* PresetBundles */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PresetBundles; path = JPad/PresetBundles; sourceTree = SOURCE_ROOT; };
@@ -197,6 +208,7 @@
 		D700B6D6454256644CD39E7A /* JPadApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JPadApp.swift; sourceTree = "<group>"; };
 		DD20C5D8F477C4FF108F6728 /* JcstorePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JcstorePickerView.swift; sourceTree = "<group>"; };
 		DFF324E5AFBCEB1709C8FB96 /* PadEditorRootKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadEditorRootKeyboardView.swift; sourceTree = "<group>"; };
+		E00F301F4723F0D8729075E0 /* JPadPianoChromeIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JPadPianoChromeIcon.swift; sourceTree = "<group>"; };
 		E0B107B291EDA326A8BE5C8C /* JChordUnlockButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JChordUnlockButton.swift; sourceTree = "<group>"; };
 		E0CD408554EAB2C8E1A8F361 /* JChordTestNotePadButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JChordTestNotePadButton.swift; sourceTree = "<group>"; };
 		E201866F70E3AB72D79BB920 /* JChordPadLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JChordPadLayout.swift; sourceTree = "<group>"; };
@@ -249,6 +261,8 @@
 			isa = PBXGroup;
 			children = (
 				98B6028CECEE46A393F28FA3 /* JChordTheme.swift */,
+				348E8FC24214573EF63701DC /* JPadChromeTheme.swift */,
+				43CCAF7A27C46B06B5E8029C /* JPadOrangeChromeStyle.swift */,
 				CBE02FE0765906D70A26825A /* PadGridLayoutGeometry.swift */,
 				011BB784A932943AD24C66DF /* PadPerformanceAnimationConfig.swift */,
 				8992229409394647DACDD628 /* PadPerformanceEffectEngine.swift */,
@@ -348,6 +362,7 @@
 		4C480B169E548843E3E76C9A /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				26B5AD511BEC93BD54B316FC /* GarageBandHelpView.swift */,
 				75742CFA7452676A6A107F0B /* OnboardingView.swift */,
 			);
 			path = Onboarding;
@@ -475,6 +490,9 @@
 				E0CD408554EAB2C8E1A8F361 /* JChordTestNotePadButton.swift */,
 				2ED8F3870A2F3EBB5E12FD4B /* JChordTopActionStyle.swift */,
 				E0B107B291EDA326A8BE5C8C /* JChordUnlockButton.swift */,
+				031168BD61F41004E0EF7118 /* JPadChromeDockButton.swift */,
+				4522E4D2869C85E4BEEBC7D1 /* JPadChromeIconButton.swift */,
+				E00F301F4723F0D8729075E0 /* JPadPianoChromeIcon.swift */,
 				778D321368CD258C49C45FEB /* PadPerformanceVisualLayer.swift */,
 				AF1F78DEEC90A2AC1873D0C0 /* PadView.swift */,
 				52335CCCA3302F5D60750935 /* PerformancePadAnimationTimeline.swift */,
@@ -625,6 +643,7 @@
 				AB6A58D08B0E0D95C1425195 /* BundledPresetDeletionStore.swift in Sources */,
 				DBC5CC450A4AA4E674683082 /* ChordCandidateRecognizer.swift in Sources */,
 				45176DF1AA3909D506060299 /* Entitlement.swift in Sources */,
+				040521F670AFC3CCD11FEFC1 /* GarageBandHelpView.swift in Sources */,
 				31EC7A78FC12E8516C665F04 /* InternalPreviewSynth.swift in Sources */,
 				6AC917BAC99C142D347317CA /* JChordDeviceRow.swift in Sources */,
 				AC894FD4B034FD427F484273 /* JChordEditorActionButtonStyle.swift in Sources */,
@@ -641,6 +660,11 @@
 				DAC71F3A35D0954461877906 /* JChordTopActionStyle.swift in Sources */,
 				D09EC4DDF39B3210DAE062F1 /* JChordUnlockButton.swift in Sources */,
 				4F927B752EBC1B2CCC254B30 /* JPadApp.swift in Sources */,
+				8E6A0B169F78ACA96DC3734F /* JPadChromeDockButton.swift in Sources */,
+				A954FB67D256C16D80BDBF0D /* JPadChromeIconButton.swift in Sources */,
+				0E7E80FB52CABBC9D7FC68B2 /* JPadChromeTheme.swift in Sources */,
+				88B992A4A16E198C3A69C85D /* JPadOrangeChromeStyle.swift in Sources */,
+				7D86854274CC34A9C9E88956 /* JPadPianoChromeIcon.swift in Sources */,
 				50EEC62EC52113DDB6FEB464 /* JcstoreModels.swift in Sources */,
 				057021AD0C510B6C28B8A48A /* JcstorePickerView.swift in Sources */,
 				F57D9E688D13EEAB0BD1388A /* JcstoreService.swift in Sources */,
@@ -723,7 +747,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 117;
+				CURRENT_PROJECT_VERSION = 118;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
@@ -739,7 +763,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.17;
+				MARKETING_VERSION = 1.0.18;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
 				PRODUCT_NAME = JPad;
 				SDKROOT = iphoneos;
@@ -754,7 +778,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 117;
+				CURRENT_PROJECT_VERSION = 118;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
@@ -770,7 +794,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.17;
+				MARKETING_VERSION = 1.0.18;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
 				PRODUCT_NAME = JPad;
 				SDKROOT = iphoneos;

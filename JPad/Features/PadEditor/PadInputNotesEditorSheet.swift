@@ -106,8 +106,7 @@ struct PadInputNotesEditorSheet: View {
             appearance: .midiAccent,
             isMidiOutputActive: midiService.hasActiveMidiOutput,
             width: padLayout.cellSide,
-            height: metrics.actionButtonHeight,
-            cornerRadius: 14
+            height: metrics.actionButtonHeight
         ) { isPressed in
             let pad = viewModel.draftPad(using: viewModel.editingNotes)
             if isPressed {

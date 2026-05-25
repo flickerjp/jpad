@@ -10,6 +10,7 @@ enum PreviewSoundPresetIDs {
     static let factoryPrefix = "factory:"
     static let custom = "custom:imported"
     static let tinyTone = factoryID(resourceName: "TinyTone")
+    static let tinyPiano = factoryID(resourceName: "TinyPiano")
 
     static func factoryID(resourceName: String) -> String {
         factoryPrefix + resourceName
