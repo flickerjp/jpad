@@ -613,3 +613,13 @@
 
 **参照:** `git show 12b4f9b` / `git log -1 12b4f9b`
 
+
+<!-- handover:auto:d81b8fe00c52165473ec3d0e425efc499f5c11d8 -->
+### 2026-05-25 22:32:26 +0900 — `d81b8fe` — main
+
+**件名:** Release 1.0.18 (118): TinyTone orange UI refresh and GarageBand help
+
+**作者:** FLICKER <tonekeisuke@gmail.com>
+
+**参照:** `git show d81b8fe` / `git log -1 d81b8fe`
+
