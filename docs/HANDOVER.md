@@ -623,3 +623,13 @@
 
 **参照:** `git show d81b8fe` / `git log -1 d81b8fe`
 
+
+<!-- handover:auto:0e885908ceb6ea1b57435ab562b20bdfc4bd73af -->
+### 2026-05-25 23:04:54 +0900 — `0e88590` — main
+
+**件名:** Fix welcome-to-main audio pops with NOTE reset delay and DSP priming
+
+**作者:** FLICKER <tonekeisuke@gmail.com>
+
+**参照:** `git show 0e88590` / `git log -1 0e88590`
+
