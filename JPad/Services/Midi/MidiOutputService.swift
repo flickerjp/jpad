@@ -249,6 +249,7 @@ final class MidiOutputService: ObservableObject {
                 previewEngine.stop()
                 clearInternalPreviewReady()
             }
+            hasPrimedPreviewDSP = false
         }
     }
 
@@ -283,6 +284,7 @@ final class MidiOutputService: ObservableObject {
     func selectPreviewSoundPreset(id: String) {
         guard previewSoundPresetOptions.contains(where: { $0.id == id }) else { return }
         selectedPreviewSoundPresetID = id
+        hasPrimedPreviewDSP = false
         UserDefaults.standard.set(id, forKey: Self.previewSoundSelectedPresetIDKey)
 
         do {
@@ -316,13 +318,79 @@ final class MidiOutputService: ObservableObject {
         }
     }
 
-    /// 内蔵 TinyTone を初回パッド発音前にウォームアップする（設定クローズ／オンボーディング完了時）。
+    /// ウェルカムで NOTE を試したあと、画面遷移まで待つ時間（設定画面の HOLD 解放と同じ）。
+    static let welcomeNoteResetDelayMs: UInt64 = 300
+
+    /// ウェルカム→メイン遷移時。TEST NOTE を止めて残音をクリアする（遷移ポップ音対策）。
+    func endWelcomeTransition() {
+        setTestNoteEnabled(false)
+        sendAllNotesOff()
+    }
+
+    /// 内蔵エンジン起動後、無音で FX バッファと出力ゲートを落ち着かせる時間。
+    private static func previewEnginePrimeDelayMs(for presetID: String) -> UInt64 {
+        if PreviewSoundPresetIDs.usesHeavyDSP(id: presetID) {
+            // `TinyToneEngine` outputGateRampSeconds (0.5s) + reverb/delay ライン
+            return 520
+        }
+        return 180
+    }
+
+    private var hasPrimedPreviewDSP = false
+
+    /// 初回パッド発音前にエンジン起動＋無音プリーム（重いプリセットほど長め）。
+    @MainActor
+    func primePreviewEngineForPadPlayback() async {
+        guard outputRoute == .tinyPiano else { return }
+        if hasPrimedPreviewDSP, previewEngine.isEngineRunning { return }
+
+        do {
+            try applyPreviewSoundPreset(id: selectedPreviewSoundPresetID, startEngineIfNeeded: false)
+        } catch {
+            lastMidiEventDescription = error.localizedDescription
+            return
+        }
+
+        guard ensureTinyPianoReady() else {
+            lastMidiEventDescription = tinyPianoUnavailableDescription()
+            return
+        }
+
+        let primeMs = Self.previewEnginePrimeDelayMs(for: selectedPreviewSoundPresetID)
+        if primeMs > 0 {
+            try? await Task.sleep(for: .milliseconds(primeMs))
+        }
+        previewEngine.allNotesOff()
+        hasPrimedPreviewDSP = true
+    }
+
+    /// ウェルカム完了: NOTE リセット待ち → DSP プリーム → 画面遷移。
+    @MainActor
+    func completeWelcomeHandoff(needsNoteSettleDelay: Bool) async {
+        endWelcomeTransition()
+        if needsNoteSettleDelay {
+            try? await Task.sleep(for: .milliseconds(Self.welcomeNoteResetDelayMs))
+        }
+        await primePreviewEngineForPadPlayback()
+    }
+
+    /// 内蔵 TinyTone を初回パッド発音前にウォームアップする（設定クローズ時）。
     @discardableResult
     func warmUpPreviewEngineIfNeeded() -> Bool {
         guard outputRoute == .tinyPiano else { return true }
+        do {
+            try applyPreviewSoundPreset(id: selectedPreviewSoundPresetID, startEngineIfNeeded: false)
+        } catch {
+            lastMidiEventDescription = error.localizedDescription
+            return false
+        }
         let started = ensureTinyPianoReady()
         if !started {
             lastMidiEventDescription = tinyPianoUnavailableDescription()
+            return started
+        }
+        Task { @MainActor in
+            await self.primePreviewEngineForPadPlayback()
         }
         return started
     }

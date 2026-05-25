@@ -21,4 +21,13 @@ enum PreviewSoundPresetIDs {
         let name = String(id.dropFirst(factoryPrefix.count))
         return name.isEmpty ? nil : name
     }
+
+    /// リバーブ／ディレイが強く、初回 `start()` 直後の無音プリームが長めに必要な工場プリセット。
+    private static let heavyDSPFactoryNames: Set<String> = ["TinyPiano", "TinyOrgan", "TinyStrings"]
+
+    static func usesHeavyDSP(id: String) -> Bool {
+        if id == custom { return true }
+        guard let name = factoryResourceName(from: id) else { return false }
+        return heavyDSPFactoryNames.contains(name)
+    }
 }

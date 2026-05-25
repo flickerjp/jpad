@@ -5,6 +5,7 @@ struct JPadApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var viewModel = MainViewModel()
     @State private var showOnboarding = !OnboardingStore.hasCompleted
+    @State private var didPrepareLaunchAudio = false
 
     var body: some Scene {
         WindowGroup {
@@ -24,6 +25,8 @@ struct JPadApp: App {
             }
             .task {
                 PadEditorUIVersion.setCurrent(.v11)
+                guard !didPrepareLaunchAudio else { return }
+                didPrepareLaunchAudio = true
                 viewModel.midiService.preparePreviewAudioIfNeeded()
             }
             .onChange(of: scenePhase) { _, phase in

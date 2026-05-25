@@ -125,6 +125,7 @@ final class MainViewModel: ObservableObject {
         Task { await syncProEntitlementFromStore() }
         midiService.refreshEndpointsIfStale()
         midiService.preparePreviewAudioIfNeeded()
+        Task { await midiService.primePreviewEngineForPadPlayback() }
         refreshLibrarySlots()
         Task { await refreshJcstoreManifest() }
     }

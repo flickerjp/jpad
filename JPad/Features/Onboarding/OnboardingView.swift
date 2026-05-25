@@ -5,6 +5,9 @@ struct OnboardingView: View {
     @ObservedObject var midiService: MidiOutputService
     let onFinish: () -> Void
 
+    @State private var isCompletingWelcome = false
+    @State private var welcomeNoteWasUsed = false
+
     var body: some View {
         GeometryReader { geometry in
             let layout = JChordPadLayout.make(
@@ -43,6 +46,8 @@ struct OnboardingView: View {
                             width: continueButtonWidth,
                             action: finishOnboarding
                         )
+                        .disabled(isCompletingWelcome)
+                        .opacity(isCompletingWelcome ? 0.55 : 1)
                     }
                     .frame(width: welcomePanelWidth)
                     .frame(maxWidth: .infinity)
@@ -63,6 +68,8 @@ struct OnboardingView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .disabled(isCompletingWelcome)
+                .opacity(isCompletingWelcome ? 0.55 : 1)
                 .padding(.top, 12)
                 .padding(.trailing, 18)
                 .accessibilityLabel(L10n.string("settings.close.accessibility"))
@@ -70,6 +77,11 @@ struct OnboardingView: View {
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .jChordScreenBackground()
+        .onChange(of: midiService.isTestNoteEnabled) { _, isEnabled in
+            if isEnabled {
+                welcomeNoteWasUsed = true
+            }
+        }
         .onAppear {
             midiService.refreshEndpoints()
             midiService.preparePreviewAudioIfNeeded()
@@ -99,8 +111,16 @@ struct OnboardingView: View {
     }
 
     private func finishOnboarding() {
-        midiService.warmUpPreviewEngineIfNeeded()
-        onFinish()
+        guard !isCompletingWelcome else { return }
+        isCompletingWelcome = true
+
+        let needsNoteSettleDelay = midiService.isTestNoteEnabled || welcomeNoteWasUsed
+
+        Task { @MainActor in
+            await midiService.completeWelcomeHandoff(needsNoteSettleDelay: needsNoteSettleDelay)
+            isCompletingWelcome = false
+            onFinish()
+        }
     }
 
     /// ラベルの描画幅 + 余白（ウェルカムの「JPad をはじめる」等）
