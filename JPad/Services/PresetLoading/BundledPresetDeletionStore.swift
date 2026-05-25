@@ -2,7 +2,7 @@ import Foundation
 
 /// Bundled preset IDs the user removed (survives app updates; cleared on reinstall).
 enum BundledPresetDeletionStore {
-    private static let userDefaultsKey = "jpad.deletedBundledPresetIDs"
+    private static let userDefaultsKey = "jchord.deletedBundledPresetIDs"
 
     static var deletedIDs: Set<String> {
         get {

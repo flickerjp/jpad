@@ -5,7 +5,7 @@
 | 項目 | 値 |
 |------|-----|
 | 種類 | 自動更新サブスクリプション（年額） |
-| Product ID | `com.jflickeys.jpad.pro.yearly` |
+| Product ID | `com.jflickeys.jchord.pro.yearly` |
 | アプリ表示名（ホーム画面） | **JChord MIDI**（`INFOPLIST_KEY_CFBundleDisplayName`） |
 
 ## ローカリゼーション — 英語（アメリカ）

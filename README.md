@@ -28,9 +28,11 @@ Scheme: **JPad**
 | [jchord](https://github.com/flickerjp/jchord) | Original MIDI pad app (legacy line) |
 | [tinytone](https://github.com/flickerjp/tinytone) | `TinyToneCore` synth package |
 
-## Bundle / Store IDs (JPad)
+## App Store identity (unchanged from JChord)
 
-- Bundle ID: `com.flickerproduct.jpad`
-- Pro subscription: `com.jflickeys.jpad.pro.yearly` (configure in App Store Connect)
+- Bundle ID: `com.flickerproduct.jchord` (same App Store app)
+- Build (`CURRENT_PROJECT_VERSION`): **117** — continue incrementing from JChord; do not reset
+- Marketing version: `1.0.17`
+- Pro subscription: `com.jflickeys.jchord.pro.yearly`
 
-Preset file extensions (`.jchord`, `.jpd`, etc.) remain compatible with JChord exports.
+Preset file extensions (`.jchord`, `.jpd`, etc.) remain compatible.

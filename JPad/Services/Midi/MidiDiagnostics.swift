@@ -1,7 +1,7 @@
 import os
 
 enum MidiDiagnostics {
-    private static let log = Logger(subsystem: "com.flickerproduct.jpad", category: "MIDI")
+    private static let log = Logger(subsystem: "com.flickerproduct.jchord", category: "MIDI")
 
     static func captureStarted(sourceName: String) {
         log.info("Note capture started: \(sourceName, privacy: .public)")

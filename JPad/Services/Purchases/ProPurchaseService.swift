@@ -23,9 +23,9 @@ enum ProLegalURLs {
 /// JPad Pro 年額サブスクリプション。App Store Connect の Product ID と一致させる。
 @MainActor
 final class ProPurchaseService: ObservableObject {
-  static let yearlyProductID = "com.jflickeys.jpad.pro.yearly"
+  static let yearlyProductID = "com.jflickeys.jchord.pro.yearly"
   static let productIDs: Set<String> = [yearlyProductID]
-  static let purchasedAppStorageKey = "jpad.presetSavePurchased"
+  static let purchasedAppStorageKey = "jchord.presetSavePurchased"
 
   @Published private(set) var product: Product?
   @Published private(set) var isIntroductoryOfferEligible = false

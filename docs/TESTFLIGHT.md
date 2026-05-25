@@ -36,7 +36,7 @@
 
 | 項目 | 値 |
 |------|-----|
-| Product ID | `com.jflickeys.jpad.pro.yearly` |
+| Product ID | `com.jflickeys.jchord.pro.yearly` |
 | 種類 | 自動更新サブスクリプション（年額） |
 | 英語（米国）表示名 | **JChord Yearly**（Connect 上。アプリ内購入画面タイトルは **JPad Pro**） |
 | アプリ名 | **JChord MIDI**（Connect）。ホーム画面は **JPad** |

@@ -28,7 +28,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.flickerproduct.jpad</string>
+				<string>com.flickerproduct.jchord</string>
 			</array>
 		</dict>
 	</array>
@@ -42,7 +42,7 @@
 			<key>UTTypeDescription</key>
 			<string>JPad Preset</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.flickerproduct.jpad</string>
+			<string>com.flickerproduct.jchord</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>

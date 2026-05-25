@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 extension UTType {
   /// SHARE / IMPORT 用（`PresetImportExportService.fileExtension` と一致）。
   static let jchordPreset = UTType(
-    exportedAs: "com.flickerproduct.jpad",
+    exportedAs: "com.flickerproduct.jchord",
     conformingTo: .data
   )
 

@@ -23,7 +23,7 @@
 
 **方針 B** — 複製と共有は Pro のみ。＋は Free も可。
 
-`@AppStorage("jpad.presetSavePurchased")` + StoreKit 2 年額サブスクリプション（`com.jflickeys.jpad.pro.yearly`）。未購入時は `ProUpgradeSheet`。
+`@AppStorage("jchord.presetSavePurchased")` + StoreKit 2 年額サブスクリプション（`com.jflickeys.jchord.pro.yearly`）。未購入時は `ProUpgradeSheet`。
 
 ## ストレージ
 
@@ -232,7 +232,7 @@ flowchart LR
 | SHARE | アクティブセット → `.jpd` → `UIActivityViewController` |
 | IMPORT | 他者・他端末から受け取った `.jpd` 等 → ライブラリへ |
 | UI | MY SETS ピッカー下部。未購入はグレー表示 → `ProUpgradeSheet` |
-| 購入 | StoreKit 2 年額 `com.jflickeys.jpad.pro.yearly`（`docs/APP_STORE_SUBSCRIPTION.md` 参照） |
+| 購入 | StoreKit 2 年額 `com.jflickeys.jchord.pro.yearly`（`docs/APP_STORE_SUBSCRIPTION.md` 参照） |
 
 ## Phase 3（未実装・一部完了）
 

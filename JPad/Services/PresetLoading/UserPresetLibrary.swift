@@ -486,7 +486,7 @@ enum UserPresetLibrary {
   private static var libraryRootURL: URL {
     let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
       ?? FileManager.default.temporaryDirectory
-    return base.appendingPathComponent("JPad/library/user", isDirectory: true)
+    return base.appendingPathComponent("JChord/library/user", isDirectory: true)
   }
 
   private static var presetsDirectoryURL: URL {

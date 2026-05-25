@@ -1,7 +1,7 @@
 import Foundation
 
 enum OnboardingStore {
-    static let completedKey = "jpad.onboardingCompleted"
+    static let completedKey = "jchord.onboardingCompleted"
 
     static var hasCompleted: Bool {
         UserDefaults.standard.bool(forKey: completedKey)
