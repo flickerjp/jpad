@@ -633,3 +633,13 @@
 
 **参照:** `git show 0e88590` / `git log -1 0e88590`
 
+
+<!-- handover:auto:6ccf3842e055013f325cc5c4b882af713eb4740b -->
+### 2026-05-26 20:16:08 +0900 — `6ccf384` — main
+
+**件名:** Refine JPad settings and App Group storage
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 6ccf384` / `git log -1 6ccf384`
+
