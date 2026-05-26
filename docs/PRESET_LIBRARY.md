@@ -33,6 +33,28 @@ Application Support/JPad/library/user/
   presets/{uuid}.json
 ```
 
+### App Group 化の検討（次バージョン以降）
+
+Yearly / Pro の保存先だけを App Group に分けるのは避ける。保存先を Free と Pro で分けると、購入・解約・復元・ファミリー共有・端末復元時に「どちらが正本か」が崩れやすい。
+
+採用するなら、**Free / Pro 共通でユーザーライブラリの正本を App Group へ移す**。Pro は保存先ではなく entitlement として扱い、同じ App Group ライブラリに対して件数・機能だけを変える。
+
+| 項目 | 方針 |
+|------|------|
+| 保存正本 | `Application Support` から App Group `JPad/library/user/` へ移行 |
+| Free | 同じ App Group ライブラリを使い、5 スロット上限 |
+| Pro / Yearly | 同じ App Group ライブラリを使い、100 スロット、複製、SHARE / IMPORT を許可 |
+| 既存データ | 次回起動時に現行 `Application Support/JPad/library/user/` から App Group へマイグレーション |
+| fallback | 旧 Application Support のデータは 1-2 バージョン削除せず、読み取り fallback として残す |
+
+App Group 化のメリットは、将来の拡張（別アプリ、拡張機能、ウィジェット、プラグイン補助など）から同じ JPad セットライブラリを読めること。単に「Pro だから保存先を変える」だけなら App Group は不要で、現行 `Application Support` + entitlement 制限の方が単純。
+
+したがって判断基準は次の通り。
+
+- **将来 JPad セットを他ターゲットから読む可能性がある** → App Group をライブラリ正本にする価値あり。
+- **JPad 単体で完結する** → App Group 化せず、現行保存先のまま Pro 上限だけ管理する方が安全。
+- **ProだけApp Group、FreeはApplication Support** → 採用しない。移行と解約時の状態管理が複雑になる。
+
 ### index.json
 
 - `activePresetID`: 現在演奏中スロット（スロット0件のときは `null`）
@@ -48,6 +70,14 @@ Application Support/JPad/library/user/
 1. レガシー `user-preset.json` があれば **1 スロット目** に取り込み（`hasCompletedInitialSeed = true`）。
 2. **ライブラリが空** かつ `hasCompletedInitialSeed == false` のとき、`PresetBundles` 内の全 JSON をファイル名順に読み、枠上限までシード。
 3. 以降、ユーザーが削除しても **自動でバンドルが戻らない**（アプリ内の「工場内容に戻す」操作は提供しない）。
+
+App Group 化する場合の追加移行:
+
+1. App Group container URL を取得できるか確認。
+2. App Group 側に `JPad/library/user/index.json` がなければ、現行 Application Support の `index.json` と `presets/` をコピー。
+3. コピー後に全 `presets/{uuid}.json` を decode して検証。
+4. 成功したら App Group 側へ migration flag を保存。
+5. 以後の読み書きは App Group 側のみ。旧 Application Support は fallback として残し、新規書き込み先に戻さない。
 
 ## 削除
 

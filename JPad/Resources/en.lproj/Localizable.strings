@@ -154,11 +154,12 @@
 "settings.device.active" = "Active";
 "settings.device.connected" = "Connected";
 "settings.device.offline" = "Offline";
-"settings.pad_style" = "PAD STYLE";
+"settings.pad_style" = "STYLE";
 "settings.pad_style.dark" = "DARK";
 "settings.pad_style.performance" = "FLASH";
 "settings.pad_style.accessibility" = "Pad appearance";
 "settings.pad_out" = "PAD OUT";
+"settings.midi_out" = "MIDI OUT";
 "settings.pad_out.tiny_piano" = "TinyTone";
 "settings.pad_out.tiny_piano.subtitle" = "Built-in lightweight sound for checking notes and chords.";
 "settings.pad_out.tiny_piano.helper" = "Plays pads inside the app. When Active, TEST NOTE and performance pads use this sound.";

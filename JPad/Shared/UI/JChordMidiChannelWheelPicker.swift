@@ -14,7 +14,7 @@ struct JChordMidiChannelWheelPicker: View {
         ZStack {
             Picker("Output channel", selection: $channel) {
                 ForEach(1 ... 16, id: \.self) { value in
-                    Text("\(value)")
+                    Text("\(value)CH")
                         .font(.system(size: min(18, height * 0.44), weight: .heavy))
                         .tag(value)
                 }

@@ -145,11 +145,12 @@
 "settings.device.active" = "接続中";
 "settings.device.connected" = "選択中";
 "settings.device.offline" = "Offline";
-"settings.pad_style" = "PAD STYLE";
+"settings.pad_style" = "STYLE";
 "settings.pad_style.dark" = "DARK";
 "settings.pad_style.performance" = "FLASH";
 "settings.pad_style.accessibility" = "パッドの見た目";
 "settings.pad_out" = "PAD OUT";
+"settings.midi_out" = "MIDI OUT";
 "settings.pad_out.tiny_piano" = "TinyTone";
 "settings.pad_out.tiny_piano.subtitle" = "Built-in lightweight sound for checking notes and chords.";
 "settings.pad_out.tiny_piano.helper" = "アプリ内でパッド音を鳴らします。Active 表示のとき TEST NOTE と演奏パッドがこの音源を使います。";

@@ -12,12 +12,13 @@ struct MidiRoutingSettingsContent: View {
     let testPadWidth: CGFloat
     var presentation: Presentation = .settings
     var onHelpTapped: (() -> Void)? = nil
-    var onPreviewSoundLoadTapped: (() -> Void)? = nil
     var proMembershipStatus: ProSubscriptionStatus? = nil
     /// 未購入時に JPad Pro 購入画面へ遷移
     var onProPurchaseTap: (() -> Void)? = nil
     /// 横画面などで TEST NOTE / Buy 行を左半分に収める最大幅
     var compactPanelMaxWidth: CGFloat? = nil
+    /// ScrollView の実効コンテンツ幅。iPhone 幅で固定列がはみ出さないように使う。
+    var availableContentWidth: CGFloat? = nil
 
     private var showsDeviceRouting: Bool { presentation == .settings }
 
@@ -58,19 +59,24 @@ struct MidiRoutingSettingsContent: View {
             }
 
             settingsCard {
-                settingsControlsRow {
-                    previewSoundPresetRow
+                previewSoundPresetRow
+            }
+
+            settingsCard {
+                settingsLabelValueRow(label: L10n.string("settings.midi_out")) {
+                    JChordMidiChannelWheelPicker(
+                        channel: Binding(
+                            get: { midiService.midiChannel },
+                            set: { midiService.updateMidiChannel($0) }
+                        ),
+                        width: midiChannelPickerWidth,
+                        height: settingsActionButtonHeight
+                    )
                 }
             }
 
             settingsCard {
-                fieldTitle(L10n.string("settings.pad_out_ch"))
-                settingsControlsRow {
-                    midiOutAndTestNoteControls
-                }
-                fieldTitle(L10n.string("settings.pad_style"))
-                    .padding(.top, 4)
-                settingsControlsRow {
+                settingsLabelValueRow(label: L10n.string("settings.pad_style")) {
                     padStylePicker
                 }
             }
@@ -203,50 +209,45 @@ struct MidiRoutingSettingsContent: View {
     /// Buy の高さ基準。TEST NOTE も同じ高さに揃える。
     private var settingsActionButtonHeight: CGFloat { 32 }
 
-    /// チャンネル＋TEST NOTE と PAD STYLE で共通（中央揃えブロック幅）
-    private var settingsControlsRowWidth: CGFloat {
-        max(settingsActionButtonWidth * 2 + 12, 200)
+    private var settingsCardContentWidth: CGFloat {
+        let baseWidth = compactPanelMaxWidth ?? availableContentWidth ?? 340
+        return max(248, baseWidth - 32)
     }
 
-    /// プリセット名（TinyStrings 等）が折り返さない左列幅
-    private var presetPickerColumnWidth: CGFloat {
-        max(settingsActionButtonWidth, 132)
+    /// 左列の固定幅。TinyTone と各ラベルの縦ラインを揃える。
+    private var settingsLabelColumnWidth: CGFloat {
+        let preferred = min(max(settingsActionButtonWidth + 18, 96), 120)
+        return min(preferred, max(82, settingsGridWidth - 12 - 148))
     }
 
-    /// LOAD / TEST NOTE の右列を揃えた行幅
-    private var settingsAlignedRowWidth: CGFloat {
-        max(settingsControlsRowWidth, presetPickerColumnWidth + 12 + settingsActionButtonWidth)
+    /// カード内の 2 カラムブロック全幅。
+    private var settingsGridWidth: CGFloat {
+        min(settingsCardContentWidth, 336)
     }
 
-    private var settingsLeadingColumnWidth: CGFloat {
-        settingsAlignedRowWidth - 12 - settingsActionButtonWidth
+    /// 右列の固定幅。TEST NOTE / 1CH は左詰め、DARK/FLASH は全幅使用。
+    private var settingsControlColumnWidth: CGFloat {
+        max(148, settingsGridWidth - settingsLabelColumnWidth - 12)
     }
 
-    private var midiOutAndTestNoteControls: some View {
-        HStack(alignment: .bottom, spacing: 12) {
-            JChordMidiChannelWheelPicker(
-                channel: Binding(
-                    get: { midiService.midiChannel },
-                    set: { midiService.updateMidiChannel($0) }
-                ),
-                width: settingsActionButtonWidth,
-                height: settingsActionButtonHeight
-            )
-            .frame(width: settingsLeadingColumnWidth)
+    private var midiChannelPickerWidth: CGFloat {
+        max(settingsActionButtonWidth, 74)
+    }
 
-            JChordTestNotePadButton(
-                isMidiOutputActive: midiService.hasActiveMidiOutput,
-                width: settingsActionButtonWidth
-            ) { isPressed in
-                midiService.setTestNoteEnabled(isPressed)
-            }
+    private func settingsLabelValueRow<Control: View>(
+        label: String,
+        @ViewBuilder control: () -> Control
+    ) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            Text(label)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(JChordTheme.muted)
+                .frame(width: settingsLabelColumnWidth, alignment: .leading)
+
+            control()
+                .frame(width: settingsControlColumnWidth, alignment: .leading)
         }
-        .frame(width: settingsAlignedRowWidth)
-    }
-
-    private func settingsControlsRow<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        content()
-            .frame(maxWidth: .infinity, alignment: .center)
+        .frame(width: settingsGridWidth, alignment: .leading)
     }
 
     /// 内側パネル（JPAD 購入行）の左右余白
@@ -273,21 +274,22 @@ struct MidiRoutingSettingsContent: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(width: settingsLeadingColumnWidth, alignment: .leading)
+            .frame(width: settingsLabelColumnWidth, alignment: .leading)
             .accessibilityLabel(L10n.string("settings.preview_sound.picker.accessibility"))
 
-            if let onPreviewSoundLoadTapped {
-                JPadChromeDockButton(
-                    title: L10n.string("settings.load"),
-                    style: .outline,
-                    size: .compact,
+            HStack(spacing: 0) {
+                JChordTestNotePadButton(
+                    isMidiOutputActive: midiService.hasActiveMidiOutput,
                     width: settingsActionButtonWidth,
-                    action: onPreviewSoundLoadTapped
-                )
-                .accessibilityLabel(L10n.string("settings.preview_sound.load.accessibility"))
+                    height: settingsActionButtonHeight
+                ) { isPressed in
+                    midiService.setTestNoteEnabled(isPressed)
+                }
+                Spacer(minLength: 0)
             }
+            .frame(width: settingsControlColumnWidth, alignment: .leading)
         }
-        .frame(width: settingsAlignedRowWidth)
+        .frame(width: settingsGridWidth, alignment: .leading)
         .accessibilityElement(children: .contain)
     }
 
@@ -420,7 +422,7 @@ struct MidiRoutingSettingsContent: View {
             Text(L10n.string("settings.pad_style.performance")).tag(PadVisualStyle.performance)
         }
         .pickerStyle(.segmented)
-        .frame(width: settingsControlsRowWidth)
+        .frame(width: settingsControlColumnWidth)
         .accessibilityLabel(L10n.string("settings.pad_style.accessibility"))
     }
 

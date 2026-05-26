@@ -24,6 +24,8 @@ Application Support/JPad/library/user/
   presets/{uuid}.json … PresetSlotDocument（formatVersion 2）
 ```
 
+次バージョン以降の検討: Pro だけ保存先を App Group に分けず、採用するなら Free / Pro 共通でライブラリ正本を App Group へ移す。詳細は [PRESET_LIBRARY.md](PRESET_LIBRARY.md) の「App Group 化の検討」。
+
 | 操作 | 永続化 |
 |------|--------|
 | 編集・スロット切替・バックグラウンド | アクティブスロットへオートセーブ |

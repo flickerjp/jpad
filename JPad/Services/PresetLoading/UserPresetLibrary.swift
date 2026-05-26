@@ -2,6 +2,7 @@ import Foundation
 
 /// ユーザープリセットライブラリ（複数スロット）。
 enum UserPresetLibrary {
+  private static let appGroupIdentifier = "group.com.flickerproduct.jchord"
   private static let indexFileName = "index.json"
   private static let presetsFolderName = "presets"
 
@@ -177,7 +178,8 @@ enum UserPresetLibrary {
       throw UserPresetLibraryError.slotNotFound
     }
     index.items.remove(at: entryIndex)
-    let fileURL = presetFileURL(slotID: id)
+    let rootURL = try resolvedLibraryRootURL()
+    let fileURL = presetFileURL(slotID: id, rootURL: rootURL)
     if FileManager.default.fileExists(atPath: fileURL.path) {
       try FileManager.default.removeItem(at: fileURL)
     }
@@ -407,7 +409,8 @@ enum UserPresetLibrary {
   // MARK: - Legacy migration
 
   private static func migrateLegacySingleFileIfNeeded(presetLoader: PresetLoader) throws {
-    guard !FileManager.default.fileExists(atPath: indexURL.path) else { return }
+    let rootURL = try resolvedLibraryRootURL()
+    guard !FileManager.default.fileExists(atPath: indexURL(for: rootURL).path) else { return }
     guard UserPresetStore.hasSavedPreset else { return }
 
     let legacyPreset = try UserPresetStore.load()
@@ -443,61 +446,117 @@ enum UserPresetLibrary {
   // MARK: - IO
 
   private static func loadIndex() throws -> UserPresetLibraryIndex {
-    try ensureLibraryDirectory()
-    guard FileManager.default.fileExists(atPath: indexURL.path) else {
+    let rootURL = try resolvedLibraryRootURL()
+    try ensureLibraryDirectory(at: rootURL)
+    let resolvedIndexURL = indexURL(for: rootURL)
+    guard FileManager.default.fileExists(atPath: resolvedIndexURL.path) else {
       return UserPresetLibraryIndex()
     }
-    let data = try Data(contentsOf: indexURL)
+    let data = try Data(contentsOf: resolvedIndexURL)
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .iso8601
     return try decoder.decode(UserPresetLibraryIndex.self, from: data)
   }
 
   private static func saveIndex(_ index: UserPresetLibraryIndex) throws {
-    try ensureLibraryDirectory()
+    let rootURL = try resolvedLibraryRootURL()
+    try ensureLibraryDirectory(at: rootURL)
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     encoder.dateEncodingStrategy = .iso8601
     let data = try encoder.encode(index)
-    try data.write(to: indexURL, options: .atomic)
+    try data.write(to: indexURL(for: rootURL), options: .atomic)
   }
 
   private static func loadDocument(slotID: String) throws -> PresetSlotDocument {
-    let data = try Data(contentsOf: presetFileURL(slotID: slotID))
+    let rootURL = try resolvedLibraryRootURL()
+    let data = try Data(contentsOf: presetFileURL(slotID: slotID, rootURL: rootURL))
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .iso8601
     return try decoder.decode(PresetSlotDocument.self, from: data)
   }
 
   private static func writeDocument(_ document: PresetSlotDocument, slotID: String) throws {
-    try ensureLibraryDirectory()
+    let rootURL = try resolvedLibraryRootURL()
+    try ensureLibraryDirectory(at: rootURL)
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     encoder.dateEncodingStrategy = .iso8601
     let data = try encoder.encode(document)
-    try data.write(to: presetFileURL(slotID: slotID), options: .atomic)
+    try data.write(to: presetFileURL(slotID: slotID, rootURL: rootURL), options: .atomic)
   }
 
-  private static func ensureLibraryDirectory() throws {
-    try FileManager.default.createDirectory(at: libraryRootURL, withIntermediateDirectories: true)
-    try FileManager.default.createDirectory(at: presetsDirectoryURL, withIntermediateDirectories: true)
+  private static func ensureLibraryDirectory(at rootURL: URL) throws {
+    try FileManager.default.createDirectory(at: rootURL, withIntermediateDirectories: true)
+    try FileManager.default.createDirectory(at: presetsDirectoryURL(for: rootURL), withIntermediateDirectories: true)
   }
 
-  private static var libraryRootURL: URL {
+  private static func resolvedLibraryRootURL() throws -> URL {
+    if let appGroupRootURL = appGroupLibraryRootURL {
+      try migrateLegacyLibraryToAppGroupIfNeeded(appGroupRootURL: appGroupRootURL)
+      return appGroupRootURL
+    }
+    return preferredLegacyLibraryRootURL
+  }
+
+  private static var preferredLegacyLibraryRootURL: URL {
+    legacyLibraryRootCandidates.first(where: { FileManager.default.fileExists(atPath: indexURL(for: $0).path) })
+      ?? legacyLibraryRootCandidates[0]
+  }
+
+  private static var appGroupLibraryRootURL: URL? {
+    FileManager.default
+      .containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)?
+      .appendingPathComponent("JPad/library/user", isDirectory: true)
+  }
+
+  private static var legacyLibraryRootCandidates: [URL] {
     let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
       ?? FileManager.default.temporaryDirectory
-    return base.appendingPathComponent("JChord/library/user", isDirectory: true)
+    return [
+      base.appendingPathComponent("JChord/library/user", isDirectory: true),
+      base.appendingPathComponent("JPad/library/user", isDirectory: true)
+    ]
   }
 
-  private static var presetsDirectoryURL: URL {
-    libraryRootURL.appendingPathComponent(presetsFolderName, isDirectory: true)
+  private static func migrateLegacyLibraryToAppGroupIfNeeded(appGroupRootURL: URL) throws {
+    let fileManager = FileManager.default
+    let targetIndexURL = indexURL(for: appGroupRootURL)
+    guard !fileManager.fileExists(atPath: targetIndexURL.path) else { return }
+
+    guard let sourceRootURL = legacyLibraryRootCandidates.first(where: {
+      fileManager.fileExists(atPath: indexURL(for: $0).path)
+    }) else { return }
+
+    try ensureLibraryDirectory(at: appGroupRootURL)
+
+    let sourcePresetsURL = presetsDirectoryURL(for: sourceRootURL)
+    let targetPresetsURL = presetsDirectoryURL(for: appGroupRootURL)
+    if fileManager.fileExists(atPath: sourcePresetsURL.path) {
+      let presetFiles = try fileManager.contentsOfDirectory(
+        at: sourcePresetsURL,
+        includingPropertiesForKeys: nil,
+        options: [.skipsHiddenFiles]
+      )
+      for fileURL in presetFiles {
+        let targetFileURL = targetPresetsURL.appendingPathComponent(fileURL.lastPathComponent)
+        guard !fileManager.fileExists(atPath: targetFileURL.path) else { continue }
+        try fileManager.copyItem(at: fileURL, to: targetFileURL)
+      }
+    }
+
+    try fileManager.copyItem(at: indexURL(for: sourceRootURL), to: targetIndexURL)
   }
 
-  private static var indexURL: URL {
-    libraryRootURL.appendingPathComponent(indexFileName)
+  private static func presetsDirectoryURL(for rootURL: URL) -> URL {
+    rootURL.appendingPathComponent(presetsFolderName, isDirectory: true)
   }
 
-  private static func presetFileURL(slotID: String) -> URL {
-    presetsDirectoryURL.appendingPathComponent("\(slotID).json")
+  private static func indexURL(for rootURL: URL) -> URL {
+    rootURL.appendingPathComponent(indexFileName)
+  }
+
+  private static func presetFileURL(slotID: String, rootURL: URL) -> URL {
+    presetsDirectoryURL(for: rootURL).appendingPathComponent("\(slotID).json")
   }
 }

@@ -91,6 +91,8 @@ warmUpPreviewEngineIfNeeded()  // outputRoute == .tinyPiano のとき ensureTiny
 
 設定でプリセットを変えたときは、**エンジンが既に動いている場合だけ** `startEngineIfNeeded: true`（`selectPreviewSoundPreset`）。
 
+次バージョン以降の App Group 共有案は [TINYTONE_APP_GROUP_SHARING.md](TINYTONE_APP_GROUP_SHARING.md) を参照。現行の TinyTone LOAD / EXPORT と JPad JSON LOAD は残し、共有音色は追加候補として扱う。
+
 ## ファクトリプリセット
 
 - 同梱: `JPad/Resources/FactoryPresets/`（`manifest.json` の順がプルダウン順）。
