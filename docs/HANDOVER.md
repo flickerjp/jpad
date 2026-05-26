@@ -643,3 +643,13 @@
 
 **参照:** `git show 6ccf384` / `git log -1 6ccf384`
 
+
+<!-- handover:auto:28dc25e6f613ce2c81986d12951ef1df803314c2 -->
+### 2026-05-26 23:53:11 +0900 — `28dc25e` — main
+
+**件名:** Load TinyTone shared patches in JPad preview presets
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 28dc25e` / `git log -1 28dc25e`
+
