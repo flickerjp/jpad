@@ -203,6 +203,7 @@
 		CD1B524F86A813D6C5896DE4 /* PadVisualStyleSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadVisualStyleSettings.swift; sourceTree = "<group>"; };
 		CF100516E6CFBA0531EA9705 /* en.lproj */ = {isa = PBXFileReference; path = en.lproj; sourceTree = "<group>"; };
 		D01915A188E328FE8BF4504D /* JChordMidiChannelWheelPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JChordMidiChannelWheelPicker.swift; sourceTree = "<group>"; };
+		D11C86B10B18AB17A1C0ECA3 /* JPad.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JPad.entitlements; sourceTree = "<group>"; };
 		D3196298AD1E785464638B7C /* JChordPresetUTType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JChordPresetUTType.swift; sourceTree = "<group>"; };
 		D31C21F4D0FF42E7B9EC06D3 /* MidiRoutingSettingsContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiRoutingSettingsContent.swift; sourceTree = "<group>"; };
 		D700B6D6454256644CD39E7A /* JPadApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JPadApp.swift; sourceTree = "<group>"; };
@@ -372,6 +373,7 @@
 			isa = PBXGroup;
 			children = (
 				0FF16FC5B16D555E56755DAF /* Info.plist */,
+				D11C86B10B18AB17A1C0ECA3 /* JPad.entitlements */,
 				D60412B49608A99C5E4E1DCF /* App */,
 				24184BA5782ABCA3D5D7A4FC /* Features */,
 				AD234396D7A2F15C3A7D2D52 /* Models */,
@@ -745,10 +747,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_ENTITLEMENTS = JPad/JPad.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 119;
+				CURRENT_PROJECT_VERSION = 120;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
@@ -764,7 +766,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.19;
+				MARKETING_VERSION = 1.0.20;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
 				PRODUCT_NAME = JPad;
 				SDKROOT = iphoneos;
@@ -777,10 +779,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_ENTITLEMENTS = JPad/JPad.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 119;
+				CURRENT_PROJECT_VERSION = 120;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
@@ -796,7 +798,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.19;
+				MARKETING_VERSION = 1.0.20;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
 				PRODUCT_NAME = JPad;
 				SDKROOT = iphoneos;

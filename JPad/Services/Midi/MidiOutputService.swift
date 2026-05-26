@@ -2,6 +2,57 @@ import Combine
 import CoreMIDI
 import Foundation
 
+private struct TinyToneSharedPatchReference: Decodable {
+    let id: String
+    let patchName: String
+    let fileName: String
+}
+
+private struct TinyToneSharedPatchIndex: Decodable {
+    let items: [TinyToneSharedPatchReference]
+}
+
+private enum TinyToneSharedPatchLibrary {
+    private static let appGroupIdentifier = "group.com.flickerproduct.tinytone"
+
+    private static var rootURL: URL? {
+        FileManager.default
+            .containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)?
+            .appendingPathComponent("Library", isDirectory: true)
+            .appendingPathComponent("Application Support", isDirectory: true)
+            .appendingPathComponent("TinyToneSharedPatches", isDirectory: true)
+    }
+
+    private static var indexURL: URL? {
+        rootURL?.appendingPathComponent("index.json")
+    }
+
+    private static var patchesURL: URL? {
+        rootURL?.appendingPathComponent("patches", isDirectory: true)
+    }
+
+    static func availablePatches() -> [TinyToneSharedPatchReference] {
+        guard let indexURL,
+              let data = try? Data(contentsOf: indexURL) else { return [] }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        guard let index = try? decoder.decode(TinyToneSharedPatchIndex.self, from: data) else { return [] }
+        guard let patchesURL else { return [] }
+
+        return index.items.filter {
+            FileManager.default.fileExists(atPath: patchesURL.appendingPathComponent($0.fileName).path)
+        }
+    }
+
+    static func patchData(id: String) throws -> Data {
+        guard let patch = availablePatches().first(where: { $0.id == id }),
+              let patchesURL else {
+            throw PreviewSoundImportError.invalidPatch
+        }
+        return try Data(contentsOf: patchesURL.appendingPathComponent(patch.fileName))
+    }
+}
+
 /// CoreMIDI の入力コールバックは専用スレッドで呼ばれるため、@MainActor から分離して登録する。
 private final class MidiInputPortFactory: @unchecked Sendable {
     nonisolated func createInputPort(
@@ -928,7 +979,7 @@ final class MidiOutputService: ObservableObject {
 
     private func bootstrapPreviewSoundPresets() {
         migrateLegacyPreviewSoundIfNeeded()
-        refreshPreviewSoundPresetOptions()
+        reloadPreviewSoundPresetOptions()
 
         let stored = UserDefaults.standard.string(forKey: Self.previewSoundSelectedPresetIDKey)
         let resolved: String
@@ -946,6 +997,22 @@ final class MidiOutputService: ObservableObject {
             UserDefaults.standard.set(PreviewSoundPresetIDs.tinyPiano, forKey: Self.previewSoundSelectedPresetIDKey)
             try? applyPreviewSoundPreset(id: PreviewSoundPresetIDs.tinyPiano, startEngineIfNeeded: false)
         }
+    }
+
+    func reloadPreviewSoundPresetOptions() {
+        refreshPreviewSoundPresetOptions()
+        if previewSoundPresetOptions.contains(where: { $0.id == selectedPreviewSoundPresetID }) {
+            return
+        }
+
+        let fallbackID = previewSoundPresetOptions.contains(where: { $0.id == PreviewSoundPresetIDs.tinyPiano })
+            ? PreviewSoundPresetIDs.tinyPiano
+            : previewSoundPresetOptions.first?.id
+
+        guard let fallbackID else { return }
+        selectedPreviewSoundPresetID = fallbackID
+        UserDefaults.standard.set(fallbackID, forKey: Self.previewSoundSelectedPresetIDKey)
+        try? applyPreviewSoundPreset(id: fallbackID, startEngineIfNeeded: false)
     }
 
     /// ルーティング確定後のセッション整備（内蔵エンジンは初回発音まで起動しない）。
@@ -974,6 +1041,14 @@ final class MidiOutputService: ObservableObject {
                 isCustom: false
             )
         }
+
+        options.append(contentsOf: TinyToneSharedPatchLibrary.availablePatches().map { patch in
+            PreviewSoundPresetOption(
+                id: PreviewSoundPresetIDs.sharedID(patchID: patch.id),
+                displayName: patch.patchName,
+                isCustom: false
+            )
+        })
 
         if let customData = UserDefaults.standard.data(forKey: Self.previewSoundCustomPatchDataKey),
            let patch = try? TinyToneJSONService.decode(customData) {
@@ -1007,6 +1082,9 @@ final class MidiOutputService: ObservableObject {
                 throw PreviewSoundImportError.invalidPatch
             }
             return custom
+        }
+        if let sharedPatchID = PreviewSoundPresetIDs.sharedPatchID(from: id) {
+            return try TinyToneSharedPatchLibrary.patchData(id: sharedPatchID)
         }
         if let resourceName = PreviewSoundPresetIDs.factoryResourceName(from: id),
            let factoryData = TinyToneFactoryPresets.jsonData(named: resourceName) {

@@ -75,6 +75,7 @@ struct MidiSettingsView: View {
         }
         .onAppear {
             midiService.refreshEndpoints(reconfigureSession: false)
+            midiService.reloadPreviewSoundPresetOptions()
             Task { await refreshProMembershipStatus() }
         }
         .onDisappear {
