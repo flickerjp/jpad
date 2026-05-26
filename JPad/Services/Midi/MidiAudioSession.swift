@@ -3,13 +3,6 @@ import Foundation
 
 /// iOS の AVAudioSession（TinyTone 内蔵再生と GarageBand / 仮想 MIDI 共存で使い分け）。
 enum MidiAudioSession {
-    static var hasBackgroundAudioMode: Bool {
-        guard let modes = Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") as? [String] else {
-            return false
-        }
-        return modes.contains("audio")
-    }
-
     /// GarageBand や外部 MIDI と共存（他アプリの音とミックス）。
     @discardableResult
     static func activateForSharedMIDI() -> OSStatus {

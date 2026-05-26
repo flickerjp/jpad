@@ -1295,11 +1295,6 @@ final class MidiOutputService: ObservableObject {
 
     @discardableResult
     private func ensureVirtualSourceReady() -> Bool {
-        guard MidiAudioSession.hasBackgroundAudioMode else {
-            lastVirtualSourceError = kMIDINotPermitted
-            return false
-        }
-
         let audioStatus = MidiAudioSession.activateForVirtualMIDI()
         if audioStatus != noErr {
             lastVirtualSourceError = audioStatus
@@ -1425,9 +1420,6 @@ final class MidiOutputService: ObservableObject {
     }
 
     private func unavailableSourceDescription() -> String {
-        if !MidiAudioSession.hasBackgroundAudioMode {
-            return "Missing audio background mode — delete app, clean build, reinstall"
-        }
         if lastVirtualSourceError == kMIDINotPermitted {
             return "MIDI not permitted — open JPad once, then GarageBand"
         }
