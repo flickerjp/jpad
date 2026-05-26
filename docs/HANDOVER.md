@@ -653,3 +653,13 @@
 
 **参照:** `git show 28dc25e` / `git log -1 28dc25e`
 
+
+<!-- handover:auto:793acecaeed4a1f4bb3869e7a1bafeaca5c87fab -->
+### 2026-05-27 08:22:55 +0900 — `793acec` — main
+
+**件名:** Remove background audio entitlement
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 793acec` / `git log -1 793acec`
+
