@@ -296,10 +296,9 @@ final class MidiOutputService: ObservableObject {
         sendAllNotesOff()
         if outputRoute == .tinyPiano {
             shouldResumePreviewEngineAfterBackground = previewEngine.isEngineRunning
-            if previewEngine.isEngineRunning {
-                previewEngine.stop()
-                clearInternalPreviewReady()
-            }
+            // Do not tear down the audio graph here. Without background-audio mode,
+            // iOS will suspend the app; stopping immediately after all-notes-off can
+            // reintroduce transition pops before the render thread consumes silence.
             hasPrimedPreviewDSP = false
         }
     }

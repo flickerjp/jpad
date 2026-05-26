@@ -80,7 +80,8 @@ struct MidiSettingsView: View {
         }
         .onDisappear {
             midiService.setTestNoteEnabled(false)
-            midiService.warmUpPreviewEngineIfNeeded()
+            midiService.sendAllNotesOff()
+            midiService.preparePreviewAudioIfNeeded()
         }
     }
 

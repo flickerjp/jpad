@@ -581,12 +581,9 @@ final class MainViewModel: ObservableObject {
     func presentSettings() {
         guard !isShowingSettings else { return }
 
-        let wasHoldingSound = isHoldEnabled && playingPadID != nil
-        guard wasHoldingSound else {
-            isShowingSettings = true
-            return
-        }
-
+        // Settings presentation is an audio-state boundary. Clear the internal
+        // synth and give the render thread one short settle window before the
+        // sheet transition starts.
         sendAllNotesOff()
         Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(300))
