@@ -663,3 +663,13 @@
 
 **参照:** `git show 793acec` / `git log -1 793acec`
 
+
+<!-- handover:auto:deddbf87f28d1a0b910dae6421fc38af5220753f -->
+### 2026-05-27 08:32:26 +0900 — `deddbf8` — main
+
+**件名:** Fix settings transition preview noise
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show deddbf8` / `git log -1 deddbf8`
+
