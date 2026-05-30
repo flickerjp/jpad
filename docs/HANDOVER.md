@@ -673,3 +673,13 @@
 
 **参照:** `git show deddbf8` / `git log -1 deddbf8`
 
+
+<!-- handover:auto:54bdb7589807b426c5380d3306b6ca633f9b71d9 -->
+### 2026-05-30 10:36:49 +0900 — `54bdb75` — main
+
+**件名:** Refine transpose controls
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 54bdb75` / `git log -1 54bdb75`
+
