@@ -120,7 +120,7 @@
 "onboarding.garageband.step1" = "GarageBand を開き、曲を新規作成するか、既存の曲を開きます。";
 "onboarding.garageband.step2" = "ソフトウェア楽器トラック（キーボード、シンセなど）を追加します。";
 "onboarding.garageband.step3" = "右上の歯車 →「詳細」→「バックグラウンドで実行」をオンにします。";
-"onboarding.garageband.step4" = "JPad に戻り、PAD OUT で GarageBand（またはお使いの MIDI 機器）を選択します。";
+"onboarding.garageband.step4" = "JPad に戻り、プリセットの下で GARAGE BAND を選ぶか、PAD OUT から外部 MIDI 機器を選びます。";
 "onboarding.garageband.step5" = "TEST NOTE を押し続け、GarageBand に MIDI が届くことを確認します。";
 "onboarding.continue" = "JPad をはじめる";
 "onboarding.close" = "閉じる";
@@ -133,6 +133,7 @@
 "settings.help.accessibility" = "GarageBandとつなぐ手順を開く";
 "settings.preview_sound.label" = "PRESET";
 "settings.preview_sound.picker.accessibility" = "内蔵音色プリセット";
+"settings.preview_sound.tinytone_only" = "上で TinyTone を選択したときのみ有効です。";
 "settings.preview_sound.load.accessibility" = "TinyTone JSON を6番目のカスタム音色として読み込む";
 "settings.preview_sound.import.success" = "カスタム音色を読み込み、選択しました。";
 "settings.preview_sound.overwrite.title" = "カスタム音色を置き換えますか？";
@@ -154,6 +155,10 @@
 "settings.pad_style.performance" = "FLASH";
 "settings.pad_style.accessibility" = "パッドの見た目";
 "settings.pad_out" = "PAD OUT";
+"settings.pad_out.current" = "現在の PAD OUT: %@";
+"settings.pad_out.external_in_use" = "外部 MIDI を使用中: %@";
+"settings.pad_out.garage_band" = "GARAGE BAND";
+"settings.pad_out.garage_band.helper" = "JPad 仮想 MIDI ソース経由で GarageBand にパッド MIDI を送ります。接続手順はヘルプを参照してください。";
 "settings.midi_out" = "MIDI OUT";
 "settings.pad_out.tiny_piano" = "TinyTone";
 "settings.pad_out.tiny_piano.subtitle" = "Built-in lightweight sound for checking notes and chords.";

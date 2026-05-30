@@ -2,6 +2,13 @@ import CoreMIDI
 import Foundation
 
 enum MidiPacketTransmitter {
+    struct ReceivedReport {
+        let status: OSStatus
+        let packetStatus: OSStatus?
+        let eventStatus: OSStatus?
+        let usedEventList: Bool?
+    }
+
     private static let packetListSize = 256
     private static let eventListSize = 256
 
@@ -11,31 +18,55 @@ enum MidiPacketTransmitter {
         on source: MIDIEndpointRef,
         preferEventList: Bool
     ) -> OSStatus {
-        guard source != 0, !message.isEmpty else { return errSecParam }
+        receivedReport(message, on: source, preferEventList: preferEventList).status
+    }
+
+    static func receivedReport(
+        _ message: [UInt8],
+        on source: MIDIEndpointRef,
+        preferEventList: Bool
+    ) -> ReceivedReport {
+        guard source != 0, !message.isEmpty else {
+            return ReceivedReport(status: errSecParam, packetStatus: nil, eventStatus: nil, usedEventList: nil)
+        }
 
         var lastStatus: OSStatus = errSecParam
+        var packetStatus: OSStatus?
+        var eventStatus: OSStatus?
 
         if preferEventList {
             if let status = sendViaEventList(message, on: source) {
-                if status == noErr { return noErr }
+                eventStatus = status
+                if status == noErr {
+                    return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: true)
+                }
                 lastStatus = status
             }
             if let status = sendViaPacketList(message, on: source) {
-                if status == noErr { return noErr }
+                packetStatus = status
+                if status == noErr {
+                    return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: false)
+                }
                 lastStatus = status
             }
         } else {
             if let status = sendViaPacketList(message, on: source) {
-                if status == noErr { return noErr }
+                packetStatus = status
+                if status == noErr {
+                    return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: false)
+                }
                 lastStatus = status
             }
             if let status = sendViaEventList(message, on: source) {
-                if status == noErr { return noErr }
+                eventStatus = status
+                if status == noErr {
+                    return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: true)
+                }
                 lastStatus = status
             }
         }
 
-        return lastStatus
+        return ReceivedReport(status: lastStatus, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: nil)
     }
 
     @discardableResult

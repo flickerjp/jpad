@@ -129,7 +129,7 @@
 "onboarding.garageband.step1" = "Open GarageBand and create a song, or open one you already use.";
 "onboarding.garageband.step2" = "Add a Software Instrument track (Keyboard, Synth, etc.).";
 "onboarding.garageband.step3" = "In GarageBand, tap the gear (top right) → Details → turn on Run in Background.";
-"onboarding.garageband.step4" = "Return here. Under PAD OUT, select GarageBand (or your MIDI interface).";
+"onboarding.garageband.step4" = "Return here. Select GARAGE BAND below the preset, or choose an external MIDI device under PAD OUT.";
 "onboarding.garageband.step5" = "Hold TEST NOTE and confirm GarageBand receives MIDI.";
 "onboarding.continue" = "Continue to JPad";
 "onboarding.close" = "Close";
@@ -142,6 +142,7 @@
 "settings.help.accessibility" = "Open GarageBand connection guide";
 "settings.preview_sound.label" = "PRESET";
 "settings.preview_sound.picker.accessibility" = "Built-in sound preset";
+"settings.preview_sound.tinytone_only" = "Available only when TinyTone is selected above.";
 "settings.preview_sound.load.accessibility" = "Load custom TinyTone JSON as the sixth preset";
 "settings.preview_sound.import.success" = "Custom sound was loaded and selected.";
 "settings.preview_sound.overwrite.title" = "Replace custom sound?";
@@ -163,6 +164,10 @@
 "settings.pad_style.performance" = "FLASH";
 "settings.pad_style.accessibility" = "Pad appearance";
 "settings.pad_out" = "PAD OUT";
+"settings.pad_out.current" = "Current PAD OUT: %@";
+"settings.pad_out.external_in_use" = "Using external MIDI: %@";
+"settings.pad_out.garage_band" = "GARAGE BAND";
+"settings.pad_out.garage_band.helper" = "Sends pad MIDI to GarageBand via the JPad virtual source. See Help for setup.";
 "settings.midi_out" = "MIDI OUT";
 "settings.pad_out.tiny_piano" = "TinyTone";
 "settings.pad_out.tiny_piano.subtitle" = "Built-in lightweight sound for checking notes and chords.";

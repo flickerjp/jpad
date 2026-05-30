@@ -47,8 +47,8 @@ targets:
         # Same App Store app as JChord — do not reset CURRENT_PROJECT_VERSION / bundle ID.
         PRODUCT_BUNDLE_IDENTIFIER: com.flickerproduct.jchord
         PRODUCT_NAME: JPad
-        MARKETING_VERSION: 1.0.20
-        CURRENT_PROJECT_VERSION: 120
+        MARKETING_VERSION: 1.1.01
+        CURRENT_PROJECT_VERSION: 122
         SWIFT_VERSION: 6.0
         DEVELOPMENT_TEAM: G942ZU3CGC
         CODE_SIGN_STYLE: Automatic

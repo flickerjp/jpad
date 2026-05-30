@@ -28,12 +28,12 @@ struct PresetControlSettings: Codable, Equatable {
     static let `default` = PresetControlSettings()
 
     var padControlMode: PresetPadControlMode
-    var selectedShiftMemoryIndex: Int
+    var selectedShiftMemoryIndex: Int?
     var shiftMemories: [PresetShiftMemory]
 
     init(
         padControlMode: PresetPadControlMode = .sliders,
-        selectedShiftMemoryIndex: Int = 0,
+        selectedShiftMemoryIndex: Int? = 0,
         shiftMemories: [PresetShiftMemory] = []
     ) {
         let normalizedMemories = Self.normalizedShiftMemories(from: shiftMemories)
@@ -46,13 +46,25 @@ struct PresetControlSettings: Codable, Equatable {
     }
 
     var selectedMemory: PresetShiftMemory {
-        shiftMemories[selectedShiftMemoryIndex]
+        guard let selectedShiftMemoryIndex,
+              shiftMemories.indices.contains(selectedShiftMemoryIndex) else {
+            return .neutral
+        }
+        return shiftMemories[selectedShiftMemoryIndex]
     }
 
     func selectingMemory(index: Int) -> PresetControlSettings {
         PresetControlSettings(
             padControlMode: padControlMode,
             selectedShiftMemoryIndex: index,
+            shiftMemories: shiftMemories
+        )
+    }
+
+    func deselectingMemory() -> PresetControlSettings {
+        PresetControlSettings(
+            padControlMode: padControlMode,
+            selectedShiftMemoryIndex: nil,
             shiftMemories: shiftMemories
         )
     }
@@ -66,6 +78,7 @@ struct PresetControlSettings: Codable, Equatable {
     }
 
     func updatingSelectedMemory(_ transform: (PresetShiftMemory) -> PresetShiftMemory) -> PresetControlSettings {
+        guard let selectedShiftMemoryIndex else { return self }
         var updatedMemories = shiftMemories
         updatedMemories[selectedShiftMemoryIndex] = transform(selectedMemory)
         return PresetControlSettings(
@@ -99,8 +112,8 @@ struct PresetControlSettings: Codable, Equatable {
         return normalized
     }
 
-    private static func normalizedIndex(_ index: Int, count: Int) -> Int {
-        guard count > 0 else { return 0 }
+    private static func normalizedIndex(_ index: Int?, count: Int) -> Int? {
+        guard let index, count > 0 else { return nil }
         return max(0, min(index, count - 1))
     }
 }

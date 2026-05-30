@@ -14,7 +14,7 @@
 | [LOCALIZATION_MESSAGES.md](LOCALIZATION_MESSAGES.md) | 文言一覧（日英） |
 | [TINYTONE_AUDIO.md](TINYTONE_AUDIO.md) | **内蔵 TinyTone オーディオ（本線・全ビルド）** — 起動遅延・ゲート・ウォームアップ・移行 |
 | [TINYTONE_APP_GROUP_SHARING.md](TINYTONE_APP_GROUP_SHARING.md) | **TinyTone / JPad App Group 共有案**（JSON LOAD/EXPORT 併用、次バージョン以降） |
-| [TINYTONE_MIDI_PLUGIN_DIRECTION.md](TINYTONE_MIDI_PLUGIN_DIRECTION.md) | **TinyTone MIDI / AUv3 plugin 化方針**（GarageBand/AUM/Loopy/Cubasis、JPad非依存、無料機能） |
+| [TINYTONE_MIDI_PLUGIN_DIRECTION.md](TINYTONE_MIDI_PLUGIN_DIRECTION.md) | **TinyTone MIDI / AUv3 plugin 化方針**（GarageBand/AUM/Loopy/Cubasis、JPad非依存、TinyTone Pro機能） |
 | [TINYTONE_FACTORY_PATCH.json](TINYTONE_FACTORY_PATCH.json) | TinyTone 現行パラメータの保存版 |
 | [HANDOVER.md](HANDOVER.md) | 引き継ぎ・コミット自動ログ |
 

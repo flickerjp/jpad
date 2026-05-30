@@ -36,6 +36,8 @@ final class MainViewModel: ObservableObject {
     @AppStorage(PresetRotationSettings.slotIDsKey) private var rotationSlotIDsStorage = ""
 
     private var holdLatchedPadID: Int?
+    private var pendingTransposeSemitones: Int?
+    private var isPendingTransposeArmed = false
     private var transposePreviewToken = UUID()
     private var pendingStoreCatalogID: String?
     private var pendingStorePreset: Preset?
@@ -121,7 +123,7 @@ final class MainViewModel: ObservableObject {
         preset.transposeSettings.padControlMode
     }
 
-    var selectedTransposePresetIndex: Int {
+    var selectedTransposePresetIndex: Int? {
         preset.transposeSettings.selectedShiftMemoryIndex
     }
 
@@ -587,10 +589,24 @@ final class MainViewModel: ObservableObject {
     }
 
     func selectTransposePreset(index: Int, previewInEditMode: Bool = false) {
-        let updated = preset.transposeSettings.selectingMemory(index: index)
-        applyControlSettings(updated)
+        if !previewInEditMode, preset.transposeSettings.selectedShiftMemoryIndex == index {
+            let updated = preset.transposeSettings.deselectingMemory()
+            if hasSoundingPadNotes {
+                applyControlSettingsPreservingSound(updated)
+            } else {
+                applyControlSettings(updated)
+            }
+            return
+        }
 
-        guard previewInEditMode else { return }
+        let updated = preset.transposeSettings.selectingMemory(index: index)
+        if hasSoundingPadNotes {
+            applyControlSettingsPreservingSound(updated)
+        } else {
+            applyControlSettings(updated)
+        }
+
+        guard previewInEditMode, !hasSoundingPadNotes else { return }
         previewTransposeSelectionIfPossible()
     }
 
@@ -632,6 +648,7 @@ final class MainViewModel: ObservableObject {
         isHoldEnabled = false
         playingPadID = nil
         holdLatchedPadID = nil
+        markPendingTransposeReadyIfNeeded()
         midiService.sendAllNotesOff()
         midiService.preparePreviewAudioIfNeeded()
     }
@@ -784,12 +801,49 @@ final class MainViewModel: ObservableObject {
         midiService.updatePadTranspose(semitones: loadedPreset.transposeSettings.selectedMemory.totalSemitones)
     }
 
+    private var hasSoundingPadNotes: Bool {
+        playingPadID != nil
+    }
+
     private func applyControlSettings(_ settings: PresetControlSettings) {
         guard settings != preset.transposeSettings else { return }
-        sendAllNotesOff()
+        clearPendingTranspose()
+        sendAllNotesOffWithoutPendingArm()
         preset = preset.replacingControlSettings(settings)
         midiService.updatePadTranspose(semitones: settings.selectedMemory.totalSemitones)
         persistActiveSlotIfNeeded()
+    }
+
+    private func applyControlSettingsPreservingSound(_ settings: PresetControlSettings) {
+        guard settings != preset.transposeSettings else { return }
+        pendingTransposeSemitones = settings.selectedMemory.totalSemitones
+        isPendingTransposeArmed = false
+        preset = preset.replacingControlSettings(settings)
+        persistActiveSlotIfNeeded()
+    }
+
+    private func clearPendingTranspose() {
+        pendingTransposeSemitones = nil
+        isPendingTransposeArmed = false
+    }
+
+    private func markPendingTransposeReadyIfNeeded() {
+        guard pendingTransposeSemitones != nil else { return }
+        isPendingTransposeArmed = true
+    }
+
+    private func applyPendingTransposeIfArmed() {
+        guard isPendingTransposeArmed, let semitones = pendingTransposeSemitones else { return }
+        clearPendingTranspose()
+        midiService.updatePadTranspose(semitones: semitones)
+    }
+
+    private func sendAllNotesOffWithoutPendingArm() {
+        isHoldEnabled = false
+        playingPadID = nil
+        holdLatchedPadID = nil
+        midiService.sendAllNotesOff()
+        midiService.preparePreviewAudioIfNeeded()
     }
 
     private func persistActiveSlotIfNeeded() {
@@ -832,6 +886,8 @@ final class MainViewModel: ObservableObject {
     }
 
     private func handlePadPressDown(_ pad: PadDefinition) {
+        applyPendingTransposeIfArmed()
+
         if isHoldEnabled {
             if holdLatchedPadID == pad.id {
                 releasePlayingPad(pad)
@@ -848,6 +904,8 @@ final class MainViewModel: ObservableObject {
             if let previousID = playingPadID,
                previousID != pad.id,
                let previousPad = preset.pads.first(where: { $0.id == previousID }) {
+                markPendingTransposeReadyIfNeeded()
+                applyPendingTransposeIfArmed()
                 midiService.transitionPad(from: previousPad, to: pad)
             } else {
                 midiService.sendPadOn(pad)
@@ -870,12 +928,14 @@ final class MainViewModel: ObservableObject {
 
         playingPadID = nil
         midiService.sendPadOff(pad)
+        markPendingTransposeReadyIfNeeded()
     }
 
     private func releasePlayingPad(_ pad: PadDefinition) {
         playingPadID = nil
         holdLatchedPadID = nil
         midiService.sendPadOff(pad)
+        markPendingTransposeReadyIfNeeded()
     }
 
     private func previewTransposeSelectionIfPossible() {
@@ -908,6 +968,7 @@ final class MainViewModel: ObservableObject {
             isHoldEnabled = false
             playingPadID = nil
             holdLatchedPadID = nil
+            markPendingTransposeReadyIfNeeded()
             midiService.sendAllNotesOff()
             return
         }

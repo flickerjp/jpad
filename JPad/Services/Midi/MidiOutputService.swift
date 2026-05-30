@@ -79,6 +79,9 @@ final class MidiOutputService: ObservableObject {
     @Published private(set) var outputRoute: MidiOutputRoute = .tinyPiano
     /// 内蔵プレビュー音源が実際に動作中（設定 UI の Active 表示用）。
     @Published private(set) var isInternalPreviewReady = false
+    /// GarageBand ルートで JPad 仮想 MIDI ソースが利用可能（PAD OUT の Active 表示用）。
+    @Published private(set) var isGarageBandRouteReady = false
+    @Published private(set) var garageBandDiagnosticDescription = "GB source not checked"
     @Published private(set) var lastMidiEventDescription = "—"
     @Published private(set) var lastTinyPianoFallbackReason = ""
     @Published var isTestNoteEnabled = false
@@ -113,7 +116,10 @@ final class MidiOutputService: ObservableObject {
     private static let virtualSourceName = "JPad"
     /// CoreMIDI 端末 ID と衝突しない内蔵 PAD OUT 用の固定 ID。
     static let tinyPianoUniqueID: MIDIUniqueID = 2_130_741_505
+    /// CoreMIDI 端末 ID と衝突しない GarageBand ルート用の固定 ID。
+    static let garageBandUniqueID: MIDIUniqueID = 2_130_741_506
     private static let selectedRouteKey = "selectedMidiOutputRoute"
+    private static let lastPrimaryPadOutputRouteKey = "lastPrimaryMidiOutputRoute"
     private static let selectedPadOutputKey = "selectedMidiOutputUniqueID"
     private static let selectedKeyboardInputKey = "selectedMidiInputUniqueID"
     private static let midiChannelKey = "midiOutputChannel"
@@ -156,6 +162,15 @@ final class MidiOutputService: ObservableObject {
         )
     }
 
+    static var garageBandPadOutputDestination: MidiDestinationInfo {
+        MidiDestinationInfo(
+            uniqueID: garageBandUniqueID,
+            endpointRef: 0,
+            displayName: L10n.string("settings.pad_out.garage_band"),
+            isOnline: true
+        )
+    }
+
     private static var internalPreviewDisplayName: String {
         L10n.string("settings.pad_out.tiny_piano")
     }
@@ -194,28 +209,26 @@ final class MidiOutputService: ObservableObject {
             .sorted { Self.sortPadOutputsForDisplay($0.displayName, $1.displayName) }
     }
 
-    /// 設定画面の PAD OUT 一覧（内蔵 TinyTone + 外部端末）。
-    var padOutputChoices: [MidiPadOutputChoice] {
-        let tinyPianoSelected = outputRoute == .tinyPiano
-        let tinyPianoSelectable = !hasOnlineKeyboardInput
-        var choices: [MidiPadOutputChoice] = [
-            MidiPadOutputChoice(
-                uniqueID: Self.tinyPianoUniqueID,
-                title: Self.internalPreviewDisplayName,
-                subtitle: Self.padOutputStatusLabel(
-                    isOnline: true,
-                    isActiveRoute: tinyPianoSelected
-                ),
-                isOnline: true,
-                isInternalSynth: true,
-                isSelectable: tinyPianoSelectable
-            ),
-        ]
-        for destination in filteredPadOutputs {
-            let isSelected = destination.uniqueID == effectiveSelectedPadOutputUniqueID
-            let isActiveRoute = isSelected && destination.isOnline
-            choices.append(
-                MidiPadOutputChoice(
+    var primaryPadOutputMode: PrimaryPadOutputMode? {
+        switch outputRoute {
+        case .tinyPiano:
+            return .tinyTone
+        case .garageBand:
+            return .garageBand
+        case .device:
+            return nil
+        }
+    }
+
+    /// 設定の PAD OUT 一覧（外部 MIDI 端末のみ）。
+    var externalPadOutputChoices: [MidiPadOutputChoice] {
+        filteredPadOutputs
+            .filter { !Self.isGarageBandDestination($0.displayName) }
+            .map { destination in
+                let isSelected = outputRoute == .device
+                    && destination.uniqueID == effectiveSelectedPadOutputUniqueID
+                let isActiveRoute = isSelected && destination.isOnline
+                return MidiPadOutputChoice(
                     uniqueID: destination.uniqueID,
                     title: Self.friendlyListTitle(forPadOutput: destination.displayName),
                     subtitle: Self.padOutputStatusLabel(
@@ -226,9 +239,61 @@ final class MidiOutputService: ObservableObject {
                     isInternalSynth: false,
                     isSelectable: destination.isOnline
                 )
+            }
+    }
+
+    /// 設定 PAD OUT セクション（GB ルート時は仮想ソース行 + 外部端末）。
+    var padOutSectionChoices: [MidiPadOutputChoice] {
+        var choices: [MidiPadOutputChoice] = []
+        if outputRoute == .garageBand {
+            choices.append(
+                MidiPadOutputChoice(
+                    uniqueID: Self.garageBandUniqueID,
+                    title: Self.garageBandPadOutputDestination.displayName,
+                    subtitle: Self.padOutputStatusLabel(
+                        isOnline: true,
+                        isActiveRoute: isGarageBandRouteReady
+                    ),
+                    isOnline: true,
+                    isInternalSynth: false,
+                    isSelectable: false
+                )
             )
         }
+        choices.append(contentsOf: externalPadOutputChoices)
         return choices
+    }
+
+    /// 旧 API 互換。
+    var padOutputChoices: [MidiPadOutputChoice] {
+        padOutSectionChoices
+    }
+
+    func selectPrimaryPadOutputMode(_ mode: PrimaryPadOutputMode) {
+        switch mode {
+        case .tinyTone:
+            guard outputRoute != .tinyPiano else {
+                ensureCurrentPadOutputRouteReady()
+                return
+            }
+            selectTinyPianoOutput(reason: nil)
+            ensureCurrentPadOutputRouteReady()
+            finalizeAudioSessionForCurrentRoute()
+        case .garageBand:
+            guard outputRoute != .garageBand else {
+                ensureCurrentPadOutputRouteReady()
+                return
+            }
+            selectGarageBandOutput()
+        }
+    }
+
+    func refreshGarageBandDiagnostics() {
+        guard outputRoute == .garageBand else {
+            updateGarageBandDiagnosticDescription(lastMessageDescription: nil, report: nil)
+            return
+        }
+        _ = ensureVirtualSourceReady()
     }
 
     var filteredKeyboardInputs: [MidiSourceInfo] {
@@ -237,13 +302,13 @@ final class MidiOutputService: ObservableObject {
             .sorted { Self.sortKeyboardInputsForDisplay($0.displayName, $1.displayName) }
     }
 
-    /// UI 用: 実際に PAD OUT 先が選ばれ利用可能（JChord 仮想ソース作成だけでは true にしない）。
+    /// UI 用: 実際に PAD OUT 先が選ばれ利用可能。
     var hasActiveMidiOutput: Bool {
         switch outputRoute {
         case .tinyPiano:
             return true
         case .garageBand:
-            return garageBandDestination?.isOnline == true
+            return isGarageBandRouteReady
         case .device:
             guard let selectedPadOutput,
                   selectedPadOutput.isOnline,
@@ -257,6 +322,9 @@ final class MidiOutputService: ObservableObject {
     var effectiveSelectedPadOutputUniqueID: MIDIUniqueID? {
         if outputRoute == .tinyPiano {
             return Self.tinyPianoUniqueID
+        }
+        if outputRoute == .garageBand {
+            return Self.garageBandUniqueID
         }
         guard let selectedPadOutput,
               filteredPadOutputs.contains(where: { $0.uniqueID == selectedPadOutput.uniqueID }) else {
@@ -286,9 +354,22 @@ final class MidiOutputService: ObservableObject {
         case .tinyPiano:
             return Self.internalPreviewDisplayName
         case .garageBand:
-            return garageBandDestination?.displayName ?? (hasVirtualSource ? "GARAGEBAND" : "PAD OUT")
+            return Self.garageBandPadOutputDestination.displayName
         case .device:
             return selectedPadOutput?.displayName ?? "PAD OUT"
+        }
+    }
+
+    /// 設定画面の PAD OUT 表示名。
+    var settingsPadOutputDisplayName: String {
+        switch outputRoute {
+        case .tinyPiano:
+            return Self.internalPreviewDisplayName
+        case .garageBand:
+            return Self.garageBandPadOutputDestination.displayName
+        case .device:
+            guard let selectedPadOutput else { return "PAD OUT" }
+            return Self.friendlyListTitle(forPadOutput: selectedPadOutput.displayName)
         }
     }
 
@@ -485,6 +566,11 @@ final class MidiOutputService: ObservableObject {
         refreshDestinations()
         refreshSources()
         applyDefaultRouting()
+        if outputRoute == .garageBand {
+            _ = ensureVirtualSourceReady()
+        } else {
+            updateGarageBandRouteReadyState()
+        }
         if reconfigureSession {
             activatePreviewAudioSessionIfNeeded()
         }
@@ -509,32 +595,62 @@ final class MidiOutputService: ObservableObject {
 
     func selectPadOutput(uniqueID: MIDIUniqueID) {
         if uniqueID == Self.tinyPianoUniqueID {
-            guard !hasOnlineKeyboardInput else { return }
-            if outputRoute == .tinyPiano {
-                if !ensureTinyPianoReady() {
-                    lastMidiEventDescription = tinyPianoUnavailableDescription()
-                }
-                return
-            }
-            selectTinyPianoOutput(reason: nil)
+            selectPrimaryPadOutputMode(.tinyTone)
             return
         }
 
-        if uniqueID == effectiveSelectedPadOutputUniqueID {
+        if uniqueID == Self.garageBandUniqueID {
+            selectPrimaryPadOutputMode(.garageBand)
             return
         }
 
-        previewEngine.stop()
-        clearInternalPreviewReady()
-        _ = MidiAudioSession.activateForSharedMIDI()
+        if uniqueID == effectiveSelectedPadOutputUniqueID, outputRoute == .device {
+            ensureCurrentPadOutputRouteReady()
+            return
+        }
+
+        leavePrimaryPadOutputModeForExternalDevice()
 
         guard let destination = destinations.first(where: { $0.uniqueID == uniqueID }) else { return }
         guard !Self.isExcludedPadOutput(destination.displayName) else { return }
+        guard !Self.isGarageBandDestination(destination.displayName) else { return }
 
         selectedPadOutput = destination
         UserDefaults.standard.set(destination.uniqueID, forKey: Self.selectedPadOutputKey)
+        outputRoute = .device
+        UserDefaults.standard.set(MidiOutputRoute.device.rawValue, forKey: Self.selectedRouteKey)
+        ensureCurrentPadOutputRouteReady()
+        finalizeAudioSessionForCurrentRoute()
+    }
 
-        syncOutputRoute(for: destination)
+    private func leavePrimaryPadOutputModeForExternalDevice() {
+        switch outputRoute {
+        case .tinyPiano:
+            deactivateTinyTonePadOutput()
+        case .garageBand:
+            hasPrimedPreviewDSP = false
+            clearInternalPreviewReady()
+            updateGarageBandRouteReadyState()
+        case .device:
+            break
+        }
+        _ = MidiAudioSession.activateForSharedMIDI()
+    }
+
+    private func ensureCurrentPadOutputRouteReady() {
+        switch outputRoute {
+        case .tinyPiano:
+            if !ensureTinyPianoReady() {
+                lastMidiEventDescription = tinyPianoUnavailableDescription()
+            }
+        case .garageBand:
+            if !ensureVirtualSourceReady() {
+                lastMidiEventDescription = unavailableSourceDescription()
+            }
+        case .device:
+            createMidiClientIfNeeded()
+            createOutputPortIfNeeded()
+        }
     }
 
     var tinyPianoDiagnostics: String {
@@ -547,9 +663,34 @@ final class MidiOutputService: ObservableObject {
         outputRoute = .tinyPiano
         selectedPadOutput = Self.tinyPianoDestination
         lastTinyPianoFallbackReason = reason ?? ""
-        UserDefaults.standard.set(MidiOutputRoute.tinyPiano.rawValue, forKey: Self.selectedRouteKey)
+        persistPrimaryPadOutputRoute(.tinyPiano)
         UserDefaults.standard.set(Self.tinyPianoUniqueID, forKey: Self.selectedPadOutputKey)
         clearInternalPreviewReady()
+        updateGarageBandRouteReadyState()
+    }
+
+    private func selectGarageBandOutput() {
+        deactivateTinyTonePadOutput()
+        _ = MidiAudioSession.activateForSharedMIDI()
+        outputRoute = .garageBand
+        selectedPadOutput = Self.garageBandPadOutputDestination
+        persistPrimaryPadOutputRoute(.garageBand)
+        UserDefaults.standard.set(Self.garageBandUniqueID, forKey: Self.selectedPadOutputKey)
+        ensureCurrentPadOutputRouteReady()
+        finalizeAudioSessionForCurrentRoute()
+        objectWillChange.send()
+    }
+
+    private func persistPrimaryPadOutputRoute(_ route: MidiOutputRoute) {
+        guard route == .tinyPiano || route == .garageBand else { return }
+        UserDefaults.standard.set(route.rawValue, forKey: Self.selectedRouteKey)
+        UserDefaults.standard.set(route.rawValue, forKey: Self.lastPrimaryPadOutputRouteKey)
+    }
+
+    private func deactivateTinyTonePadOutput() {
+        previewEngine.stop()
+        clearInternalPreviewReady()
+        hasPrimedPreviewDSP = false
     }
 
     private func tinyPianoUnavailableDescription() -> String {
@@ -560,14 +701,23 @@ final class MidiOutputService: ObservableObject {
     }
 
     private func syncOutputRoute(for destination: MidiDestinationInfo) {
-        clearInternalPreviewReady()
+        let wasTinyPiano = outputRoute == .tinyPiano
         if Self.isGarageBandDestination(destination.displayName) {
             outputRoute = .garageBand
-            UserDefaults.standard.set(MidiOutputRoute.garageBand.rawValue, forKey: Self.selectedRouteKey)
+            selectedPadOutput = Self.garageBandPadOutputDestination
+            persistPrimaryPadOutputRoute(.garageBand)
+            UserDefaults.standard.set(Self.garageBandUniqueID, forKey: Self.selectedPadOutputKey)
         } else {
             outputRoute = .device
             UserDefaults.standard.set(MidiOutputRoute.device.rawValue, forKey: Self.selectedRouteKey)
         }
+        if wasTinyPiano {
+            deactivateTinyTonePadOutput()
+        } else {
+            hasPrimedPreviewDSP = false
+            clearInternalPreviewReady()
+        }
+        updateGarageBandRouteReadyState()
     }
 
     func selectKeyboardInput(uniqueID: MIDIUniqueID) {
@@ -859,58 +1009,42 @@ final class MidiOutputService: ObservableObject {
     }
 
     private func applyDefaultRouting() {
-        if outputRoute == .tinyPiano {
-            if hasOnlineKeyboardInput {
-                let outputs = filteredPadOutputs.filter(\.isOnline)
-                if let preferred = preferredPadOutput(from: outputs) {
-                    selectPadOutput(uniqueID: preferred.uniqueID)
-                }
-            } else {
-                selectTinyPianoOutput(reason: nil)
-                reconcileKeyboardInputSelection()
-                return
-            }
+        switch outputRoute {
+        case .tinyPiano:
+            selectedPadOutput = Self.tinyPianoDestination
+            UserDefaults.standard.set(Self.tinyPianoUniqueID, forKey: Self.selectedPadOutputKey)
+        case .garageBand:
+            selectedPadOutput = Self.garageBandPadOutputDestination
+            UserDefaults.standard.set(Self.garageBandUniqueID, forKey: Self.selectedPadOutputKey)
+        case .device:
+            reconcileExternalPadOutputSelection()
         }
 
-        if outputRoute == .garageBand {
-            if let garageBand = garageBandDestination {
-                selectedPadOutput = garageBand
-                UserDefaults.standard.set(garageBand.uniqueID, forKey: Self.selectedPadOutputKey)
-            } else if let selectedPadOutput,
-                      !Self.isGarageBandDestination(selectedPadOutput.displayName) {
-                outputRoute = .device
-                UserDefaults.standard.set(MidiOutputRoute.device.rawValue, forKey: Self.selectedRouteKey)
-            }
-        } else {
-            reconcilePadOutputSelection()
-        }
-
-        if let selectedPadOutput, outputRoute != .tinyPiano {
-            syncOutputRoute(for: selectedPadOutput)
-        }
-
-        fallBackToTinyPianoIfNeeded()
+        fallBackFromExternalDeviceIfNeeded()
         reconcileKeyboardInputSelection()
     }
 
-    private func fallBackToTinyPianoIfNeeded() {
-        switch outputRoute {
-        case .tinyPiano:
-            return
-        case .garageBand:
-            if garageBandDestination?.isOnline != true {
-                selectTinyPianoOutput(reason: "GarageBand unavailable")
-            }
-        case .device:
-            if !hasUsableExternalPadOutput() {
-                selectTinyPianoOutput(reason: "External MIDI unavailable")
-            }
+    private func fallBackFromExternalDeviceIfNeeded() {
+        guard outputRoute == .device else { return }
+        guard !hasUsableExternalPadOutput() else { return }
+        restoreStoredPrimaryPadOutputMode(reason: "External MIDI unavailable")
+    }
+
+    private func restoreStoredPrimaryPadOutputMode(reason: String?) {
+        let storedRoute = UserDefaults.standard.string(forKey: Self.lastPrimaryPadOutputRouteKey)
+            ?? UserDefaults.standard.string(forKey: Self.selectedRouteKey)
+        if storedRoute == MidiOutputRoute.garageBand.rawValue {
+            selectGarageBandOutput()
+        } else {
+            selectTinyPianoOutput(reason: reason)
+            finalizeAudioSessionForCurrentRoute()
         }
     }
 
     private func hasUsableExternalPadOutput() -> Bool {
         guard let selectedPadOutput,
               selectedPadOutput.uniqueID != Self.tinyPianoUniqueID,
+              selectedPadOutput.uniqueID != Self.garageBandUniqueID,
               selectedPadOutput.isOnline,
               filteredPadOutputs.contains(where: { $0.uniqueID == selectedPadOutput.uniqueID }) else {
             return false
@@ -918,15 +1052,14 @@ final class MidiOutputService: ObservableObject {
         return true
     }
 
-    private func reconcilePadOutputSelection() {
-        if outputRoute == .tinyPiano {
-            selectedPadOutput = Self.tinyPianoDestination
+    private func reconcileExternalPadOutputSelection() {
+        let outputs = filteredPadOutputs.filter(\.isOnline)
+        guard !outputs.isEmpty else {
+            restoreStoredPrimaryPadOutputMode(reason: "No external MIDI outputs")
             return
         }
 
-        let outputs = filteredPadOutputs.filter(\.isOnline)
-        guard !outputs.isEmpty else {
-            selectTinyPianoOutput(reason: "No external MIDI outputs")
+        if hasUsableExternalPadOutput() {
             return
         }
 
@@ -938,7 +1071,7 @@ final class MidiOutputService: ObservableObject {
 
         guard selectionMissing || selectionIsNetwork else { return }
         guard let preferred = preferredPadOutput(from: outputs) else {
-            selectTinyPianoOutput(reason: "No preferred MIDI output")
+            restoreStoredPrimaryPadOutputMode(reason: "No preferred MIDI output")
             return
         }
         selectPadOutput(uniqueID: preferred.uniqueID)
@@ -999,6 +1132,10 @@ final class MidiOutputService: ObservableObject {
             return
         }
         outputRoute = route
+        if route == .tinyPiano || route == .garageBand,
+           UserDefaults.standard.string(forKey: Self.lastPrimaryPadOutputRouteKey) == nil {
+            UserDefaults.standard.set(route.rawValue, forKey: Self.lastPrimaryPadOutputRouteKey)
+        }
     }
 
     private func bootstrapPreviewSoundPresets() {
@@ -1126,6 +1263,10 @@ final class MidiOutputService: ObservableObject {
             selectedPadOutput = Self.tinyPianoDestination
             return
         }
+        if outputRoute == .garageBand {
+            selectedPadOutput = Self.garageBandPadOutputDestination
+            return
+        }
 
         guard let storedID = UserDefaults.standard.object(forKey: Self.selectedPadOutputKey) as? Int32 else {
             return
@@ -1135,8 +1276,19 @@ final class MidiOutputService: ObservableObject {
             selectedPadOutput = Self.tinyPianoDestination
             return
         }
+        if storedID == Self.garageBandUniqueID {
+            outputRoute = .garageBand
+            selectedPadOutput = Self.garageBandPadOutputDestination
+            return
+        }
         guard let restored = destinations.first(where: { $0.uniqueID == storedID }),
               !Self.isExcludedPadOutput(restored.displayName) else {
+            return
+        }
+        if Self.isGarageBandDestination(restored.displayName) {
+            outputRoute = .garageBand
+            selectedPadOutput = Self.garageBandPadOutputDestination
+            UserDefaults.standard.set(Self.garageBandUniqueID, forKey: Self.selectedPadOutputKey)
             return
         }
         selectedPadOutput = restored
@@ -1322,16 +1474,19 @@ final class MidiOutputService: ObservableObject {
         let audioStatus = MidiAudioSession.activateForVirtualMIDI()
         if audioStatus != noErr {
             lastVirtualSourceError = audioStatus
+            updateGarageBandRouteReadyState()
             return false
         }
 
         createMidiClientIfNeeded()
         guard midiClient != 0 else {
             lastVirtualSourceError = lastVirtualSourceError == noErr ? errSecParam : lastVirtualSourceError
+            updateGarageBandRouteReadyState()
             return false
         }
 
         if virtualSource != 0, isLiveEndpoint(virtualSource) {
+            updateGarageBandRouteReadyState()
             return true
         }
 
@@ -1341,10 +1496,12 @@ final class MidiOutputService: ObservableObject {
         if let existing = locateJChordSourceInSystem() {
             virtualSource = existing
             virtualSourceUsesEventList = endpointUsesUMP(existing)
+            updateGarageBandRouteReadyState()
             return true
         }
 
         createVirtualSourceIfNeeded()
+        updateGarageBandRouteReadyState()
         return virtualSource != 0
     }
 
@@ -1362,6 +1519,16 @@ final class MidiOutputService: ObservableObject {
         if isInternalPreviewReady {
             isInternalPreviewReady = false
         }
+    }
+
+    private func updateGarageBandRouteReadyState() {
+        let ready = outputRoute == .garageBand
+            && virtualSource != 0
+            && isLiveEndpoint(virtualSource)
+        if isGarageBandRouteReady != ready {
+            isGarageBandRouteReady = ready
+        }
+        updateGarageBandDiagnosticDescription(lastMessageDescription: nil, report: nil)
     }
 
     private func ensureMidiOutputReady() -> Bool {
@@ -1389,11 +1556,16 @@ final class MidiOutputService: ObservableObject {
             return errSecParam
         case .garageBand:
             guard ensureVirtualSourceReady() else { return lastVirtualSourceError }
-            return MidiPacketTransmitter.received(
+            let report = MidiPacketTransmitter.receivedReport(
                 message,
                 on: virtualSource,
                 preferEventList: virtualSourceUsesEventList
             )
+            updateGarageBandDiagnosticDescription(
+                lastMessageDescription: describe(message),
+                report: report
+            )
+            return report.status
         case .device:
             createMidiClientIfNeeded()
             createOutputPortIfNeeded()
@@ -1485,6 +1657,35 @@ final class MidiOutputService: ObservableObject {
             return protocolValue == 1
         }
         return false
+    }
+
+    private func updateGarageBandDiagnosticDescription(
+        lastMessageDescription: String?,
+        report: MidiPacketTransmitter.ReceivedReport?
+    ) {
+        guard outputRoute == .garageBand else {
+            garageBandDiagnosticDescription = "GB route inactive"
+            return
+        }
+
+        let sourceName = virtualSource == 0
+            ? "-"
+            : endpointName(virtualSource, fallback: Self.virtualSourceName)
+        let live = virtualSource != 0 && isLiveEndpoint(virtualSource)
+        let clientReady = midiClient != 0
+        let protocolLabel = virtualSourceUsesEventList ? "event" : "packet"
+        let packetStatus = report?.packetStatus.map(Self.statusLabel) ?? "-"
+        let eventStatus = report?.eventStatus.map(Self.statusLabel) ?? "-"
+        let used = report?.usedEventList.map { $0 ? "event" : "packet" } ?? "-"
+        let sourceVisible = locateJChordSourceInSystem() != nil ? "yes" : "no"
+        let message = lastMessageDescription ?? "-"
+        let error = Self.statusLabel(lastVirtualSourceError)
+
+        garageBandDiagnosticDescription = "GB client=\(clientReady ? "yes" : "no") source=\(sourceName) live=\(live ? "yes" : "no") visible=\(sourceVisible) pref=\(protocolLabel) used=\(used) packet=\(packetStatus) event=\(eventStatus) err=\(error) last=\(message)"
+    }
+
+    private static func statusLabel(_ status: OSStatus) -> String {
+        status == noErr ? "ok" : "\(status)"
     }
 
     private func describe(_ message: [UInt8]) -> String {

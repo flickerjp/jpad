@@ -37,17 +37,10 @@ struct MidiRoutingSettingsContent: View {
                 settingsCard {
                     fieldTitle(L10n.string("settings.pad_out"))
                     deviceSection(
-                        items: midiService.padOutputChoices.map { padOutputChoiceItem($0) },
+                        items: midiService.padOutSectionChoices.map { padOutputChoiceItem($0) },
                         onSelect: { midiService.selectPadOutput(uniqueID: $0) },
                         selectedItemsUseActiveStyle: true
                     )
-
-                    if midiService.outputRoute == .tinyPiano, !midiService.isInternalPreviewReady {
-                        Text(midiService.lastMidiEventDescription)
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(JPadChromeTheme.accentLight)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
 
                     fieldTitle(L10n.string("settings.keyboard_in"))
                         .padding(.top, 6)
@@ -60,6 +53,10 @@ struct MidiRoutingSettingsContent: View {
 
             settingsCard {
                 previewSoundPresetRow
+            }
+
+            settingsCard {
+                primaryPadOutputModeRadioRow
             }
 
             settingsCard {
@@ -93,13 +90,20 @@ struct MidiRoutingSettingsContent: View {
     }
 
     private var welcomeSettingsBody: some View {
-        settingsCard {
-            fieldTitle(L10n.string("onboarding.sound"))
-            welcomeSoundAndNoteRow
+        VStack(spacing: 12) {
+            settingsCard {
+                fieldTitle(L10n.string("onboarding.sound"))
+                welcomeSoundAndNoteRow
+            }
 
-            fieldTitle(L10n.string("settings.pad_style"))
-                .padding(.top, 8)
-            welcomePadStylePicker
+            settingsCard {
+                primaryPadOutputModeRadioRow
+            }
+
+            settingsCard {
+                fieldTitle(L10n.string("settings.pad_style"))
+                welcomePadStylePicker
+            }
         }
         .frame(maxWidth: welcomePanelMaxWidth, alignment: .center)
     }
@@ -246,44 +250,137 @@ struct MidiRoutingSettingsContent: View {
         .frame(width: settingsGridWidth, alignment: .leading)
     }
 
-    private var previewSoundPresetRow: some View {
-        HStack(alignment: .center, spacing: 12) {
-            Menu {
-                ForEach(midiService.previewSoundPresetOptions) { option in
-                    Button(option.displayName) {
-                        midiService.selectPreviewSoundPreset(id: option.id)
-                    }
-                }
-            } label: {
-                HStack(spacing: 6) {
-                    Text(selectedPreviewSoundName)
-                        .font(.subheadline.weight(.heavy))
-                        .foregroundStyle(JChordTheme.text)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(JPadChromeTheme.accentLight)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .frame(width: settingsLabelColumnWidth, alignment: .leading)
-            .accessibilityLabel(L10n.string("settings.preview_sound.picker.accessibility"))
+    private var isTinyTonePadOutActive: Bool {
+        midiService.outputRoute == .tinyPiano
+    }
 
-            HStack(spacing: 0) {
-                JChordTestNotePadButton(
-                    isMidiOutputActive: midiService.hasActiveMidiOutput,
-                    width: settingsActionButtonWidth,
-                    height: settingsActionButtonHeight
-                ) { isPressed in
-                    midiService.setTestNoteEnabled(isPressed)
+    private var isGarageBandPadOutActive: Bool {
+        midiService.outputRoute == .garageBand
+    }
+
+    private var previewSoundPresetRow: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            fieldTitle(L10n.string("settings.preview_sound.label"))
+
+            HStack(alignment: .center, spacing: 12) {
+                Menu {
+                    ForEach(midiService.previewSoundPresetOptions) { option in
+                        Button(option.displayName) {
+                            midiService.selectPreviewSoundPreset(id: option.id)
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(selectedPreviewSoundName)
+                            .font(.subheadline.weight(.heavy))
+                            .foregroundStyle(
+                                isTinyTonePadOutActive
+                                    ? JChordTheme.text
+                                    : JChordTheme.muted.opacity(0.45)
+                            )
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(
+                                isTinyTonePadOutActive
+                                    ? JPadChromeTheme.accentLight
+                                    : JChordTheme.muted.opacity(0.35)
+                            )
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .disabled(!isTinyTonePadOutActive)
+                .frame(width: settingsLabelColumnWidth, alignment: .leading)
+                .accessibilityLabel(L10n.string("settings.preview_sound.picker.accessibility"))
+
+                HStack(spacing: 0) {
+                    JChordTestNotePadButton(
+                        isMidiOutputActive: midiService.hasActiveMidiOutput,
+                        width: settingsActionButtonWidth,
+                        height: settingsActionButtonHeight
+                    ) { isPressed in
+                        midiService.setTestNoteEnabled(isPressed)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .frame(width: settingsControlColumnWidth, alignment: .leading)
+            }
+            .frame(width: settingsGridWidth, alignment: .leading)
+            .accessibilityElement(children: .contain)
+
+            if isTinyTonePadOutActive, !midiService.isInternalPreviewReady {
+                Text(midiService.lastMidiEventDescription)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(JPadChromeTheme.accentLight)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .frame(width: settingsGridWidth, alignment: .leading)
+    }
+
+    private var primaryPadOutputModeRadioRow: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 14) {
+                primaryPadOutputModeRadioButton(
+                    title: L10n.string("settings.pad_out.tiny_piano"),
+                    isSelected: isTinyTonePadOutActive
+                ) {
+                    midiService.selectPrimaryPadOutputMode(.tinyTone)
+                }
+
+                primaryPadOutputModeRadioButton(
+                    title: L10n.string("settings.pad_out.garage_band"),
+                    isSelected: isGarageBandPadOutActive
+                ) {
+                    midiService.selectPrimaryPadOutputMode(.garageBand)
+                }
+
                 Spacer(minLength: 0)
             }
-            .frame(width: settingsControlColumnWidth, alignment: .leading)
+
+            if isGarageBandPadOutActive {
+                Text(midiService.garageBandDiagnosticDescription)
+                    .font(.caption2.monospaced().weight(.semibold))
+                    .foregroundStyle(JPadChromeTheme.accentLight)
+                    .lineLimit(3)
+                    .frame(width: settingsGridWidth, alignment: .leading)
+                    .textSelection(.enabled)
+            }
+        }
+        .onAppear {
+            if isGarageBandPadOutActive {
+                midiService.refreshGarageBandDiagnostics()
+            }
+        }
+        .onChange(of: isGarageBandPadOutActive) { _, isActive in
+            if isActive {
+                midiService.refreshGarageBandDiagnostics()
+            }
         }
         .frame(width: settingsGridWidth, alignment: .leading)
         .accessibilityElement(children: .contain)
+    }
+
+    private func primaryPadOutputModeRadioButton(
+        title: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                    .font(.system(size: 15, weight: .semibold))
+                Text(title)
+                    .font(.system(size: 15, weight: .heavy))
+            }
+            .foregroundStyle(isSelected ? JChordTheme.text : JChordTheme.muted)
+            .padding(.horizontal, 2)
+            .frame(height: 28)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private func footerActions(onHelpTapped: @escaping () -> Void) -> some View {
@@ -403,8 +500,17 @@ struct MidiRoutingSettingsContent: View {
     }
 
     private func padOutputChoiceItem(_ choice: MidiPadOutputChoice) -> DeviceItem {
-        let isSelected = choice.uniqueID == midiService.effectiveSelectedPadOutputUniqueID
-        let isActiveRoute = isSelected && choice.isOnline
+        let isGarageBandRow = choice.uniqueID == MidiOutputService.garageBandUniqueID
+        let isSelected: Bool
+        let isActiveRoute: Bool
+        if isGarageBandRow {
+            isSelected = midiService.outputRoute == .garageBand
+            isActiveRoute = isSelected && midiService.isGarageBandRouteReady
+        } else {
+            isSelected = midiService.outputRoute == .device
+                && choice.uniqueID == midiService.effectiveSelectedPadOutputUniqueID
+            isActiveRoute = isSelected && choice.isOnline
+        }
         return DeviceItem(
             id: choice.uniqueID,
             title: choice.title,
