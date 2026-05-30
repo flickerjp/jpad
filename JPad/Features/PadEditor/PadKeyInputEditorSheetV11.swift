@@ -128,9 +128,31 @@ struct PadKeyInputEditorSheetV11: View {
 
             Spacer(minLength: 0)
 
-            Color.clear
-                .frame(width: headerControlSide, height: headerControlSide)
+            changeToggle
         }
+    }
+
+    private var changeToggle: some View {
+        Button {
+            viewModel.setLabelAllowsTranspose(!viewModel.labelAllowsTranspose)
+        } label: {
+            HStack(spacing: 6) {
+                RotationCheckbox(isOn: viewModel.labelAllowsTranspose)
+                Text(L10n.string("pad_editor_v11.change"))
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(JChordTheme.text)
+                    .lineLimit(1)
+            }
+            .frame(height: headerControlSide)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(L10n.string("pad_editor_v11.change.accessibility"))
+        .accessibilityValue(
+            viewModel.labelAllowsTranspose
+                ? L10n.string("preset.rotation.all.on")
+                : L10n.string("preset.rotation.all.off")
+        )
     }
 
     /// KEYS の下: 見出し列 + 入力/チップ列（左ライン揃え）

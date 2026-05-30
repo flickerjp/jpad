@@ -7,12 +7,11 @@
 - **GarageBand 接続メモ:** `UIBackgroundModes: audio` を戻したことで `kMIDINotPermitted (-10844)` を解消し、GarageBand バックグラウンド状態でも仮想 MIDI source を維持できることを確認済み。審査説明は「GarageBand / CoreMIDI 連携のための background mode」とする。詳細は [TINYTONE_AUDIO.md](TINYTONE_AUDIO.md)。
 - **現行ビルド:** `1.0.02 (108)` · `sheet-chrome-v1`（設定フッターで確認）
 - **シート外周白枠:** iPhone（MAX 含む）は非表示、iPad mini 以上のみ（`JChordDeviceTraits`）
+- **TRANSPOSE JSON:** `KEY/OCT` 情報は `Preset.transposeSettings` として `EXPORT/IMPORT` に含まれる。`Preset+Codable.swift` と `PresetImportExportService.swift` を参照。
+- **LABEL の CHANGE:** `PadDefinition.labelAllowsTranspose` を JSON に保持する。未記載 JSON は `true` 扱いで読む。LABEL 画面右上の `CHANGE` チェックで編集。
+- **セット選択画面:** `CHECK` / `ALL` は最新判断で現状維持。外さない。
 - **次回の着手項目:**
-  - `KEY` / `OCT` 情報を `EXPORT` / `IMPORT` の JSON に対応させる
-  - セット選択画面の `CHECK` ボックスと `ALL` を不要にする
-  - 設定画面で、`PAD OUT` で選ばれているものを押したら `TEST NOTE` できるようにする
-  - TinyTone 音色選択の右側 `TEST NOTE` を TinyTone 専用にし、他の `PAD OUT` ではグレー表示にする
-  - TinyTone 音色選択のリロード用アイコンを、TinyTone `TEST NOTE` ボタンの右隣に追加する
+  - 設定画面の実機確認: `PRESET` → `TT/GB` → `PAD OUT/MIDI IN` の並び、選択済み `PAD OUT` 再タップで `TEST NOTE`、TinyTone 専用 `TEST NOTE`、右隣の再読み込みアイコンの使い勝手を確認する
 - 次にやること・未解決・注意点をここに書いてください。
 
 ## 自動ログ（コミットの都度追記）
@@ -717,4 +716,3 @@
 **作者:** tone <tone@tonem4max.local>
 
 **参照:** `git show 438b429` / `git log -1 438b429`
-

@@ -38,7 +38,6 @@ final class MainViewModel: ObservableObject {
     private var holdLatchedPadID: Int?
     private var pendingTransposeSemitones: Int?
     private var isPendingTransposeArmed = false
-    private var transposePreviewToken = UUID()
     private var pendingStoreCatalogID: String?
     private var pendingStorePreset: Preset?
     private var pendingPresetImportURL: URL?
@@ -127,8 +126,16 @@ final class MainViewModel: ObservableObject {
         preset.transposeSettings.selectedShiftMemoryIndex
     }
 
+    var editSelectedTransposePresetIndex: Int? {
+        preset.transposeSettings.editorSelectedShiftMemoryIndex
+    }
+
     var selectedTransposePreset: PresetShiftMemory {
         preset.transposeSettings.selectedMemory
+    }
+
+    var editSelectedTransposePreset: PresetShiftMemory {
+        preset.transposeSettings.editorSelectedMemory
     }
 
     func transposePreset(at index: Int) -> PresetShiftMemory {
@@ -585,11 +592,22 @@ final class MainViewModel: ObservableObject {
     }
 
     func displayPad(for pad: PadDefinition) -> PadDefinition {
-        pad.shiftedDisplay(by: selectedKeyTranspose)
+        pad.shiftedDisplay(by: selectedTransposePreset.keyShift)
     }
 
-    func selectTransposePreset(index: Int, previewInEditMode: Bool = false) {
-        if !previewInEditMode, preset.transposeSettings.selectedShiftMemoryIndex == index {
+    func selectTransposePreset(index: Int, forEdit: Bool = false) {
+        if forEdit {
+            let updated: PresetControlSettings
+            if preset.transposeSettings.editorSelectedShiftMemoryIndex == index {
+                updated = preset.transposeSettings.deselectingEditorMemory()
+            } else {
+                updated = preset.transposeSettings.selectingEditorMemory(index: index)
+            }
+            applyControlSettings(updated)
+            return
+        }
+
+        if preset.transposeSettings.selectedShiftMemoryIndex == index {
             let updated = preset.transposeSettings.deselectingMemory()
             if hasSoundingPadNotes {
                 applyControlSettingsPreservingSound(updated)
@@ -605,9 +623,6 @@ final class MainViewModel: ObservableObject {
         } else {
             applyControlSettings(updated)
         }
-
-        guard previewInEditMode, !hasSoundingPadNotes else { return }
-        previewTransposeSelectionIfPossible()
     }
 
     func updatePadControlMode(_ mode: PresetPadControlMode) {
@@ -668,12 +683,28 @@ final class MainViewModel: ObservableObject {
 
     func updateVelocity(_ newVelocity: Double) {
         velocity = newVelocity
-        midiService.updateVelocity(UInt8(clamping: Int(newVelocity.rounded())))
+        let storedVelocity = UInt8(clamping: Int(newVelocity.rounded()))
+        midiService.updateVelocity(storedVelocity)
+        let updatedPreset = preset.replacingPerformanceSettings(
+            defaultVelocity: storedVelocity,
+            defaultExpression: UInt8(clamping: Int(expression.rounded()))
+        )
+        guard updatedPreset != preset else { return }
+        preset = updatedPreset
+        persistActiveSlotIfNeeded()
     }
 
     func updateExpression(_ newExpression: Double) {
         expression = newExpression
-        midiService.updateExpression(UInt8(clamping: Int(newExpression.rounded())))
+        let storedExpression = UInt8(clamping: Int(newExpression.rounded()))
+        midiService.updateExpression(storedExpression)
+        let updatedPreset = preset.replacingPerformanceSettings(
+            defaultVelocity: UInt8(clamping: Int(velocity.rounded())),
+            defaultExpression: storedExpression
+        )
+        guard updatedPreset != preset else { return }
+        preset = updatedPreset
+        persistActiveSlotIfNeeded()
     }
 
     func onBecomeActive() {
@@ -791,12 +822,12 @@ final class MainViewModel: ObservableObject {
 
     private func applyLoadedPreset(_ loadedPreset: Preset) {
         preset = loadedPreset
-        let performanceVelocity = UInt8(clamping: Int(velocity.rounded()))
-        let performanceExpression = UInt8(clamping: Int(expression.rounded()))
+        velocity = Double(loadedPreset.defaultVelocity)
+        expression = Double(loadedPreset.defaultExpression)
         midiService.configure(
             outputChannel: loadedPreset.midiChannel,
-            velocity: performanceVelocity,
-            expression: performanceExpression
+            velocity: loadedPreset.defaultVelocity,
+            expression: loadedPreset.defaultExpression
         )
         midiService.updatePadTranspose(semitones: loadedPreset.transposeSettings.selectedMemory.totalSemitones)
     }
@@ -936,31 +967,6 @@ final class MainViewModel: ObservableObject {
         holdLatchedPadID = nil
         midiService.sendPadOff(pad)
         markPendingTransposeReadyIfNeeded()
-    }
-
-    private func previewTransposeSelectionIfPossible() {
-        guard isPadEditMode else { return }
-
-        let previewPad = selectedPadForEditor
-            ?? playingPadID.flatMap { playingID in preset.pads.first(where: { $0.id == playingID }) }
-            ?? preset.pads.first(where: { !$0.chordNotes.isEmpty || !$0.bassNotes.isEmpty })
-
-        guard let previewPad else { return }
-
-        let token = UUID()
-        transposePreviewToken = token
-        playingPadID = previewPad.id
-        midiService.sendPadOn(previewPad)
-
-        Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .milliseconds(450))
-            guard let self,
-                  self.transposePreviewToken == token,
-                  self.playingPadID == previewPad.id,
-                  !self.isHoldEnabled else { return }
-            self.playingPadID = nil
-            self.midiService.sendPadOff(previewPad)
-        }
     }
 
     func toggleHold() {

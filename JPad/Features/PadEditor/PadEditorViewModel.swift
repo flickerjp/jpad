@@ -14,6 +14,7 @@ enum PadEditorV11PopupScreen: String {
 @MainActor
 final class PadEditorViewModel: ObservableObject {
     @Published var label: String
+    @Published var labelAllowsTranspose: Bool
     @Published var root: String
     @Published var notes: [UInt8]
     @Published var isShowingNotesEditor = false
@@ -53,6 +54,7 @@ final class PadEditorViewModel: ObservableObject {
         self.padDisplayName = "PAD \(String(format: "%02d", pad.index + 1))"
         self.onSave = onSave
         label = pad.label
+        labelAllowsTranspose = pad.labelAllowsTranspose
         root = RootPitch.normalize(pad.displayName.isEmpty ? pad.name : pad.displayName)
         notes = Array(Set(pad.bassNotes + pad.chordNotes)).sorted()
     }
@@ -101,6 +103,10 @@ final class PadEditorViewModel: ObservableObject {
 
     func clearLabelForV11() {
         label = ""
+    }
+
+    func setLabelAllowsTranspose(_ enabled: Bool) {
+        labelAllowsTranspose = enabled
     }
 
     func cancelNotesEditor() {
@@ -203,6 +209,7 @@ final class PadEditorViewModel: ObservableObject {
             name: root,
             displayName: root,
             label: label.isEmpty ? root : label,
+            labelAllowsTranspose: labelAllowsTranspose,
             role: originalPad.role,
             chordNotes: editingChordNotes.isEmpty ? noteList.filter { $0 >= 60 } : editingChordNotes,
             bassNotes: editingBassNotes.isEmpty ? noteList.filter { $0 < 60 } : editingBassNotes,
@@ -218,6 +225,7 @@ final class PadEditorViewModel: ObservableObject {
             name: root,
             displayName: root,
             label: label.isEmpty ? root : label,
+            labelAllowsTranspose: labelAllowsTranspose,
             role: originalPad.role,
             chordNotes: editingChordNotes,
             bassNotes: editingBassNotes,

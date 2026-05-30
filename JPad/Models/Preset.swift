@@ -29,11 +29,13 @@ struct PresetControlSettings: Codable, Equatable {
 
     var padControlMode: PresetPadControlMode
     var selectedShiftMemoryIndex: Int?
+    var editorSelectedShiftMemoryIndex: Int?
     var shiftMemories: [PresetShiftMemory]
 
     init(
         padControlMode: PresetPadControlMode = .sliders,
         selectedShiftMemoryIndex: Int? = 0,
+        editorSelectedShiftMemoryIndex: Int? = 0,
         shiftMemories: [PresetShiftMemory] = []
     ) {
         let normalizedMemories = Self.normalizedShiftMemories(from: shiftMemories)
@@ -41,6 +43,10 @@ struct PresetControlSettings: Codable, Equatable {
         self.shiftMemories = normalizedMemories
         self.selectedShiftMemoryIndex = Self.normalizedIndex(
             selectedShiftMemoryIndex,
+            count: normalizedMemories.count
+        )
+        self.editorSelectedShiftMemoryIndex = Self.normalizedIndex(
+            editorSelectedShiftMemoryIndex,
             count: normalizedMemories.count
         )
     }
@@ -53,10 +59,19 @@ struct PresetControlSettings: Codable, Equatable {
         return shiftMemories[selectedShiftMemoryIndex]
     }
 
+    var editorSelectedMemory: PresetShiftMemory {
+        guard let editorSelectedShiftMemoryIndex,
+              shiftMemories.indices.contains(editorSelectedShiftMemoryIndex) else {
+            return .neutral
+        }
+        return shiftMemories[editorSelectedShiftMemoryIndex]
+    }
+
     func selectingMemory(index: Int) -> PresetControlSettings {
         PresetControlSettings(
             padControlMode: padControlMode,
             selectedShiftMemoryIndex: index,
+            editorSelectedShiftMemoryIndex: editorSelectedShiftMemoryIndex,
             shiftMemories: shiftMemories
         )
     }
@@ -65,6 +80,25 @@ struct PresetControlSettings: Codable, Equatable {
         PresetControlSettings(
             padControlMode: padControlMode,
             selectedShiftMemoryIndex: nil,
+            editorSelectedShiftMemoryIndex: editorSelectedShiftMemoryIndex,
+            shiftMemories: shiftMemories
+        )
+    }
+
+    func selectingEditorMemory(index: Int) -> PresetControlSettings {
+        PresetControlSettings(
+            padControlMode: padControlMode,
+            selectedShiftMemoryIndex: selectedShiftMemoryIndex,
+            editorSelectedShiftMemoryIndex: index,
+            shiftMemories: shiftMemories
+        )
+    }
+
+    func deselectingEditorMemory() -> PresetControlSettings {
+        PresetControlSettings(
+            padControlMode: padControlMode,
+            selectedShiftMemoryIndex: selectedShiftMemoryIndex,
+            editorSelectedShiftMemoryIndex: nil,
             shiftMemories: shiftMemories
         )
     }
@@ -73,7 +107,20 @@ struct PresetControlSettings: Codable, Equatable {
         PresetControlSettings(
             padControlMode: mode,
             selectedShiftMemoryIndex: selectedShiftMemoryIndex,
+            editorSelectedShiftMemoryIndex: editorSelectedShiftMemoryIndex,
             shiftMemories: shiftMemories
+        )
+    }
+
+    func updatingEditorSelectedMemory(_ transform: (PresetShiftMemory) -> PresetShiftMemory) -> PresetControlSettings {
+        guard let editorSelectedShiftMemoryIndex else { return self }
+        var updatedMemories = shiftMemories
+        updatedMemories[editorSelectedShiftMemoryIndex] = transform(editorSelectedMemory)
+        return PresetControlSettings(
+            padControlMode: padControlMode,
+            selectedShiftMemoryIndex: selectedShiftMemoryIndex,
+            editorSelectedShiftMemoryIndex: editorSelectedShiftMemoryIndex,
+            shiftMemories: updatedMemories
         )
     }
 
@@ -84,22 +131,25 @@ struct PresetControlSettings: Codable, Equatable {
         return PresetControlSettings(
             padControlMode: padControlMode,
             selectedShiftMemoryIndex: selectedShiftMemoryIndex,
+            editorSelectedShiftMemoryIndex: editorSelectedShiftMemoryIndex,
             shiftMemories: updatedMemories
         )
     }
 
     enum CodingKeys: String, CodingKey {
-        case padControlMode, selectedShiftMemoryIndex, shiftMemories
+        case padControlMode, selectedShiftMemoryIndex, editorSelectedShiftMemoryIndex, shiftMemories
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let mode = try container.decodeIfPresent(PresetPadControlMode.self, forKey: .padControlMode) ?? .sliders
         let index = try container.decodeIfPresent(Int.self, forKey: .selectedShiftMemoryIndex) ?? 0
+        let editorIndex = try container.decodeIfPresent(Int.self, forKey: .editorSelectedShiftMemoryIndex) ?? index
         let memories = try container.decodeIfPresent([PresetShiftMemory].self, forKey: .shiftMemories) ?? []
         self.init(
             padControlMode: mode,
             selectedShiftMemoryIndex: index,
+            editorSelectedShiftMemoryIndex: editorIndex,
             shiftMemories: memories
         )
     }
@@ -182,7 +232,7 @@ struct Preset: Decodable, Identifiable, Equatable {
         defaultChannel = try Self.decodeMidiChannel(from: container)
         let resolvedVelocity = try container.decodeIfPresent(UInt8.self, forKey: .defaultVelocity) ?? 100
         defaultVelocity = resolvedVelocity
-        defaultExpression = try container.decodeIfPresent(UInt8.self, forKey: .defaultExpression) ?? resolvedVelocity
+        defaultExpression = try container.decodeIfPresent(UInt8.self, forKey: .defaultExpression) ?? 100
         transposeSettings = try container.decodeIfPresent(PresetControlSettings.self, forKey: .transposeSettings) ?? .default
         pads = try container.decode([PadDefinition].self, forKey: .pads)
     }

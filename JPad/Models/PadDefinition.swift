@@ -5,6 +5,7 @@ struct PadDefinition: Decodable, Identifiable, Equatable {
     let name: String
     let displayName: String
     let label: String
+    let labelAllowsTranspose: Bool
     let role: String
     let chordNotes: [UInt8]
     let bassNotes: [UInt8]
@@ -29,7 +30,7 @@ struct PadDefinition: Decodable, Identifiable, Equatable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case index, id, name, displayName, label, role, chordNotes, bassNotes, playbackMode, arpeggioPattern
+        case index, id, name, displayName, label, labelAllowsTranspose, role, chordNotes, bassNotes, playbackMode, arpeggioPattern
     }
 
     init(
@@ -37,6 +38,7 @@ struct PadDefinition: Decodable, Identifiable, Equatable {
         name: String,
         displayName: String,
         label: String,
+        labelAllowsTranspose: Bool = true,
         role: String,
         chordNotes: [UInt8],
         bassNotes: [UInt8],
@@ -47,6 +49,7 @@ struct PadDefinition: Decodable, Identifiable, Equatable {
         self.name = name
         self.displayName = displayName
         self.label = label
+        self.labelAllowsTranspose = labelAllowsTranspose
         self.role = role
         self.chordNotes = chordNotes
         self.bassNotes = bassNotes
@@ -66,6 +69,7 @@ struct PadDefinition: Decodable, Identifiable, Equatable {
         name = resolvedName
         displayName = resolvedDisplayName
         label = resolvedLabel
+        labelAllowsTranspose = try container.decodeIfPresent(Bool.self, forKey: .labelAllowsTranspose) ?? true
         role = try container.decodeIfPresent(String.self, forKey: .role) ?? ""
         chordNotes = try Self.decodeNotes(forKey: .chordNotes, in: container)
         bassNotes = try Self.decodeNotes(forKey: .bassNotes, in: container)
@@ -108,7 +112,10 @@ extension PadDefinition {
             index: index,
             name: name,
             displayName: ChordLabel.shiftingRoot(in: displayName, semitones: semitones),
-            label: ChordLabel.shiftingRoot(in: label, semitones: semitones),
+            label: labelAllowsTranspose
+                ? ChordLabel.shiftingRoot(in: label, semitones: semitones)
+                : label,
+            labelAllowsTranspose: labelAllowsTranspose,
             role: role,
             chordNotes: chordNotes,
             bassNotes: bassNotes,

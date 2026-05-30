@@ -110,6 +110,7 @@ final class MidiOutputService: ObservableObject {
     private var captureDisconnectTask: Task<Void, Never>?
     /// Core MIDI の setup 通知は連続で飛ぶため、端末リスト更新を短くまとめる。
     private var endpointRefreshDebounceTask: Task<Void, Never>?
+    private var testNoteAutoOffTask: Task<Void, Never>?
     private var shouldResumePreviewEngineAfterBackground = false
     private let previewEngine: any InternalPreviewSynth = TinyToneEngine()
 
@@ -176,6 +177,7 @@ final class MidiOutputService: ObservableObject {
     }
 
     deinit {
+        testNoteAutoOffTask?.cancel()
         previewEngine.stop()
         endpointRefreshDebounceTask?.cancel()
         if inputPort != 0, captureSourceEndpoint != 0 {
@@ -771,6 +773,8 @@ final class MidiOutputService: ObservableObject {
     }
 
     func setTestNoteEnabled(_ enabled: Bool) {
+        testNoteAutoOffTask?.cancel()
+        testNoteAutoOffTask = nil
         guard enabled != isTestNoteEnabled else { return }
         isTestNoteEnabled = enabled
 
@@ -796,7 +800,6 @@ final class MidiOutputService: ObservableObject {
             return
         }
 
-        let testNote = Int(MidiNoteFormatter.testNotePitch)
         var messages: [[UInt8]] = []
         if enabled {
             messages.append(MidiMessageBuilder.expression(expression, channel: outputChannelIndex))
@@ -823,6 +826,21 @@ final class MidiOutputService: ObservableObject {
             lastMidiEventDescription = "\(describe(last)) → \(routeLabel)"
         } else {
             lastMidiEventDescription = midiErrorDescription(lastStatus)
+        }
+    }
+
+    func playTestNotePulse(durationMs: UInt64 = 300) {
+        testNoteAutoOffTask?.cancel()
+        if isTestNoteEnabled {
+            setTestNoteEnabled(false)
+        }
+        setTestNoteEnabled(true)
+        guard isTestNoteEnabled else { return }
+
+        testNoteAutoOffTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(durationMs))
+            guard let self, !Task.isCancelled else { return }
+            self.setTestNoteEnabled(false)
         }
     }
 

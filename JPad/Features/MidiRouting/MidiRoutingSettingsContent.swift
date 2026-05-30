@@ -33,12 +33,23 @@ struct MidiRoutingSettingsContent: View {
 
     private var settingsBody: some View {
         VStack(spacing: 12) {
+            settingsCard {
+                previewSoundPresetRow
+            }
+
+            settingsCard {
+                primaryPadOutputModeRadioRow
+            }
+
             if showsDeviceRouting {
                 settingsCard {
                     fieldTitle(L10n.string("settings.pad_out"))
                     deviceSection(
                         items: midiService.padOutSectionChoices.map { padOutputChoiceItem($0) },
                         onSelect: { midiService.selectPadOutput(uniqueID: $0) },
+                        onSelectedTap: { _ in
+                            midiService.playTestNotePulse()
+                        },
                         selectedItemsUseActiveStyle: true
                     )
 
@@ -49,14 +60,6 @@ struct MidiRoutingSettingsContent: View {
                         onSelect: { midiService.selectKeyboardInput(uniqueID: $0) }
                     )
                 }
-            }
-
-            settingsCard {
-                previewSoundPresetRow
-            }
-
-            settingsCard {
-                primaryPadOutputModeRadioRow
             }
 
             settingsCard {
@@ -296,12 +299,34 @@ struct MidiRoutingSettingsContent: View {
 
                 HStack(spacing: 0) {
                     JChordTestNotePadButton(
-                        isMidiOutputActive: midiService.hasActiveMidiOutput,
+                        isMidiOutputActive: isTinyTonePadOutActive,
                         width: settingsActionButtonWidth,
                         height: settingsActionButtonHeight
                     ) { isPressed in
                         midiService.setTestNoteEnabled(isPressed)
                     }
+                    .allowsHitTesting(isTinyTonePadOutActive)
+                    .opacity(isTinyTonePadOutActive ? 1 : 0.42)
+
+                    Button {
+                        midiService.reloadPreviewSoundPresetOptions()
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: settingsActionButtonHeight * 0.72, weight: .semibold))
+                            .foregroundStyle(
+                                isTinyTonePadOutActive
+                                    ? JChordTheme.text
+                                    : JChordTheme.muted.opacity(0.45)
+                            )
+                            .frame(width: settingsActionButtonHeight * 1.2, height: settingsActionButtonHeight)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!isTinyTonePadOutActive)
+                    .opacity(isTinyTonePadOutActive ? 1 : 0.42)
+                    .padding(.leading, 10)
+                    .accessibilityLabel(L10n.string("settings.preview_sound.reload.accessibility"))
+
                     Spacer(minLength: 0)
                 }
                 .frame(width: settingsControlColumnWidth, alignment: .leading)
@@ -320,43 +345,30 @@ struct MidiRoutingSettingsContent: View {
     }
 
     private var primaryPadOutputModeRadioRow: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 14) {
-                primaryPadOutputModeRadioButton(
-                    title: L10n.string("settings.pad_out.tiny_piano"),
-                    isSelected: isTinyTonePadOutActive
-                ) {
+        HStack(spacing: 14) {
+            primaryPadOutputModeRadioButton(
+                title: L10n.string("settings.pad_out.tiny_piano"),
+                isSelected: isTinyTonePadOutActive
+            ) {
+                if isTinyTonePadOutActive {
+                    midiService.playTestNotePulse()
+                } else {
                     midiService.selectPrimaryPadOutputMode(.tinyTone)
                 }
+            }
 
-                primaryPadOutputModeRadioButton(
-                    title: L10n.string("settings.pad_out.garage_band"),
-                    isSelected: isGarageBandPadOutActive
-                ) {
+            primaryPadOutputModeRadioButton(
+                title: L10n.string("settings.primary_pad_out.garage_band"),
+                isSelected: isGarageBandPadOutActive
+            ) {
+                if isGarageBandPadOutActive {
+                    midiService.playTestNotePulse()
+                } else {
                     midiService.selectPrimaryPadOutputMode(.garageBand)
                 }
-
-                Spacer(minLength: 0)
             }
 
-            if isGarageBandPadOutActive {
-                Text(midiService.garageBandDiagnosticDescription)
-                    .font(.caption2.monospaced().weight(.semibold))
-                    .foregroundStyle(JPadChromeTheme.accentLight)
-                    .lineLimit(3)
-                    .frame(width: settingsGridWidth, alignment: .leading)
-                    .textSelection(.enabled)
-            }
-        }
-        .onAppear {
-            if isGarageBandPadOutActive {
-                midiService.refreshGarageBandDiagnostics()
-            }
-        }
-        .onChange(of: isGarageBandPadOutActive) { _, isActive in
-            if isActive {
-                midiService.refreshGarageBandDiagnostics()
-            }
+            Spacer(minLength: 0)
         }
         .frame(width: settingsGridWidth, alignment: .leading)
         .accessibilityElement(children: .contain)
@@ -399,42 +411,39 @@ struct MidiRoutingSettingsContent: View {
 
     private func proMembershipCard(_ status: ProSubscriptionStatus) -> some View {
         settingsCard {
-            fieldTitle(L10n.string("settings.pro.section_title"))
             proStatusInfoRow(status)
         }
     }
 
     private func proStatusInfoRow(_ status: ProSubscriptionStatus) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .center, spacing: 12) {
-                Text(status.statusLabel)
+        ZStack {
+            HStack {
+                Spacer(minLength: 0)
+                Text(proStatusSummary(status))
                     .font(.system(size: proStatusLabelFontSize, weight: .heavy))
                     .foregroundStyle(JChordTheme.text)
-
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
                 Spacer(minLength: 0)
+            }
 
+            HStack {
+                Spacer(minLength: 0)
                 if !status.isActive, let onProPurchaseTap {
                     proPurchaseButton(action: onProPurchaseTap)
                 }
             }
-            .frame(width: settingsGridWidth, alignment: .leading)
-
-            if let dateRow = status.dateRow {
-                settingsLabelValueRow(label: dateRow.label) {
-                    Text(dateRow.date)
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(JChordTheme.text.opacity(0.92))
-                        .frame(width: settingsControlColumnWidth, alignment: .leading)
-                }
-            } else if status.isActive {
-                Text(L10n.string("settings.pro.active_fallback"))
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(JChordTheme.text.opacity(0.92))
-                    .frame(width: settingsGridWidth, alignment: .leading)
-            }
         }
+        .frame(width: settingsGridWidth, alignment: .leading)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(status.accessibilityLabel)
+    }
+
+    private func proStatusSummary(_ status: ProSubscriptionStatus) -> String {
+        guard let dateRow = status.dateRow else {
+            return status.statusLabel
+        }
+        return "\(status.statusLabel)\u{00A0}\u{00A0}\u{00A0}\u{00A0}\(dateRow.label)：\(dateRow.date)"
     }
 
     private var proStatusLabelFontSize: CGFloat { 15 }
@@ -552,6 +561,7 @@ struct MidiRoutingSettingsContent: View {
     private func deviceSection(
         items: [DeviceItem],
         onSelect: @escaping (Int32) -> Void,
+        onSelectedTap: ((Int32) -> Void)? = nil,
         selectedItemsUseActiveStyle: Bool = false
     ) -> some View {
         VStack(spacing: 8) {
@@ -561,19 +571,28 @@ struct MidiRoutingSettingsContent: View {
                     .foregroundStyle(JChordTheme.muted)
             } else {
                 ForEach(items) { item in
+                    let canTap = item.isOnline && (item.isSelectable || item.isSelected)
                     Button {
-                        onSelect(item.id)
+                        if item.isSelected {
+                            if let onSelectedTap {
+                                onSelectedTap(item.id)
+                            } else {
+                                onSelect(item.id)
+                            }
+                        } else {
+                            onSelect(item.id)
+                        }
                     } label: {
                         JChordDeviceRow(
                             title: item.title,
                             subtitle: item.subtitle,
                             isSelected: selectedItemsUseActiveStyle ? false : item.isSelected && !item.isActiveRoute,
                             isReceiving: item.isActiveRoute || (selectedItemsUseActiveStyle && item.isSelected),
-                            isEnabled: item.isOnline && item.isSelectable
+                            isEnabled: canTap
                         )
                     }
                     .buttonStyle(.plain)
-                    .disabled(!item.isOnline || !item.isSelectable)
+                    .disabled(!canTap)
                 }
             }
         }

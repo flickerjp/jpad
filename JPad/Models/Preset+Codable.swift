@@ -7,6 +7,7 @@ extension PadDefinition: Encodable {
         try container.encode(name, forKey: .name)
         try container.encode(displayName, forKey: .displayName)
         try container.encode(label, forKey: .label)
+        try container.encode(labelAllowsTranspose, forKey: .labelAllowsTranspose)
         try container.encode(role, forKey: .role)
         try container.encode(chordNotes, forKey: .chordNotes)
         try container.encode(bassNotes, forKey: .bassNotes)

@@ -263,21 +263,21 @@ struct MainView: View {
     private func mainContent(layout: JChordPadLayout, columns: [GridItem]) -> some View {
         GeometryReader { geometry in
             let spacers = layout.interSectionSpacerHeights(forAvailableHeight: geometry.size.height)
-            let editControlSpacer: CGFloat = 10
+            let controlTopSpacer: CGFloat = 10
 
             VStack(spacing: 0) {
                 fixedSpacer(height: spacers.headerToPads)
 
                 padGrid(layout: layout, columns: columns)
 
-                fixedSpacer(height: viewModel.isPadEditMode ? editControlSpacer : spacers.betweenSections)
+                fixedSpacer(height: controlTopSpacer)
 
                 if layout.isLandscape {
                     landscapeMidiControls(layout: layout)
                 } else {
                     portraitControlPanel(
                         layout: layout,
-                        spacing: viewModel.isPadEditMode ? editControlSpacer : spacers.betweenSections
+                        spacing: viewModel.isPadEditMode ? controlTopSpacer : spacers.betweenSections
                     )
                 }
 
@@ -289,9 +289,7 @@ struct MainView: View {
 
     private func portraitControlPanel(layout: JChordPadLayout, spacing: CGFloat) -> some View {
         VStack(spacing: spacing) {
-            if viewModel.isPadEditMode {
-                editPadControlPanel(layout: layout)
-            } else {
+            if !viewModel.isPadEditMode {
                 controlRows(layout: layout)
             }
         }
@@ -867,9 +865,7 @@ struct MainView: View {
 
     private func landscapeMidiControls(layout: JChordPadLayout) -> some View {
         VStack(spacing: layout.gridSpacing) {
-            if viewModel.isPadEditMode {
-                editPadControlPanel(layout: layout)
-            } else {
+            if !viewModel.isPadEditMode {
                 controlRows(layout: layout)
             }
         }
@@ -878,11 +874,18 @@ struct MainView: View {
 
     @ViewBuilder
     private func controlRows(layout: JChordPadLayout) -> some View {
-        switch viewModel.padControlMode {
-        case .sliders:
-            performanceControlRows(layout: layout)
-        case .transpose:
-            transposePresetSelectorRow(layout: layout)
+        VStack(spacing: 10) {
+            padControlModePicker(layout: layout)
+
+            switch viewModel.padControlMode {
+            case .sliders:
+                performanceControlRows(layout: layout)
+            case .transpose:
+                VStack(spacing: 10) {
+                    transposePresetSelectorRow(layout: layout)
+                    transposeValueWheelRow(layout: layout)
+                }
+            }
         }
     }
 
@@ -912,27 +915,16 @@ struct MainView: View {
         }
     }
 
-    private func editPadControlPanel(layout: JChordPadLayout) -> some View {
-        VStack(spacing: 10) {
-            padControlModePicker(layout: layout)
-
-            if viewModel.padControlMode == .transpose {
-                VStack(spacing: 10) {
-                    transposePresetSelectorRow(layout: layout)
-                    transposeValueWheelRow(layout: layout)
-                }
-            }
-        }
-    }
-
     private func transposePresetSelectorRow(layout: JChordPadLayout) -> some View {
         HStack(spacing: layout.gridSpacing) {
             ForEach(0 ..< PresetControlSettings.shiftMemoryCount, id: \.self) { index in
                 transposePresetButton(
                     preset: viewModel.transposePreset(at: index),
                     layout: layout,
-                    selected: viewModel.selectedTransposePresetIndex == index,
-                    onTap: { viewModel.selectTransposePreset(index: index, previewInEditMode: viewModel.isPadEditMode) }
+                    selected: viewModel.isPadEditMode
+                        ? viewModel.editSelectedTransposePresetIndex == index
+                        : viewModel.selectedTransposePresetIndex == index,
+                    onTap: { viewModel.selectTransposePreset(index: index, forEdit: viewModel.isPadEditMode) }
                 )
                 .buttonStyle(.plain)
             }
@@ -942,31 +934,38 @@ struct MainView: View {
 
     private func transposeValueWheelRow(layout: JChordPadLayout) -> some View {
         let slotWidth = floor((layout.gridWidth - (layout.gridSpacing * 3)) / 4)
+        let groupSpacing = max(20, layout.gridSpacing + 6)
 
-        return HStack(spacing: layout.gridSpacing) {
-            transposeValueWheelLabel(L10n.string("main.key"), width: slotWidth, alignment: .trailing)
-            JChordValueWheelPicker(
-                values: Array(PresetShiftMemory.keyShiftRange),
-                value: Binding(
-                    get: { viewModel.selectedKeyTranspose },
-                    set: { viewModel.updateKeyTranspose($0) }
-                ),
-                width: slotWidth,
-                height: max(32, layout.noteOffHeight * 0.72),
-                displayText: { signedValue($0) }
-            )
+        return HStack(spacing: groupSpacing) {
+            HStack(spacing: 10) {
+                transposeValueWheelLabel(L10n.string("main.key"), width: slotWidth * 0.46, alignment: .trailing)
+                JChordValueWheelPicker(
+                    values: Array(PresetShiftMemory.keyShiftRange),
+                    value: Binding(
+                        get: { viewModel.selectedKeyTranspose },
+                        set: { viewModel.updateKeyTranspose($0) }
+                    ),
+                    width: slotWidth,
+                    height: max(32, layout.noteOffHeight * 0.72),
+                    displayText: { signedValue($0) }
+                )
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
 
-            transposeValueWheelLabel(L10n.string("main.oct"), width: slotWidth, alignment: .leading)
-            JChordValueWheelPicker(
-                values: Array(PresetShiftMemory.octaveShiftRange),
-                value: Binding(
-                    get: { viewModel.selectedOctaveTranspose },
-                    set: { viewModel.updateOctaveTranspose($0) }
-                ),
-                width: slotWidth,
-                height: max(32, layout.noteOffHeight * 0.72),
-                displayText: { signedValue($0) }
-            )
+            HStack(spacing: 10) {
+                transposeValueWheelLabel(L10n.string("main.oct"), width: slotWidth * 0.46, alignment: .leading)
+                JChordValueWheelPicker(
+                    values: Array(PresetShiftMemory.octaveShiftRange),
+                    value: Binding(
+                        get: { viewModel.selectedOctaveTranspose },
+                        set: { viewModel.updateOctaveTranspose($0) }
+                    ),
+                    width: slotWidth,
+                    height: max(32, layout.noteOffHeight * 0.72),
+                    displayText: { signedValue($0) }
+                )
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(width: layout.gridWidth)
     }

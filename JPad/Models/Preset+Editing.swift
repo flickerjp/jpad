@@ -51,4 +51,24 @@ extension Preset {
             pads: pads
         )
     }
+
+    func replacingPerformanceSettings(
+        defaultVelocity newVelocity: UInt8,
+        defaultExpression newExpression: UInt8
+    ) -> Preset {
+        Preset(
+            id: id,
+            appName: appName,
+            setName: setName,
+            description: description,
+            version: version,
+            defaultPlaybackMode: defaultPlaybackMode,
+            autoBassOctave: autoBassOctave,
+            defaultChannel: defaultChannel,
+            defaultVelocity: newVelocity,
+            defaultExpression: newExpression,
+            transposeSettings: transposeSettings,
+            pads: pads
+        )
+    }
 }
