@@ -263,31 +263,28 @@ struct MainView: View {
     private func mainContent(layout: JChordPadLayout, columns: [GridItem]) -> some View {
         GeometryReader { geometry in
             let spacers = layout.interSectionSpacerHeights(forAvailableHeight: geometry.size.height)
+            let editControlSpacer: CGFloat = 10
 
             VStack(spacing: 0) {
                 fixedSpacer(height: spacers.headerToPads)
 
                 padGrid(layout: layout, columns: columns)
 
-                fixedSpacer(height: spacers.betweenSections)
+                fixedSpacer(height: viewModel.isPadEditMode ? editControlSpacer : spacers.betweenSections)
 
                 if layout.isLandscape {
                     landscapeMidiControls(layout: layout)
                 } else {
-                    portraitControlPanel(layout: layout, spacing: spacers.betweenSections)
+                    portraitControlPanel(
+                        layout: layout,
+                        spacing: viewModel.isPadEditMode ? editControlSpacer : spacers.betweenSections
+                    )
                 }
 
                 fixedSpacer(height: spacers.betweenSections)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-    }
-
-    private var padControlModeBinding: Binding<PresetPadControlMode> {
-        Binding(
-            get: { viewModel.padControlMode },
-            set: { viewModel.updatePadControlMode($0) }
-        )
     }
 
     private func portraitControlPanel(layout: JChordPadLayout, spacing: CGFloat) -> some View {
@@ -916,12 +913,14 @@ struct MainView: View {
     }
 
     private func editPadControlPanel(layout: JChordPadLayout) -> some View {
-        VStack(spacing: layout.gridSpacing) {
+        VStack(spacing: 10) {
             padControlModePicker(layout: layout)
 
             if viewModel.padControlMode == .transpose {
-                transposePresetSelectorRow(layout: layout)
-                transposeValueEditorRow(layout: layout)
+                VStack(spacing: 10) {
+                    transposePresetSelectorRow(layout: layout)
+                    transposeValueWheelRow(layout: layout)
+                }
             }
         }
     }
@@ -929,137 +928,168 @@ struct MainView: View {
     private func transposePresetSelectorRow(layout: JChordPadLayout) -> some View {
         HStack(spacing: layout.gridSpacing) {
             ForEach(0 ..< PresetControlSettings.shiftMemoryCount, id: \.self) { index in
-                let preset = viewModel.transposePreset(at: index)
-                Button {
-                    viewModel.selectTransposePreset(index: index)
-                } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("\(L10n.string("main.key")) \(signedValue(preset.keyShift))")
-                            .font(.system(size: max(10, layout.noteOffHeight * 0.22), weight: .heavy))
-                        Text("\(L10n.string("main.oct")) \(signedValue(preset.octaveShift))")
-                            .font(.system(size: max(10, layout.noteOffHeight * 0.18), weight: .bold))
-                            .opacity(0.82)
-                    }
-                    .foregroundStyle(
-                        viewModel.selectedTransposePresetIndex == index
-                            ? JPadChromeTheme.buttonLabelFilled
-                            : JChordTheme.text
-                    )
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(height: layout.noteOffHeight)
-                    .padding(.horizontal, 10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(
-                                viewModel.selectedTransposePresetIndex == index
-                                    ? AnyShapeStyle(JPadChromeTheme.accentGradient)
-                                    : AnyShapeStyle(JPadChromeTheme.buttonIdleFill)
-                            )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(
-                                viewModel.selectedTransposePresetIndex == index
-                                    ? JPadChromeTheme.accentLight.opacity(0.75)
-                                    : JPadChromeTheme.buttonIdleBorder,
-                                lineWidth: 1
-                            )
-                    )
-                }
+                transposePresetButton(
+                    preset: viewModel.transposePreset(at: index),
+                    layout: layout,
+                    selected: viewModel.selectedTransposePresetIndex == index,
+                    onTap: { viewModel.selectTransposePreset(index: index, previewInEditMode: viewModel.isPadEditMode) }
+                )
                 .buttonStyle(.plain)
             }
         }
         .frame(width: layout.gridWidth)
     }
 
-    private func transposeValueEditorRow(layout: JChordPadLayout) -> some View {
-        HStack(spacing: layout.gridSpacing) {
-            transposeValueStepper(
-                title: L10n.string("main.key"),
-                value: viewModel.selectedKeyTranspose,
-                range: PresetShiftMemory.keyShiftRange,
-                onChange: viewModel.updateKeyTranspose,
-                layout: layout
+    private func transposeValueWheelRow(layout: JChordPadLayout) -> some View {
+        let slotWidth = floor((layout.gridWidth - (layout.gridSpacing * 3)) / 4)
+
+        return HStack(spacing: layout.gridSpacing) {
+            transposeValueWheelLabel(L10n.string("main.key"), width: slotWidth, alignment: .trailing)
+            JChordValueWheelPicker(
+                values: Array(PresetShiftMemory.keyShiftRange),
+                value: Binding(
+                    get: { viewModel.selectedKeyTranspose },
+                    set: { viewModel.updateKeyTranspose($0) }
+                ),
+                width: slotWidth,
+                height: max(32, layout.noteOffHeight * 0.72),
+                displayText: { signedValue($0) }
             )
-            transposeValueStepper(
-                title: L10n.string("main.oct"),
-                value: viewModel.selectedOctaveTranspose,
-                range: PresetShiftMemory.octaveShiftRange,
-                onChange: viewModel.updateOctaveTranspose,
-                layout: layout
+
+            transposeValueWheelLabel(L10n.string("main.oct"), width: slotWidth, alignment: .leading)
+            JChordValueWheelPicker(
+                values: Array(PresetShiftMemory.octaveShiftRange),
+                value: Binding(
+                    get: { viewModel.selectedOctaveTranspose },
+                    set: { viewModel.updateOctaveTranspose($0) }
+                ),
+                width: slotWidth,
+                height: max(32, layout.noteOffHeight * 0.72),
+                displayText: { signedValue($0) }
             )
         }
         .frame(width: layout.gridWidth)
     }
 
-    private func transposeValueStepper(
-        title: String,
-        value: Int,
-        range: ClosedRange<Int>,
-        onChange: @escaping (Int) -> Void,
-        layout: JChordPadLayout
+    private func transposeValueWheelLabel(
+        _ title: String,
+        width: CGFloat,
+        alignment: Alignment
     ) -> some View {
-        HStack(spacing: 8) {
-            Text(title)
-                .font(.caption.weight(.heavy))
-                .foregroundStyle(JChordTheme.muted)
-                .frame(width: 32, alignment: .leading)
-
-            Button {
-                onChange(max(range.lowerBound, value - 1))
-            } label: {
-                Text("-")
-                    .font(.headline.weight(.heavy))
-                    .frame(width: 30, height: 30)
-            }
-            .buttonStyle(.plain)
-            .disabled(value <= range.lowerBound)
-            .opacity(value <= range.lowerBound ? 0.35 : 1)
-
-            Text(signedValue(value))
-                .font(.headline.monospacedDigit().weight(.heavy))
-                .foregroundStyle(JChordTheme.text)
-                .frame(maxWidth: .infinity)
-
-            Button {
-                onChange(min(range.upperBound, value + 1))
-            } label: {
-                Text("+")
-                    .font(.headline.weight(.heavy))
-                    .frame(width: 30, height: 30)
-            }
-            .buttonStyle(.plain)
-            .disabled(value >= range.upperBound)
-            .opacity(value >= range.upperBound ? 0.35 : 1)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: layout.noteOffHeight)
-        .padding(.horizontal, 10)
-        .background(JPadChromeTheme.buttonIdleFill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(JPadChromeTheme.buttonIdleBorder, lineWidth: 1)
-        )
+        Text(title)
+            .font(.system(size: 14, weight: .heavy, design: .default))
+            .foregroundStyle(JChordTheme.muted)
+            .frame(width: width, alignment: alignment)
     }
 
     private func padControlModePicker(layout: JChordPadLayout) -> some View {
-        JChordSegmentedControl(
-            options: PresetPadControlMode.allCases,
-            selection: padControlModeBinding,
-            title: { mode in
-                switch mode {
-                case .sliders:
-                    return L10n.string("main.controls.performance")
-                case .transpose:
-                    return L10n.string("main.controls.transpose")
-                }
+        HStack(spacing: 14) {
+            padControlModeRadioButton(
+                title: L10n.string("main.controls.slider"),
+                isSelected: viewModel.padControlMode == .sliders,
+                layout: layout
+            ) {
+                viewModel.updatePadControlMode(.sliders)
             }
-        )
+
+            padControlModeRadioButton(
+                title: L10n.string("main.controls.transpose"),
+                isSelected: viewModel.padControlMode == .transpose,
+                layout: layout
+            ) {
+                viewModel.updatePadControlMode(.transpose)
+            }
+
+            Spacer(minLength: 0)
+        }
         .frame(width: layout.gridWidth)
     }
 
     private func signedValue(_ value: Int) -> String {
         value > 0 ? "+\(value)" : "\(value)"
+    }
+
+    private func transposePresetButton(
+        preset: PresetShiftMemory,
+        layout: JChordPadLayout,
+        selected: Bool,
+        onTap: @escaping () -> Void
+    ) -> some View {
+        let slotWidth = floor((layout.gridWidth - (layout.gridSpacing * 3)) / 4)
+        let buttonHeight = max(40, floor(slotWidth * 3 / 4))
+        let labelFontSize = max(11, buttonHeight * 0.22 - 2)
+        let valueFontSize = max(12, buttonHeight * 0.28 - 2)
+        let valueWidth = max(24, valueFontSize * 1.9)
+        let labelWidth = max(28, labelFontSize * 2.4)
+        let labelColor = selected
+            ? JPadChromeTheme.buttonLabelFilled
+            : Color.white.opacity(0.9)
+        let selectedBackground = AnyShapeStyle(JPadChromeTheme.buttonIdleFill)
+        let selectedBorder = JPadChromeTheme.buttonIdleBorder
+
+        return Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 4) {
+                    Text("KEY")
+                        .font(.system(size: labelFontSize, weight: .regular, design: .default))
+                        .frame(width: labelWidth, alignment: .trailing)
+                    Text(signedValue(preset.keyShift))
+                        .font(.system(size: valueFontSize, weight: .regular, design: .default))
+                        .monospacedDigit()
+                        .frame(width: valueWidth, alignment: .trailing)
+                }
+                HStack(spacing: 4) {
+                    Text("TRN")
+                        .font(.system(size: labelFontSize, weight: .regular, design: .default))
+                        .frame(width: labelWidth, alignment: .trailing)
+                    Text(signedValue(preset.octaveShift))
+                        .font(.system(size: valueFontSize, weight: .regular, design: .default))
+                        .monospacedDigit()
+                        .frame(width: valueWidth, alignment: .trailing)
+                }
+            }
+            .foregroundStyle(labelColor)
+            .frame(maxWidth: .infinity, minHeight: buttonHeight, alignment: .center)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        selected
+                            ? selectedBackground
+                            : AnyShapeStyle(Color.clear)
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(
+                        selected
+                            ? selectedBorder
+                            : Color.white.opacity(0.85),
+                        lineWidth: 1.2
+                    )
+            )
+        }
+        .accessibilityLabel("\(L10n.string("main.key")) \(signedValue(preset.keyShift)), \(L10n.string("main.oct")) \(signedValue(preset.octaveShift))")
+    }
+
+    private func padControlModeRadioButton(
+        title: String,
+        isSelected: Bool,
+        layout: JChordPadLayout,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                    .font(.system(size: max(14, layout.noteOffHeight * 0.18 + 2), weight: .semibold))
+                Text(title)
+                    .font(.system(size: max(15, layout.noteOffHeight * 0.18 + 2), weight: .heavy))
+            }
+            .foregroundStyle(isSelected ? JChordTheme.text : JChordTheme.muted)
+            .padding(.horizontal, 2)
+            .frame(height: max(28, layout.noteOffHeight * 0.45))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private func midiSliderRow(

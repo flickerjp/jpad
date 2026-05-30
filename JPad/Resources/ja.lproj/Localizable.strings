@@ -15,7 +15,7 @@
 "main.expression" = "Expression";
 "main.key" = "KEY";
 "main.oct" = "OCT";
-"main.controls.performance" = "DYN";
+"main.controls.slider" = "SLIDER";
 "main.controls.transpose" = "TRANSPOSE";
 "main.midi_out.active.accessibility" = "MIDI output connected";
 "main.midi_out.inactive.accessibility" = "MIDI output not connected";

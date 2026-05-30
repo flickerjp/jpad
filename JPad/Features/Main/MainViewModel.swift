@@ -36,6 +36,7 @@ final class MainViewModel: ObservableObject {
     @AppStorage(PresetRotationSettings.slotIDsKey) private var rotationSlotIDsStorage = ""
 
     private var holdLatchedPadID: Int?
+    private var transposePreviewToken = UUID()
     private var pendingStoreCatalogID: String?
     private var pendingStorePreset: Preset?
     private var pendingPresetImportURL: URL?
@@ -585,9 +586,12 @@ final class MainViewModel: ObservableObject {
         pad.shiftedDisplay(by: selectedKeyTranspose)
     }
 
-    func selectTransposePreset(index: Int) {
+    func selectTransposePreset(index: Int, previewInEditMode: Bool = false) {
         let updated = preset.transposeSettings.selectingMemory(index: index)
         applyControlSettings(updated)
+
+        guard previewInEditMode else { return }
+        previewTransposeSelectionIfPossible()
     }
 
     func updatePadControlMode(_ mode: PresetPadControlMode) {
@@ -872,6 +876,31 @@ final class MainViewModel: ObservableObject {
         playingPadID = nil
         holdLatchedPadID = nil
         midiService.sendPadOff(pad)
+    }
+
+    private func previewTransposeSelectionIfPossible() {
+        guard isPadEditMode else { return }
+
+        let previewPad = selectedPadForEditor
+            ?? playingPadID.flatMap { playingID in preset.pads.first(where: { $0.id == playingID }) }
+            ?? preset.pads.first(where: { !$0.chordNotes.isEmpty || !$0.bassNotes.isEmpty })
+
+        guard let previewPad else { return }
+
+        let token = UUID()
+        transposePreviewToken = token
+        playingPadID = previewPad.id
+        midiService.sendPadOn(previewPad)
+
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(450))
+            guard let self,
+                  self.transposePreviewToken == token,
+                  self.playingPadID == previewPad.id,
+                  !self.isHoldEnabled else { return }
+            self.playingPadID = nil
+            self.midiService.sendPadOff(previewPad)
+        }
     }
 
     func toggleHold() {

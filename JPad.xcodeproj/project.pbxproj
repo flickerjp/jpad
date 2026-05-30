@@ -30,6 +30,7 @@
 		447C4AC4E5FC2EBC42A9BE64 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EB2ADE883D876179B0A5C0 /* ShareSheet.swift */; };
 		45176DF1AA3909D506060299 /* Entitlement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FE59D8C6965FE5DFBA18E1B /* Entitlement.swift */; };
 		45CD20F5627E3042E8CE92C8 /* RotationCheckbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 536974B243BFF90D4AFB2AA7 /* RotationCheckbox.swift */; };
+		463B553D14A3DBDBDDE1C1B7 /* JChordValueWheelPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F858B1DBC3CBA4036BA5F70 /* JChordValueWheelPicker.swift */; };
 		46FF3C50C39C910A5D8C4CD9 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA311F444CF7EDAB2E82680 /* L10n.swift */; };
 		47666DBEEE83E28654B5B6DF /* TinyToneCoreExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C81D43EC221A3A73D521ADA5 /* TinyToneCoreExport.swift */; };
 		4A89626518C5F8D979A94271 /* StatusBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51CBE9C26AD08406736719D /* StatusBadgeView.swift */; };
@@ -166,6 +167,7 @@
 		66ABC07BC7B2815C6012087D /* Preset+Codable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Preset+Codable.swift"; sourceTree = "<group>"; };
 		6811BAFEC7C3ADC79B03F3A6 /* TinyPiano.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TinyPiano.json; sourceTree = "<group>"; };
 		6E0651D270E69C082A8FB7DB /* TinySynth.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TinySynth.json; sourceTree = "<group>"; };
+		6F858B1DBC3CBA4036BA5F70 /* JChordValueWheelPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JChordValueWheelPicker.swift; sourceTree = "<group>"; };
 		7439573FDF4D81A3E95B3BE8 /* TinyTonePatch+Factory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TinyTonePatch+Factory.swift"; sourceTree = "<group>"; };
 		74D4AACCAC0E554CFBD69B2C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		75742CFA7452676A6A107F0B /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -391,13 +393,6 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
-		830EAE34A3AF52C21ED0E906 /* Packages */ = {
-			isa = PBXGroup;
-			children = (
-					);
-			name = Packages;
-			sourceTree = "<group>";
-		};
 		8AA5E825C5DCFA7CD0CD9406 = {
 			isa = PBXGroup;
 			children = (
@@ -492,6 +487,7 @@
 				E0CD408554EAB2C8E1A8F361 /* JChordTestNotePadButton.swift */,
 				2ED8F3870A2F3EBB5E12FD4B /* JChordTopActionStyle.swift */,
 				E0B107B291EDA326A8BE5C8C /* JChordUnlockButton.swift */,
+				6F858B1DBC3CBA4036BA5F70 /* JChordValueWheelPicker.swift */,
 				031168BD61F41004E0EF7118 /* JPadChromeDockButton.swift */,
 				4522E4D2869C85E4BEEBC7D1 /* JPadChromeIconButton.swift */,
 				E00F301F4723F0D8729075E0 /* JPadPianoChromeIcon.swift */,
@@ -661,6 +657,7 @@
 				55E63476B9C8753A31445722 /* JChordTheme.swift in Sources */,
 				DAC71F3A35D0954461877906 /* JChordTopActionStyle.swift in Sources */,
 				D09EC4DDF39B3210DAE062F1 /* JChordUnlockButton.swift in Sources */,
+				463B553D14A3DBDBDDE1C1B7 /* JChordValueWheelPicker.swift in Sources */,
 				4F927B752EBC1B2CCC254B30 /* JPadApp.swift in Sources */,
 				8E6A0B169F78ACA96DC3734F /* JPadChromeDockButton.swift in Sources */,
 				A954FB67D256C16D80BDBF0D /* JPadChromeIconButton.swift in Sources */,
@@ -750,7 +747,7 @@
 				CODE_SIGN_ENTITLEMENTS = JPad/JPad.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 122;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
@@ -766,7 +763,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.20;
+				MARKETING_VERSION = 1.1.01;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
 				PRODUCT_NAME = JPad;
 				SDKROOT = iphoneos;
@@ -782,7 +779,7 @@
 				CODE_SIGN_ENTITLEMENTS = JPad/JPad.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 120;
+				CURRENT_PROJECT_VERSION = 122;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
@@ -798,7 +795,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.20;
+				MARKETING_VERSION = 1.1.01;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
 				PRODUCT_NAME = JPad;
 				SDKROOT = iphoneos;

@@ -6,6 +6,12 @@
 - **内蔵 PAD OUT（TinyTone）:** [TINYTONE_AUDIO.md](TINYTONE_AUDIO.md) — Debug/Release 共通の本線。旧 TinyPiano エンジン・デバッグ専用分岐はなし
 - **現行ビルド:** `1.0.02 (108)` · `sheet-chrome-v1`（設定フッターで確認）
 - **シート外周白枠:** iPhone（MAX 含む）は非表示、iPad mini 以上のみ（`JChordDeviceTraits`）
+- **次回の着手項目:**
+  - `KEY` / `OCT` 情報を `EXPORT` / `IMPORT` の JSON に対応させる
+  - セット選択画面の `CHECK` ボックスと `ALL` を不要にする
+  - 設定画面で、`PAD OUT` で選ばれているものを押したら `TEST NOTE` できるようにする
+  - TinyTone 音色選択の右側 `TEST NOTE` を TinyTone 専用にし、他の `PAD OUT` ではグレー表示にする
+  - TinyTone 音色選択のリロード用アイコンを、TinyTone `TEST NOTE` ボタンの右隣に追加する
 - 次にやること・未解決・注意点をここに書いてください。
 
 ## 自動ログ（コミットの都度追記）
@@ -682,4 +688,3 @@
 **作者:** tone <tone@tonem4max.local>
 
 **参照:** `git show 54bdb75` / `git log -1 54bdb75`
-
