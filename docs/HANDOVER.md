@@ -4,6 +4,7 @@
 
 - **仕様・UI の正本:** [docs/README.md](README.md) → [PRESET_LIBRARY.md](PRESET_LIBRARY.md) / [UI_DESIGN.md](UI_DESIGN.md)
 - **内蔵 PAD OUT（TinyTone）:** [TINYTONE_AUDIO.md](TINYTONE_AUDIO.md) — Debug/Release 共通の本線。旧 TinyPiano エンジン・デバッグ専用分岐はなし
+- **GarageBand 接続メモ:** `UIBackgroundModes: audio` を戻したことで `kMIDINotPermitted (-10844)` を解消し、GarageBand バックグラウンド状態でも仮想 MIDI source を維持できることを確認済み。審査説明は「GarageBand / CoreMIDI 連携のための background mode」とする。詳細は [TINYTONE_AUDIO.md](TINYTONE_AUDIO.md)。
 - **現行ビルド:** `1.0.02 (108)` · `sheet-chrome-v1`（設定フッターで確認）
 - **シート外周白枠:** iPhone（MAX 含む）は非表示、iPad mini 以上のみ（`JChordDeviceTraits`）
 - **次回の着手項目:**
@@ -707,4 +708,3 @@
 **作者:** tone <tone@tonem4max.local>
 
 **参照:** `git show bdedb36` / `git log -1 bdedb36`
-
