@@ -726,3 +726,13 @@
 
 **参照:** `git show 965685d` / `git log -1 965685d`
 
+
+<!-- handover:auto:ad515330d1d5949ad27c588b37e339d9050192f8 -->
+### 2026-05-30 20:35:35 +0900 — `ad51533` — main
+
+**件名:** Split share actions into airdrop and export
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show ad51533` / `git log -1 ad51533`
+
