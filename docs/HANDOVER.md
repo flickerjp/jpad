@@ -698,3 +698,13 @@
 
 **参照:** `git show 4aa0e45` / `git log -1 4aa0e45`
 
+
+<!-- handover:auto:bdedb36821baf809001896e2ad64b06e1efac630 -->
+### 2026-05-30 16:16:00 +0900 — `bdedb36` — main
+
+**件名:** Fix GarageBand background MIDI routing
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show bdedb36` / `git log -1 bdedb36`
+
