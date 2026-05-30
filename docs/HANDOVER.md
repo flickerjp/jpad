@@ -708,3 +708,13 @@
 **作者:** tone <tone@tonem4max.local>
 
 **参照:** `git show bdedb36` / `git log -1 bdedb36`
+
+<!-- handover:auto:438b429d0da7242a56657e834525f08b89f5eece -->
+### 2026-05-30 16:22:07 +0900 — `438b429` — main
+
+**件名:** chore: update handover for GarageBand fix
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 438b429` / `git log -1 438b429`
+
