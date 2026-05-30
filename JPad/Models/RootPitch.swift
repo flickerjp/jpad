@@ -21,6 +21,11 @@ enum RootPitch {
         let normalized = normalize(root)
         return pitchClassNames.firstIndex(of: normalized)
     }
+
+    static func transposed(_ root: String, semitones: Int) -> String? {
+        guard let pitchClass = pitchClass(for: root) else { return nil }
+        return displayName(forPitchClass: pitchClass + semitones)
+    }
 }
 
 enum ChordLabel {
@@ -49,5 +54,14 @@ enum ChordLabel {
             }
         }
         return trimmed
+    }
+
+    static func shiftingRoot(in label: String, semitones: Int) -> String {
+        guard semitones != 0,
+              let root = parsedRoot(from: label),
+              let shiftedRoot = RootPitch.transposed(root, semitones: semitones) else {
+            return label
+        }
+        return replacingRoot(in: label, with: shiftedRoot)
     }
 }

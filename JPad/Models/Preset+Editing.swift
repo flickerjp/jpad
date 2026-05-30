@@ -13,6 +13,7 @@ extension Preset {
             defaultChannel: defaultChannel,
             defaultVelocity: defaultVelocity,
             defaultExpression: defaultExpression,
+            transposeSettings: transposeSettings,
             pads: pads
         )
     }
@@ -29,7 +30,25 @@ extension Preset {
             defaultChannel: defaultChannel,
             defaultVelocity: defaultVelocity,
             defaultExpression: defaultExpression,
+            transposeSettings: transposeSettings,
             pads: pads.map { $0.index == pad.index ? pad : $0 }
+        )
+    }
+
+    func replacingControlSettings(_ newSettings: PresetControlSettings) -> Preset {
+        Preset(
+            id: id,
+            appName: appName,
+            setName: setName,
+            description: description,
+            version: version,
+            defaultPlaybackMode: defaultPlaybackMode,
+            autoBassOctave: autoBassOctave,
+            defaultChannel: defaultChannel,
+            defaultVelocity: defaultVelocity,
+            defaultExpression: defaultExpression,
+            transposeSettings: newSettings,
+            pads: pads
         )
     }
 }

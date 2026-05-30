@@ -100,3 +100,20 @@ struct PadDefinition: Decodable, Identifiable, Equatable {
         return notes
     }
 }
+
+extension PadDefinition {
+    func shiftedDisplay(by semitones: Int) -> PadDefinition {
+        guard semitones != 0 else { return self }
+        return PadDefinition(
+            index: index,
+            name: name,
+            displayName: ChordLabel.shiftingRoot(in: displayName, semitones: semitones),
+            label: ChordLabel.shiftingRoot(in: label, semitones: semitones),
+            role: role,
+            chordNotes: chordNotes,
+            bassNotes: bassNotes,
+            playbackMode: playbackMode,
+            arpeggioPattern: arpeggioPattern
+        )
+    }
+}

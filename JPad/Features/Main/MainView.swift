@@ -274,26 +274,29 @@ struct MainView: View {
                 if layout.isLandscape {
                     landscapeMidiControls(layout: layout)
                 } else {
-                    midiSliderRow(
-                        title: L10n.string("main.velocity"),
-                        value: viewModel.velocity,
-                        onChange: { viewModel.updateVelocity($0) },
-                        layout: layout
-                    )
-
-                    fixedSpacer(height: spacers.betweenSections)
-
-                    midiSliderRow(
-                        title: L10n.string("main.expression"),
-                        value: viewModel.expression,
-                        onChange: { viewModel.updateExpression($0) },
-                        layout: layout
-                    )
+                    portraitControlPanel(layout: layout, spacing: spacers.betweenSections)
                 }
 
                 fixedSpacer(height: spacers.betweenSections)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+    }
+
+    private var padControlModeBinding: Binding<PresetPadControlMode> {
+        Binding(
+            get: { viewModel.padControlMode },
+            set: { viewModel.updatePadControlMode($0) }
+        )
+    }
+
+    private func portraitControlPanel(layout: JChordPadLayout, spacing: CGFloat) -> some View {
+        VStack(spacing: spacing) {
+            if viewModel.isPadEditMode {
+                editPadControlPanel(layout: layout)
+            } else {
+                controlRows(layout: layout)
+            }
         }
     }
 
@@ -354,6 +357,7 @@ struct MainView: View {
 
                 PadView(
                     pad: pad,
+                    displayPad: viewModel.displayPad(for: pad),
                     visualStyle: padVisualStyleForPad,
                     isMidiReady: viewModel.canEditPads,
                     isEditMode: viewModel.isPadEditMode,
@@ -580,8 +584,7 @@ struct MainView: View {
         else { return }
 
         pressGestureHoldFlashQualified = true
-        guard let pressTime = pressGesturePressTime,
-              let originCol = pressGestureOriginCol,
+        guard let originCol = pressGestureOriginCol,
               let originRow = pressGestureOriginRow
         else { return }
 
@@ -866,26 +869,203 @@ struct MainView: View {
     }
 
     private func landscapeMidiControls(layout: JChordPadLayout) -> some View {
-        HStack(spacing: layout.gridSpacing) {
+        VStack(spacing: layout.gridSpacing) {
+            if viewModel.isPadEditMode {
+                editPadControlPanel(layout: layout)
+            } else {
+                controlRows(layout: layout)
+            }
+        }
+        .frame(width: layout.gridWidth)
+    }
+
+    @ViewBuilder
+    private func controlRows(layout: JChordPadLayout) -> some View {
+        switch viewModel.padControlMode {
+        case .sliders:
+            performanceControlRows(layout: layout)
+        case .transpose:
+            transposePresetSelectorRow(layout: layout)
+        }
+    }
+
+    @ViewBuilder
+    private func performanceControlRows(layout: JChordPadLayout) -> some View {
+        let content = Group {
             midiSliderRow(
-                title: "Velocity",
+                title: L10n.string("main.velocity"),
                 value: viewModel.velocity,
+                range: 1 ... 127,
                 onChange: { viewModel.updateVelocity($0) },
                 layout: layout
             )
             midiSliderRow(
-                title: "Expression",
+                title: L10n.string("main.expression"),
                 value: viewModel.expression,
+                range: 1 ... 127,
                 onChange: { viewModel.updateExpression($0) },
+                layout: layout
+            )
+        }
+
+        if layout.isLandscape {
+            HStack(spacing: layout.gridSpacing) { content }
+        } else {
+            VStack(spacing: layout.gridSpacing) { content }
+        }
+    }
+
+    private func editPadControlPanel(layout: JChordPadLayout) -> some View {
+        VStack(spacing: layout.gridSpacing) {
+            padControlModePicker(layout: layout)
+
+            if viewModel.padControlMode == .transpose {
+                transposePresetSelectorRow(layout: layout)
+                transposeValueEditorRow(layout: layout)
+            }
+        }
+    }
+
+    private func transposePresetSelectorRow(layout: JChordPadLayout) -> some View {
+        HStack(spacing: layout.gridSpacing) {
+            ForEach(0 ..< PresetControlSettings.shiftMemoryCount, id: \.self) { index in
+                let preset = viewModel.transposePreset(at: index)
+                Button {
+                    viewModel.selectTransposePreset(index: index)
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(L10n.string("main.key")) \(signedValue(preset.keyShift))")
+                            .font(.system(size: max(10, layout.noteOffHeight * 0.22), weight: .heavy))
+                        Text("\(L10n.string("main.oct")) \(signedValue(preset.octaveShift))")
+                            .font(.system(size: max(10, layout.noteOffHeight * 0.18), weight: .bold))
+                            .opacity(0.82)
+                    }
+                    .foregroundStyle(
+                        viewModel.selectedTransposePresetIndex == index
+                            ? JPadChromeTheme.buttonLabelFilled
+                            : JChordTheme.text
+                    )
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(height: layout.noteOffHeight)
+                    .padding(.horizontal, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(
+                                viewModel.selectedTransposePresetIndex == index
+                                    ? AnyShapeStyle(JPadChromeTheme.accentGradient)
+                                    : AnyShapeStyle(JPadChromeTheme.buttonIdleFill)
+                            )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .strokeBorder(
+                                viewModel.selectedTransposePresetIndex == index
+                                    ? JPadChromeTheme.accentLight.opacity(0.75)
+                                    : JPadChromeTheme.buttonIdleBorder,
+                                lineWidth: 1
+                            )
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .frame(width: layout.gridWidth)
+    }
+
+    private func transposeValueEditorRow(layout: JChordPadLayout) -> some View {
+        HStack(spacing: layout.gridSpacing) {
+            transposeValueStepper(
+                title: L10n.string("main.key"),
+                value: viewModel.selectedKeyTranspose,
+                range: PresetShiftMemory.keyShiftRange,
+                onChange: viewModel.updateKeyTranspose,
+                layout: layout
+            )
+            transposeValueStepper(
+                title: L10n.string("main.oct"),
+                value: viewModel.selectedOctaveTranspose,
+                range: PresetShiftMemory.octaveShiftRange,
+                onChange: viewModel.updateOctaveTranspose,
                 layout: layout
             )
         }
         .frame(width: layout.gridWidth)
     }
 
+    private func transposeValueStepper(
+        title: String,
+        value: Int,
+        range: ClosedRange<Int>,
+        onChange: @escaping (Int) -> Void,
+        layout: JChordPadLayout
+    ) -> some View {
+        HStack(spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(JChordTheme.muted)
+                .frame(width: 32, alignment: .leading)
+
+            Button {
+                onChange(max(range.lowerBound, value - 1))
+            } label: {
+                Text("-")
+                    .font(.headline.weight(.heavy))
+                    .frame(width: 30, height: 30)
+            }
+            .buttonStyle(.plain)
+            .disabled(value <= range.lowerBound)
+            .opacity(value <= range.lowerBound ? 0.35 : 1)
+
+            Text(signedValue(value))
+                .font(.headline.monospacedDigit().weight(.heavy))
+                .foregroundStyle(JChordTheme.text)
+                .frame(maxWidth: .infinity)
+
+            Button {
+                onChange(min(range.upperBound, value + 1))
+            } label: {
+                Text("+")
+                    .font(.headline.weight(.heavy))
+                    .frame(width: 30, height: 30)
+            }
+            .buttonStyle(.plain)
+            .disabled(value >= range.upperBound)
+            .opacity(value >= range.upperBound ? 0.35 : 1)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: layout.noteOffHeight)
+        .padding(.horizontal, 10)
+        .background(JPadChromeTheme.buttonIdleFill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(JPadChromeTheme.buttonIdleBorder, lineWidth: 1)
+        )
+    }
+
+    private func padControlModePicker(layout: JChordPadLayout) -> some View {
+        JChordSegmentedControl(
+            options: PresetPadControlMode.allCases,
+            selection: padControlModeBinding,
+            title: { mode in
+                switch mode {
+                case .sliders:
+                    return L10n.string("main.controls.performance")
+                case .transpose:
+                    return L10n.string("main.controls.transpose")
+                }
+            }
+        )
+        .frame(width: layout.gridWidth)
+    }
+
+    private func signedValue(_ value: Int) -> String {
+        value > 0 ? "+\(value)" : "\(value)"
+    }
+
     private func midiSliderRow(
         title: String,
         value: Double,
+        range: ClosedRange<Double> = 1 ... 127,
         onChange: @escaping (Double) -> Void,
         layout: JChordPadLayout
     ) -> some View {
@@ -899,7 +1079,8 @@ struct MainView: View {
                 value: Binding(
                     get: { value },
                     set: { onChange($0) }
-                )
+                ),
+                range: range
             )
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -240,6 +240,7 @@ enum UserPresetLibrary {
       defaultChannel: blank.defaultChannel,
       defaultVelocity: blank.defaultVelocity,
       defaultExpression: blank.defaultExpression,
+      transposeSettings: blank.transposeSettings,
       pads: blank.pads
     )
     return try createSlot(
@@ -272,6 +273,7 @@ enum UserPresetLibrary {
       defaultChannel: copied.defaultChannel,
       defaultVelocity: copied.defaultVelocity,
       defaultExpression: copied.defaultExpression,
+      transposeSettings: copied.transposeSettings,
       pads: copied.pads
     )
     return try createSlot(

@@ -28,6 +28,7 @@ extension Preset: Encodable {
         try container.encode(defaultChannel, forKey: .defaultChannel)
         try container.encode(defaultVelocity, forKey: .defaultVelocity)
         try container.encode(defaultExpression, forKey: .defaultExpression)
+        try container.encode(transposeSettings, forKey: .transposeSettings)
         try container.encode(pads, forKey: .pads)
     }
 }

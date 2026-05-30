@@ -1,5 +1,110 @@
 import Foundation
 
+enum PresetPadControlMode: String, Codable, CaseIterable {
+    case sliders
+    case transpose
+}
+
+struct PresetShiftMemory: Codable, Equatable {
+    static let keyShiftRange = -12 ... 12
+    static let octaveShiftRange = -3 ... 3
+    static let neutral = PresetShiftMemory()
+
+    var keyShift: Int
+    var octaveShift: Int
+
+    init(keyShift: Int = 0, octaveShift: Int = 0) {
+        self.keyShift = Self.keyShiftRange.clamp(keyShift)
+        self.octaveShift = Self.octaveShiftRange.clamp(octaveShift)
+    }
+
+    var totalSemitones: Int {
+        keyShift + octaveShift * 12
+    }
+}
+
+struct PresetControlSettings: Codable, Equatable {
+    static let shiftMemoryCount = 4
+    static let `default` = PresetControlSettings()
+
+    var padControlMode: PresetPadControlMode
+    var selectedShiftMemoryIndex: Int
+    var shiftMemories: [PresetShiftMemory]
+
+    init(
+        padControlMode: PresetPadControlMode = .sliders,
+        selectedShiftMemoryIndex: Int = 0,
+        shiftMemories: [PresetShiftMemory] = []
+    ) {
+        let normalizedMemories = Self.normalizedShiftMemories(from: shiftMemories)
+        self.padControlMode = padControlMode
+        self.shiftMemories = normalizedMemories
+        self.selectedShiftMemoryIndex = Self.normalizedIndex(
+            selectedShiftMemoryIndex,
+            count: normalizedMemories.count
+        )
+    }
+
+    var selectedMemory: PresetShiftMemory {
+        shiftMemories[selectedShiftMemoryIndex]
+    }
+
+    func selectingMemory(index: Int) -> PresetControlSettings {
+        PresetControlSettings(
+            padControlMode: padControlMode,
+            selectedShiftMemoryIndex: index,
+            shiftMemories: shiftMemories
+        )
+    }
+
+    func selectingPadControlMode(_ mode: PresetPadControlMode) -> PresetControlSettings {
+        PresetControlSettings(
+            padControlMode: mode,
+            selectedShiftMemoryIndex: selectedShiftMemoryIndex,
+            shiftMemories: shiftMemories
+        )
+    }
+
+    func updatingSelectedMemory(_ transform: (PresetShiftMemory) -> PresetShiftMemory) -> PresetControlSettings {
+        var updatedMemories = shiftMemories
+        updatedMemories[selectedShiftMemoryIndex] = transform(selectedMemory)
+        return PresetControlSettings(
+            padControlMode: padControlMode,
+            selectedShiftMemoryIndex: selectedShiftMemoryIndex,
+            shiftMemories: updatedMemories
+        )
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case padControlMode, selectedShiftMemoryIndex, shiftMemories
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let mode = try container.decodeIfPresent(PresetPadControlMode.self, forKey: .padControlMode) ?? .sliders
+        let index = try container.decodeIfPresent(Int.self, forKey: .selectedShiftMemoryIndex) ?? 0
+        let memories = try container.decodeIfPresent([PresetShiftMemory].self, forKey: .shiftMemories) ?? []
+        self.init(
+            padControlMode: mode,
+            selectedShiftMemoryIndex: index,
+            shiftMemories: memories
+        )
+    }
+
+    private static func normalizedShiftMemories(from memories: [PresetShiftMemory]) -> [PresetShiftMemory] {
+        var normalized = Array(memories.prefix(shiftMemoryCount))
+        while normalized.count < shiftMemoryCount {
+            normalized.append(.neutral)
+        }
+        return normalized
+    }
+
+    private static func normalizedIndex(_ index: Int, count: Int) -> Int {
+        guard count > 0 else { return 0 }
+        return max(0, min(index, count - 1))
+    }
+}
+
 struct Preset: Decodable, Identifiable, Equatable {
     let id: String
     let appName: String
@@ -11,12 +116,13 @@ struct Preset: Decodable, Identifiable, Equatable {
     let defaultChannel: UInt8
     let defaultVelocity: UInt8
     let defaultExpression: UInt8
+    let transposeSettings: PresetControlSettings
     let pads: [PadDefinition]
 
     var name: String { setName }
 
     enum CodingKeys: String, CodingKey {
-        case id, appName, setName, name, description, version, defaultPlaybackMode, autoBassOctave, defaultChannel, defaultExpression, defaultVelocity, pads
+        case id, appName, setName, name, description, version, defaultPlaybackMode, autoBassOctave, defaultChannel, defaultExpression, defaultVelocity, transposeSettings, pads
     }
 
     init(
@@ -30,6 +136,7 @@ struct Preset: Decodable, Identifiable, Equatable {
         defaultChannel: UInt8,
         defaultVelocity: UInt8,
         defaultExpression: UInt8,
+        transposeSettings: PresetControlSettings = .default,
         pads: [PadDefinition]
     ) {
         self.id = id
@@ -42,6 +149,7 @@ struct Preset: Decodable, Identifiable, Equatable {
         self.defaultChannel = defaultChannel
         self.defaultVelocity = defaultVelocity
         self.defaultExpression = defaultExpression
+        self.transposeSettings = transposeSettings
         self.pads = pads
     }
 
@@ -62,6 +170,7 @@ struct Preset: Decodable, Identifiable, Equatable {
         let resolvedVelocity = try container.decodeIfPresent(UInt8.self, forKey: .defaultVelocity) ?? 100
         defaultVelocity = resolvedVelocity
         defaultExpression = try container.decodeIfPresent(UInt8.self, forKey: .defaultExpression) ?? resolvedVelocity
+        transposeSettings = try container.decodeIfPresent(PresetControlSettings.self, forKey: .transposeSettings) ?? .default
         pads = try container.decode([PadDefinition].self, forKey: .pads)
     }
 
@@ -109,6 +218,7 @@ extension Preset {
         defaultChannel: 1,
         defaultVelocity: 100,
         defaultExpression: 100,
+        transposeSettings: .default,
         pads: blankStarterPads()
     )
 
@@ -140,6 +250,7 @@ extension Preset {
         defaultChannel: 0,
         defaultVelocity: 100,
         defaultExpression: 100,
+        transposeSettings: .default,
         pads: (0..<12).map { index in
             PadDefinition(
                 index: index,
@@ -152,4 +263,10 @@ extension Preset {
             )
         }
     )
+}
+
+private extension ClosedRange where Bound == Int {
+    func clamp(_ value: Bound) -> Bound {
+        min(max(value, lowerBound), upperBound)
+    }
 }

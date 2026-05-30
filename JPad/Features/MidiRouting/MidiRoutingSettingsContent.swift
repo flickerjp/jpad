@@ -199,10 +199,6 @@ struct MidiRoutingSettingsContent: View {
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
-    private var usesCompactLeadingLayout: Bool {
-        compactPanelMaxWidth != nil
-    }
-
     /// TEST NOTE / Buy 共通幅（パッド cellSide）
     private var settingsActionButtonWidth: CGFloat { testPadWidth }
 
@@ -249,9 +245,6 @@ struct MidiRoutingSettingsContent: View {
         }
         .frame(width: settingsGridWidth, alignment: .leading)
     }
-
-    /// 内側パネル（JPAD 購入行）の左右余白
-    private var settingsCardInnerHorizontalInset: CGFloat { 14 }
 
     private var previewSoundPresetRow: some View {
         HStack(alignment: .center, spacing: 12) {
@@ -315,61 +308,34 @@ struct MidiRoutingSettingsContent: View {
     }
 
     private func proStatusInfoRow(_ status: ProSubscriptionStatus) -> some View {
-        Group {
-            if !status.isActive, let onProPurchaseTap {
-                if usesCompactLeadingLayout {
-                    HStack(alignment: .center, spacing: 12) {
-                        Text(status.statusLabel)
-                            .font(.system(size: proStatusLabelFontSize, weight: .heavy))
-                            .foregroundStyle(JChordTheme.text)
-                        proPurchaseButton(action: onProPurchaseTap)
-                    }
-                    .frame(maxWidth: compactPanelMaxWidth, alignment: .leading)
-                } else {
-                    HStack(alignment: .center, spacing: 0) {
-                        Text(status.statusLabel)
-                            .font(.system(size: proStatusLabelFontSize, weight: .heavy))
-                            .foregroundStyle(JChordTheme.text)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .multilineTextAlignment(.center)
-                        HStack(spacing: 0) {
-                            Spacer(minLength: 0)
-                            proPurchaseButton(action: onProPurchaseTap)
-                            Spacer(minLength: 0)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                }
-            } else {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(status.statusLabel)
-                        .font(.subheadline.weight(.heavy))
-                        .foregroundStyle(JChordTheme.text)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 12) {
+                Text(status.statusLabel)
+                    .font(.system(size: proStatusLabelFontSize, weight: .heavy))
+                    .foregroundStyle(JChordTheme.text)
 
-                    if let dateRow = status.dateRow {
-                        HStack(alignment: .firstTextBaseline) {
-                            Text(dateRow.label)
-                            Spacer(minLength: 12)
-                            Text(dateRow.date)
-                        }
+                Spacer(minLength: 0)
+
+                if !status.isActive, let onProPurchaseTap {
+                    proPurchaseButton(action: onProPurchaseTap)
+                }
+            }
+            .frame(width: settingsGridWidth, alignment: .leading)
+
+            if let dateRow = status.dateRow {
+                settingsLabelValueRow(label: dateRow.label) {
+                    Text(dateRow.date)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(JChordTheme.text.opacity(0.92))
-                    } else if status.isActive {
-                        Text(L10n.string("settings.pro.active_fallback"))
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(JChordTheme.text.opacity(0.92))
-                    }
+                        .frame(width: settingsControlColumnWidth, alignment: .leading)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+            } else if status.isActive {
+                Text(L10n.string("settings.pro.active_fallback"))
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(JChordTheme.text.opacity(0.92))
+                    .frame(width: settingsGridWidth, alignment: .leading)
             }
         }
-        .padding(.horizontal, settingsCardInnerHorizontalInset)
-        .padding(.vertical, 12)
-        .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-        )
         .accessibilityElement(children: .contain)
         .accessibilityLabel(status.accessibilityLabel)
     }

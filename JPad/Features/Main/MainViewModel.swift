@@ -116,6 +116,32 @@ final class MainViewModel: ObservableObject {
         midiService.hasActiveMidiOutput
     }
 
+    var padControlMode: PresetPadControlMode {
+        preset.transposeSettings.padControlMode
+    }
+
+    var selectedTransposePresetIndex: Int {
+        preset.transposeSettings.selectedShiftMemoryIndex
+    }
+
+    var selectedTransposePreset: PresetShiftMemory {
+        preset.transposeSettings.selectedMemory
+    }
+
+    func transposePreset(at index: Int) -> PresetShiftMemory {
+        let memories = preset.transposeSettings.shiftMemories
+        guard memories.indices.contains(index) else { return .neutral }
+        return memories[index]
+    }
+
+    var selectedKeyTranspose: Int {
+        selectedTransposePreset.keyShift
+    }
+
+    var selectedOctaveTranspose: Int {
+        selectedTransposePreset.octaveShift
+    }
+
     var selectedPadForEditor: PadDefinition? {
         guard let selectedPadID else { return nil }
         return preset.pads.first(where: { $0.id == selectedPadID })
@@ -555,6 +581,34 @@ final class MainViewModel: ObservableObject {
         returnToPadGridFromEditor()
     }
 
+    func displayPad(for pad: PadDefinition) -> PadDefinition {
+        pad.shiftedDisplay(by: selectedKeyTranspose)
+    }
+
+    func selectTransposePreset(index: Int) {
+        let updated = preset.transposeSettings.selectingMemory(index: index)
+        applyControlSettings(updated)
+    }
+
+    func updatePadControlMode(_ mode: PresetPadControlMode) {
+        let updated = preset.transposeSettings.selectingPadControlMode(mode)
+        applyControlSettings(updated)
+    }
+
+    func updateKeyTranspose(_ newValue: Int) {
+        let updated = preset.transposeSettings.updatingSelectedMemory {
+            PresetShiftMemory(keyShift: newValue, octaveShift: $0.octaveShift)
+        }
+        applyControlSettings(updated)
+    }
+
+    func updateOctaveTranspose(_ newValue: Int) {
+        let updated = preset.transposeSettings.updatingSelectedMemory {
+            PresetShiftMemory(keyShift: $0.keyShift, octaveShift: newValue)
+        }
+        applyControlSettings(updated)
+    }
+
     func closeNotesEditor() {
         notesEditorViewModel = nil
         midiService.stopNoteCapture()
@@ -723,6 +777,15 @@ final class MainViewModel: ObservableObject {
             velocity: performanceVelocity,
             expression: performanceExpression
         )
+        midiService.updatePadTranspose(semitones: loadedPreset.transposeSettings.selectedMemory.totalSemitones)
+    }
+
+    private func applyControlSettings(_ settings: PresetControlSettings) {
+        guard settings != preset.transposeSettings else { return }
+        sendAllNotesOff()
+        preset = preset.replacingControlSettings(settings)
+        midiService.updatePadTranspose(semitones: settings.selectedMemory.totalSemitones)
+        persistActiveSlotIfNeeded()
     }
 
     private func persistActiveSlotIfNeeded() {

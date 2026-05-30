@@ -5,6 +5,7 @@ struct PadView: View {
     private static let editModeChordColor = Color.white.opacity(0.5)
 
     let pad: PadDefinition
+    let displayPad: PadDefinition
     let visualStyle: PadVisualStyle
     let isMidiReady: Bool
     let isEditMode: Bool
@@ -159,7 +160,7 @@ struct PadView: View {
         VStack(alignment: .leading, spacing: 2) {
             Spacer(minLength: 0)
 
-            Text(pad.title)
+            Text(displayPad.title)
                 .font(.system(size: titleFontSize, weight: .heavy))
                 .foregroundStyle(foregroundColor)
                 .multilineTextAlignment(.leading)
@@ -173,7 +174,7 @@ struct PadView: View {
                 )
 
             if showsRootSubtitle {
-                Text(pad.rootDisplayName)
+                Text(displayPad.rootDisplayName)
                     .font(.system(size: subtitleFontSize, weight: .semibold))
                     .foregroundStyle(subtitleColor)
                     .lineLimit(1)

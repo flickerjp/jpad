@@ -89,6 +89,7 @@ final class MidiOutputService: ObservableObject {
     private var outputChannelIndex: UInt8 = 0
     private var velocity: UInt8
     private var expression: UInt8
+    private var padTransposeSemitones = 0
 
     private var midiClient = MIDIClientRef()
     private var outputPort = MIDIPortRef()
@@ -464,6 +465,10 @@ final class MidiOutputService: ObservableObject {
         transmitExpression()
     }
 
+    func updatePadTranspose(semitones: Int) {
+        padTransposeSemitones = semitones
+    }
+
     func updateMidiChannel(_ channel: Int) {
         let clamped = min(max(channel, 1), 16)
         midiChannel = clamped
@@ -672,7 +677,11 @@ final class MidiOutputService: ObservableObject {
     }
 
     func sendPadOn(_ pad: PadDefinition) {
-        let orderedNotes = Self.orderedPadNotes(bass: pad.bassNotes, chord: pad.chordNotes)
+        let orderedNotes = Self.orderedPadNotes(
+            bass: pad.bassNotes,
+            chord: pad.chordNotes,
+            transposeSemitones: padTransposeSemitones
+        )
         guard !orderedNotes.isEmpty else {
             lastMidiEventDescription = "No notes in pad"
             return
@@ -709,14 +718,26 @@ final class MidiOutputService: ObservableObject {
     }
 
     /// ベース→コードの順で並べ、重複を除く（内蔵プレビューの同時発音順を安定させる）。
-    private static func orderedPadNotes(bass: [UInt8], chord: [UInt8]) -> [UInt8] {
+    private static func orderedPadNotes(
+        bass: [UInt8],
+        chord: [UInt8],
+        transposeSemitones: Int = 0
+    ) -> [UInt8] {
         var seen = Set<UInt8>()
         var ordered: [UInt8] = []
         ordered.reserveCapacity(bass.count + chord.count)
-        for note in bass + chord where seen.insert(note).inserted {
-            ordered.append(note)
+        for note in bass + chord {
+            guard let shifted = shifted(note: note, by: transposeSemitones),
+                  seen.insert(shifted).inserted else { continue }
+            ordered.append(shifted)
         }
         return ordered
+    }
+
+    private static func shifted(note: UInt8, by semitones: Int) -> UInt8? {
+        let shifted = Int(note) + semitones
+        guard (0...127).contains(shifted) else { return nil }
+        return UInt8(shifted)
     }
 
     /// キー入力 UI など、単音の短い試聴（パッド ID とは独立した ref count）。
@@ -755,7 +776,11 @@ final class MidiOutputService: ObservableObject {
     func sendPadOff(_ pad: PadDefinition) {
         let tracked = activeNotesByPad.removeValue(forKey: pad.id)
         let fallbackNotes = Set(
-            (pad.bassNotes + pad.chordNotes).map {
+            Self.orderedPadNotes(
+                bass: pad.bassNotes,
+                chord: pad.chordNotes,
+                transposeSemitones: padTransposeSemitones
+            ).map {
                 ActiveMidiNote(noteNumber: $0, channel: outputChannelIndex)
             }
         )
