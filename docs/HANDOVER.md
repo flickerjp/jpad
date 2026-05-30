@@ -716,3 +716,13 @@
 **作者:** tone <tone@tonem4max.local>
 
 **参照:** `git show 438b429` / `git log -1 438b429`
+
+<!-- handover:auto:965685d5ba94b28c5fc7b0493e3d38f045e9c4b2 -->
+### 2026-05-30 19:18:25 +0900 — `965685d` — main
+
+**件名:** Refine transpose controls and routing settings
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 965685d` / `git log -1 965685d`
+
