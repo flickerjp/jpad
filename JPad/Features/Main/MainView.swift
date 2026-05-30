@@ -204,7 +204,8 @@ struct MainView: View {
             onSlotLimitReached: { viewModel.presentSlotLimitNotice() },
             onRequirePro: { viewModel.presentProUpgrade() },
             onShareRequiresActiveSet: { viewModel.presentShareRequiresActiveSetNotice() },
-            onShare: { viewModel.exportActiveSlotForShare() },
+            onAirDrop: { viewModel.exportActiveSlotForAirDrop() },
+            onExport: { viewModel.exportActiveSlotForExport() },
             onImport: { viewModel.beginSharedPresetImport() },
             rotationUseAllSlots: viewModel.rotationUseAllSlots,
             isSlotInRotation: viewModel.isSlotIncludedInRotation,
@@ -232,9 +233,20 @@ struct MainView: View {
             )
             .presentationCornerRadius(18)
         }
-        .sheet(isPresented: $viewModel.isShowingShareSheet) {
-            if let url = viewModel.shareExportURL {
-                ShareSheet(url: url)
+        .fileExporter(
+            isPresented: $viewModel.isShowingExportSheet,
+            document: viewModel.shareExportDocument,
+            contentType: .jchordPreset,
+            defaultFilename: viewModel.shareExportFileName
+        ) { _ in
+            viewModel.dismissExportSheet()
+        }
+        .sheet(
+            isPresented: $viewModel.isShowingAirDropSheet,
+            onDismiss: { viewModel.dismissAirDropSheet() }
+        ) {
+            if let url = viewModel.airDropExportURL {
+                AirDropSheet(url: url)
             }
         }
         .fileImporter(
@@ -940,7 +952,7 @@ struct MainView: View {
             HStack(spacing: 10) {
                 transposeValueWheelLabel(L10n.string("main.key"), width: slotWidth * 0.46, alignment: .trailing)
                 JChordValueWheelPicker(
-                    values: Array(PresetShiftMemory.keyShiftRange),
+                    values: Array(PresetShiftMemory.keyShiftRange.reversed()),
                     value: Binding(
                         get: { viewModel.selectedKeyTranspose },
                         set: { viewModel.updateKeyTranspose($0) }
@@ -955,7 +967,7 @@ struct MainView: View {
             HStack(spacing: 10) {
                 transposeValueWheelLabel(L10n.string("main.oct"), width: slotWidth * 0.46, alignment: .leading)
                 JChordValueWheelPicker(
-                    values: Array(PresetShiftMemory.octaveShiftRange),
+                    values: Array(PresetShiftMemory.octaveShiftRange.reversed()),
                     value: Binding(
                         get: { viewModel.selectedOctaveTranspose },
                         set: { viewModel.updateOctaveTranspose($0) }
@@ -1038,7 +1050,7 @@ struct MainView: View {
                         .frame(width: valueWidth, alignment: .trailing)
                 }
                 HStack(spacing: 4) {
-                    Text("TRN")
+                    Text("OCT")
                         .font(.system(size: labelFontSize, weight: .regular, design: .default))
                         .frame(width: labelWidth, alignment: .trailing)
                     Text(signedValue(preset.octaveShift))

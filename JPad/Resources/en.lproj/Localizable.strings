@@ -51,7 +51,8 @@
 "preset.library.copy_name" = "%@ Copy";
 "preset.library.delete" = "Delete";
 "preset.io.new" = "NEW";
-"preset.io.share" = "SHARE";
+"preset.io.airdrop" = "AIRDROP";
+"preset.io.export" = "EXPORT";
 "preset.io.import" = "IMPORT";
 "jcstore.title" = "jcstore";
 "jcstore.section" = "STORE";

@@ -33,7 +33,7 @@ enum PresetImportExportService {
   ]
   private static let legacyFileNamePrefix = "JPad."
 
-  static func makeExportFileURL(slotName: String, origin: PresetSlotOrigin, preset: Preset) throws -> URL {
+  static func makeExportArchive(slotName: String, origin: PresetSlotOrigin, preset: Preset) throws -> (fileName: String, data: Data) {
     let envelope = PresetExportEnvelope(
       slotName: slotName,
       origin: origin,
@@ -43,16 +43,17 @@ enum PresetImportExportService {
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     encoder.dateEncodingStrategy = .iso8601
     let data = try encoder.encode(envelope)
-
     let entryName = exportFileName(forSlotName: slotName)
-    let tempDir = FileManager.default.temporaryDirectory
-    let payloadURL = tempDir.appendingPathComponent(entryName)
-    try data.write(to: payloadURL, options: .atomic)
-
     let archiveName = exportArchiveFileName(forSlotName: slotName)
-    let archiveURL = tempDir.appendingPathComponent(archiveName)
-    try PresetShareZipArchive.createZip(archiveURL: archiveURL, fileURL: payloadURL, entryName: entryName)
-    try? FileManager.default.removeItem(at: payloadURL)
+    let archiveData = PresetShareZipArchive.createZipData(fileData: data, entryName: entryName)
+    return (archiveName, archiveData)
+  }
+
+  static func makeExportFileURL(slotName: String, origin: PresetSlotOrigin, preset: Preset) throws -> URL {
+    let export = try makeExportArchive(slotName: slotName, origin: origin, preset: preset)
+    let tempDir = FileManager.default.temporaryDirectory
+    let archiveURL = tempDir.appendingPathComponent(export.fileName)
+    try export.data.write(to: archiveURL, options: .atomic)
     return archiveURL
   }
 

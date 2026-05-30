@@ -25,11 +25,14 @@ final class MainViewModel: ObservableObject {
     @Published var isHoldEnabled = false
     @Published private(set) var playingPadID: Int?
     @Published var isShowingStoreReplacePicker = false
-    @Published var isShowingShareSheet = false
+    @Published var isShowingExportSheet = false
+    @Published var isShowingAirDropSheet = false
     @Published var isShowingDocumentImporter = false
     @Published private(set) var jcstoreEntries: [JcstoreCatalogEntry] = []
     @Published private(set) var isLoadingJcstore = false
-    @Published var shareExportURL: URL?
+    @Published var shareExportDocument: ShareSheet?
+    @Published var shareExportFileName = ""
+    @Published var airDropExportURL: URL?
     @Published var isShowingProUpgrade = false
     @AppStorage(ProPurchaseService.purchasedAppStorageKey) var hasPresetSavePurchased = false
     @AppStorage(PresetRotationSettings.useAllSlotsKey) var rotationUseAllSlots = true
@@ -450,7 +453,7 @@ final class MainViewModel: ObservableObject {
         }
     }
 
-    func exportActiveSlotForShare() {
+    func exportActiveSlotForExport() {
         guard entitlement.canSharePresets else {
             presentProUpgrade()
             return
@@ -469,12 +472,44 @@ final class MainViewModel: ObservableObject {
                 presentShareRequiresActiveSetNotice()
                 return
             }
-            shareExportURL = try PresetImportExportService.makeExportFileURL(
+            let export = try PresetImportExportService.makeExportArchive(
                 slotName: entry.setName,
                 origin: entry.origin,
                 preset: preset
             )
-            isShowingShareSheet = true
+            shareExportDocument = ShareSheet(data: export.data)
+            shareExportFileName = export.fileName
+            isShowingExportSheet = true
+        } catch {
+            presentPresetLibraryError(error)
+        }
+    }
+
+    func exportActiveSlotForAirDrop() {
+        guard entitlement.canSharePresets else {
+            presentProUpgrade()
+            return
+        }
+        guard activeSlotID != nil else {
+            presentShareRequiresActiveSetNotice()
+            return
+        }
+
+        do {
+            try UserPresetLibrary.saveActiveSlot(preset: preset, entitlement: entitlement)
+            refreshLibrarySlots()
+            guard let activeSlotID,
+                  let entry = librarySlots.first(where: { $0.id == activeSlotID })
+            else {
+                presentShareRequiresActiveSetNotice()
+                return
+            }
+            airDropExportURL = try PresetImportExportService.makeExportFileURL(
+                slotName: entry.setName,
+                origin: entry.origin,
+                preset: preset
+            )
+            isShowingAirDropSheet = true
         } catch {
             presentPresetLibraryError(error)
         }
@@ -486,6 +521,17 @@ final class MainViewModel: ObservableObject {
             return
         }
         isShowingDocumentImporter = true
+    }
+
+    func dismissExportSheet() {
+        isShowingExportSheet = false
+        shareExportDocument = nil
+        shareExportFileName = ""
+    }
+
+    func dismissAirDropSheet() {
+        isShowingAirDropSheet = false
+        airDropExportURL = nil
     }
 
     func handleIncomingPresetFile(_ url: URL) {

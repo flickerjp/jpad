@@ -24,7 +24,8 @@ struct PresetPickerView: View {
     let onSlotLimitReached: () -> Void
     let onRequirePro: () -> Void
     let onShareRequiresActiveSet: () -> Void
-    let onShare: () -> Void
+    let onAirDrop: () -> Void
+    let onExport: () -> Void
     let onImport: () -> Void
     let rotationUseAllSlots: Bool
     let isSlotInRotation: (String) -> Bool
@@ -394,12 +395,21 @@ struct PresetPickerView: View {
                 HStack(spacing: layout.gridSpacing) {
                     presetFooterActionButton(
                         layout: layout,
-                        title: L10n.string("preset.io.share"),
+                        title: L10n.string("preset.io.airdrop"),
                         isLocked: !isProPurchased,
                         primary: isProPurchased && canShareActive,
-                        action: handleShareTap
+                        action: handleAirDropTap
                     )
-                    .accessibilityLabel(L10n.string("preset.io.share"))
+                    .accessibilityLabel(L10n.string("preset.io.airdrop"))
+
+                    presetFooterActionButton(
+                        layout: layout,
+                        title: L10n.string("preset.io.export"),
+                        isLocked: !isProPurchased,
+                        primary: isProPurchased && canShareActive,
+                        action: handleExportTap
+                    )
+                    .accessibilityLabel(L10n.string("preset.io.export"))
 
                     presetFooterActionButton(
                         layout: layout,
@@ -421,7 +431,7 @@ struct PresetPickerView: View {
         }
     }
 
-    private func handleShareTap() {
+    private func handleAirDropTap() {
         guard isProPurchased else {
             onRequirePro()
             return
@@ -430,7 +440,19 @@ struct PresetPickerView: View {
             onShareRequiresActiveSet()
             return
         }
-        onShare()
+        onAirDrop()
+    }
+
+    private func handleExportTap() {
+        guard isProPurchased else {
+            onRequirePro()
+            return
+        }
+        guard canShareActive else {
+            onShareRequiresActiveSet()
+            return
+        }
+        onExport()
     }
 
     private func handleImportTap() {

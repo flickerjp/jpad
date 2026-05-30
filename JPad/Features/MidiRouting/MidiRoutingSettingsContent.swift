@@ -416,21 +416,26 @@ struct MidiRoutingSettingsContent: View {
     }
 
     private func proStatusInfoRow(_ status: ProSubscriptionStatus) -> some View {
-        ZStack {
-            HStack {
-                Spacer(minLength: 0)
-                Text(proStatusSummary(status))
-                    .font(.system(size: proStatusLabelFontSize, weight: .heavy))
-                    .foregroundStyle(JChordTheme.text)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
-                Spacer(minLength: 0)
-            }
-
-            HStack {
-                Spacer(minLength: 0)
-                if !status.isActive, let onProPurchaseTap {
+        Group {
+            if !status.isActive, let onProPurchaseTap {
+                HStack(spacing: 14) {
+                    Text(proStatusSummary(status))
+                        .font(.system(size: proStatusLabelFontSize, weight: .heavy))
+                        .foregroundStyle(JChordTheme.text)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
                     proPurchaseButton(action: onProPurchaseTap)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                HStack {
+                    Spacer(minLength: 0)
+                    Text(proStatusSummary(status))
+                        .font(.system(size: proStatusLabelFontSize, weight: .heavy))
+                        .foregroundStyle(JChordTheme.text)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                    Spacer(minLength: 0)
                 }
             }
         }

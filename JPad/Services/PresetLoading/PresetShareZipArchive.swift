@@ -9,6 +9,11 @@ enum PresetShareZipArchive {
 
   static func createZip(archiveURL: URL, fileURL: URL, entryName: String) throws {
     let fileData = try Data(contentsOf: fileURL)
+    let archive = createZipData(fileData: fileData, entryName: entryName)
+    try archive.write(to: archiveURL, options: .atomic)
+  }
+
+  static func createZipData(fileData: Data, entryName: String) -> Data {
     let nameData = Data(entryName.utf8)
     let crc = crc32Checksum(fileData)
     let size = UInt32(fileData.count)
@@ -61,8 +66,7 @@ enum PresetShareZipArchive {
     archive.appendUInt32(centralDirectorySize)
     archive.appendUInt32(centralDirectoryOffset)
     archive.appendUInt16(0) // comment length
-
-    try archive.write(to: archiveURL, options: .atomic)
+    return archive
   }
 
   static func firstEntryData(from archiveURL: URL) throws -> Data {
