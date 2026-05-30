@@ -688,3 +688,13 @@
 **作者:** tone <tone@tonem4max.local>
 
 **参照:** `git show 54bdb75` / `git log -1 54bdb75`
+
+<!-- handover:auto:4aa0e45a4bfa03eeecad46e7d3068f43db667cbb -->
+### 2026-05-30 11:49:07 +0900 — `4aa0e45` — main
+
+**件名:** Refine transpose edit controls
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 4aa0e45` / `git log -1 4aa0e45`
+
