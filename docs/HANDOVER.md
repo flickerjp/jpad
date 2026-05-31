@@ -736,3 +736,13 @@
 
 **参照:** `git show ad51533` / `git log -1 ad51533`
 
+
+<!-- handover:auto:a5f909ad8fffa6ab7ca20daf9f970209a5ef38b6 -->
+### 2026-05-31 16:11:10 +0900 — `a5f909a` — main
+
+**件名:** Bump version to 1.1.04 (125)
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show a5f909a` / `git log -1 a5f909a`
+
