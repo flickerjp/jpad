@@ -746,3 +746,13 @@
 
 **参照:** `git show a5f909a` / `git log -1 a5f909a`
 
+
+<!-- handover:auto:f35f438f8b7ad0edc1a957a866b961b63943208f -->
+### 2026-05-31 19:07:20 +0900 — `f35f438` — main
+
+**件名:** Expand transpose range and bump version
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show f35f438` / `git log -1 f35f438`
+
