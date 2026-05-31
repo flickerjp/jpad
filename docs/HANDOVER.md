@@ -756,3 +756,13 @@
 
 **参照:** `git show f35f438` / `git log -1 f35f438`
 
+
+<!-- handover:auto:d947bbec551f9a2f9f7a4f41f9f6ce9073d296b4 -->
+### 2026-05-31 19:13:49 +0900 — `d947bbe` — main
+
+**件名:** Export presets as JSON files
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show d947bbe` / `git log -1 d947bbe`
+
