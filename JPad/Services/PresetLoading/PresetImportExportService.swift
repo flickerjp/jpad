@@ -24,25 +24,45 @@ struct PresetExportEnvelope: Codable {
 }
 
 enum PresetImportExportService {
-  /// ZIP 内のプリセット本体（`Bossa Nova.jpd`）。
+  /// ZIP 内エントリ名と AirDrop 共有用拡張子（`Bossa Nova.jpd`）。
   static let fileExtension = "jpd"
   /// AirDrop 共有用（中身 ZIP・`Bossa Nova.jpd`）。
   static let shareArchiveExtension = "jpd"
+  /// Files へ直接保存する JSON エクスポート拡張子。
+  static let exportJSONExtension = "json"
   private static let legacyFileSuffixes = [
     ".jpd", ".jch", ".jchord.zip", ".jchord.json", ".jchord", ".json", ".zip",
   ]
   private static let legacyFileNamePrefix = "JPad."
 
-  static func makeExportArchive(slotName: String, origin: PresetSlotOrigin, preset: Preset) throws -> (fileName: String, data: Data) {
-    let envelope = PresetExportEnvelope(
+  static func makeExportEnvelope(slotName: String, origin: PresetSlotOrigin, preset: Preset) -> PresetExportEnvelope {
+    PresetExportEnvelope(
       slotName: slotName,
       origin: origin,
       preset: preset
     )
+  }
+
+  static func encodeExportEnvelope(_ envelope: PresetExportEnvelope) throws -> Data {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     encoder.dateEncodingStrategy = .iso8601
-    let data = try encoder.encode(envelope)
+    return try encoder.encode(envelope)
+  }
+
+  static func makeExportJSON(slotName: String, origin: PresetSlotOrigin, preset: Preset) throws -> (fileName: String, data: Data) {
+    let envelope = makeExportEnvelope(
+      slotName: slotName,
+      origin: origin,
+      preset: preset
+    )
+    let data = try encodeExportEnvelope(envelope)
+    let fileName = exportJSONFileName(forSlotName: slotName)
+    return (fileName, data)
+  }
+
+  static func makeExportArchive(slotName: String, origin: PresetSlotOrigin, preset: Preset) throws -> (fileName: String, data: Data) {
+    let data = try makeExportJSON(slotName: slotName, origin: origin, preset: preset).data
     let entryName = exportFileName(forSlotName: slotName)
     let archiveName = exportArchiveFileName(forSlotName: slotName)
     let archiveData = PresetShareZipArchive.createZipData(fileData: data, entryName: entryName)
@@ -110,6 +130,14 @@ enum PresetImportExportService {
   }
 
   static func exportArchiveFileName(forSlotName slotName: String) -> String {
+    "\(sanitizedExportStem(forSlotName: slotName)).\(shareArchiveExtension)"
+  }
+
+  static func exportJSONFileName(forSlotName slotName: String) -> String {
+    "\(sanitizedExportStem(forSlotName: slotName)).\(exportJSONExtension)"
+  }
+
+  private static func sanitizedExportStem(forSlotName slotName: String) -> String {
     let sanitized = slotName
       .replacingOccurrences(of: "/", with: "-")
       .replacingOccurrences(of: ":", with: "-")
@@ -119,7 +147,7 @@ enum PresetImportExportService {
       stem = String(stem.dropFirst(legacyFileNamePrefix.count))
     }
     if stem.isEmpty { stem = "Preset" }
-    return "\(stem).\(shareArchiveExtension)"
+    return stem
   }
 
   static func decodeSharedPreset(from data: Data) throws -> Preset {

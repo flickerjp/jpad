@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct ShareSheet: FileDocument {
-    static var readableContentTypes: [UTType] { [.jchordPreset] }
+    static var readableContentTypes: [UTType] { [.json, .jchordPreset] }
 
     let data: Data
 

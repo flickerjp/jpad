@@ -472,7 +472,7 @@ final class MainViewModel: ObservableObject {
                 presentShareRequiresActiveSetNotice()
                 return
             }
-            let export = try PresetImportExportService.makeExportArchive(
+            let export = try PresetImportExportService.makeExportJSON(
                 slotName: entry.setName,
                 origin: entry.origin,
                 preset: preset

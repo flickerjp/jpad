@@ -254,7 +254,7 @@ struct MainView: View {
         .fileExporter(
             isPresented: $viewModel.isShowingExportSheet,
             document: viewModel.shareExportDocument,
-            contentType: .jchordPreset,
+            contentType: .json,
             defaultFilename: viewModel.shareExportFileName
         ) { _ in
             viewModel.dismissExportSheet()

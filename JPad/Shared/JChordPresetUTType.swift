@@ -8,7 +8,7 @@ extension UTType {
   )
 
   static let jchordPresetImportTypes: [UTType] = {
-    var types: [UTType] = [.jchordPreset, .zip]
+    var types: [UTType] = [.jchordPreset, .json, .zip]
     if let jpd = UTType(filenameExtension: PresetImportExportService.shareArchiveExtension, conformingTo: .data),
        !types.contains(jpd)
     {
