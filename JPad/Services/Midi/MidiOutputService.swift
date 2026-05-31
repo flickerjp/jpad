@@ -508,7 +508,7 @@ final class MidiOutputService: ObservableObject {
         await primePreviewEngineForPadPlayback()
     }
 
-    /// 内蔵 TinyTone を初回パッド発音前にウォームアップする（設定クローズ時）。
+    /// 内蔵 TinyTone を初回パッド発音前にウォームアップする（オンボーディング完了や明示呼び出し用）。
     @discardableResult
     func warmUpPreviewEngineIfNeeded() -> Bool {
         guard outputRoute == .tinyPiano else { return true }

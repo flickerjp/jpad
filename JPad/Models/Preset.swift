@@ -7,7 +7,7 @@ enum PresetPadControlMode: String, Codable, CaseIterable {
 
 struct PresetShiftMemory: Codable, Equatable {
     static let keyShiftRange = -12 ... 12
-    static let octaveShiftRange = -3 ... 3
+    static let octaveShiftRange = -5 ... 5
     static let neutral = PresetShiftMemory()
 
     var keyShift: Int

@@ -135,7 +135,7 @@ App Review 上の注意点:
 
 ## GarageBand 仮想 MIDI 診断
 
-設定画面で `GarageBand` ルートを選ぶと、切り分け用に以下のような診断文字列を表示する。
+内部では `garageBandDiagnosticDescription` を維持している。過去は設定画面で `GarageBand` ルート選択時に切り分け用として以下のような診断文字列を表示していた。
 
 ```text
 GB client=yes source=JPad live=yes visible=yes pref=packet used=packet packet=ok event=- err=ok last=Note On 48 ch1 vel 100
@@ -151,6 +151,12 @@ GB client=yes source=JPad live=yes visible=yes pref=packet used=packet packet=ok
 | `last` | 最後に送信した MIDI 内容 |
 
 `client=yes source=- live=no visible=no err=-10844` は `kMIDINotPermitted` で、まず `Info.plist` の `UIBackgroundModes audio` を確認する。`source=JPad live=yes visible=yes` まで進んで音が出ない場合は、GarageBand 側の入力対象、チャンネル、Run in Background 設定を疑う。
+
+2026-05-31 確認:
+
+- 設定画面の GarageBand 診断表示は現在の UI では外している。
+- ただし診断文字列の生成ロジック自体は `MidiOutputService` に残っているため、必要なら再表示できる。
+- 現在設定画面に出しているのは TinyTone 側の `lastMidiEventDescription` のみ。
 
 ## 触るときの注意（トリッキーな点）
 
@@ -177,6 +183,7 @@ GB client=yes source=JPad live=yes visible=yes pref=packet used=packet packet=ok
 2. `sendAllNotesOff()` 後、300ms 待ってから sheet を表示する。
 3. `MidiSettingsView.onDisappear` は `setTestNoteEnabled(false)`、`sendAllNotesOff()`、`preparePreviewAudioIfNeeded()` のみにする。
 4. 設定 dismiss 直後の `warmUpPreviewEngineIfNeeded()` は禁止。戻った直後のユーザー発音と silent prime が競合して、数回だけ出るノイズの原因になり得る。
+5. 2026-05-31 時点でこの対策はコード上に残っている。設定 close は `setTestNoteEnabled(false)`、`sendAllNotesOff()`、`preparePreviewAudioIfNeeded()` のみで、dismiss 後 warm-up はしていない。
 
 旧対策は HOLD 中のみの遅延だったが、通常発音直後に設定を開く経路では効いていなかった。設定画面は音声状態の境界として扱い、常に一度リセットしてから表示する。
 

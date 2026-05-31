@@ -3,13 +3,17 @@ import Foundation
 enum RootPitch {
     static let pitchClassNames = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 
-    /// UI 上のルート名。Db / D# / G# / A# は別名へ統一し、以降この表記を使わない。
+    /// UI 上のルート名。異名同音は Canonical 表記へ統一し、以降この表記を使わない。
     static func normalize(_ root: String) -> String {
         switch root {
+        case "Cb": return "B"
         case "Db": return "C#"
         case "D#": return "Eb"
+        case "E#": return "F"
+        case "Fb": return "E"
         case "G#": return "Ab"
         case "A#": return "Bb"
+        case "B#": return "C"
         default: return root
         }
     }
@@ -30,7 +34,16 @@ enum RootPitch {
 }
 
 enum ChordLabel {
-    private static let knownRoots = ["C#", "Db", "D#", "Eb", "F#", "G#", "Ab", "A#", "Bb", "C", "D", "E", "F", "G", "A", "B"]
+    private static let knownRoots = [
+        "C#", "Db",
+        "D#", "Eb",
+        "E#", "Fb",
+        "F#",
+        "G#", "Ab",
+        "A#", "Bb",
+        "B#", "Cb",
+        "C", "D", "E", "F", "G", "A", "B"
+    ]
 
     static func parsedRoot(from label: String) -> String? {
         let trimmed = label.trimmingCharacters(in: .whitespacesAndNewlines)
