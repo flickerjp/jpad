@@ -458,8 +458,7 @@ struct MidiRoutingSettingsContent: View {
             title: L10n.string("pro.picker.purchase"),
             style: .accentToggle,
             isOn: true,
-            size: .compact,
-            fontSize: proStatusLabelFontSize + 2,
+            size: .standard,
             width: settingsActionButtonWidth,
             action: action
         )

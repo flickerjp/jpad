@@ -1083,11 +1083,8 @@ final class MidiOutputService: ObservableObject {
 
         let selectionMissing = selectedPadOutput == nil
             || !outputs.contains(where: { $0.uniqueID == selectedPadOutput?.uniqueID })
-        let selectionIsNetwork = selectedPadOutput.map {
-            Self.isNetworkMidiEndpoint($0.displayName)
-        } ?? false
 
-        guard selectionMissing || selectionIsNetwork else { return }
+        guard selectionMissing else { return }
         guard let preferred = preferredPadOutput(from: outputs) else {
             restoreStoredPrimaryPadOutputMode(reason: "No preferred MIDI output")
             return
@@ -1974,7 +1971,6 @@ final class MidiOutputService: ObservableObject {
     }
 
     private static func isExcludedPadOutput(_ displayName: String) -> Bool {
-        if isNetworkMidiEndpoint(displayName) { return true }
         if isCKSeriesHardwareEndpoint(displayName) { return false }
         if isAkaiMPCEndpoint(displayName) { return false }
         return isAuxiliaryControllerInputPort(displayName)
@@ -2040,6 +2036,7 @@ final class MidiOutputService: ObservableObject {
             if portNumber(in: displayName) == 2 { return 5 }
             return 6
         }
+        if isNetworkMidiEndpoint(displayName) { return 7 }
         return 100
     }
 

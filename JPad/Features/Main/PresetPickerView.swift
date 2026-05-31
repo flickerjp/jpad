@@ -39,6 +39,7 @@ struct PresetPickerView: View {
     @State private var reorderDragStartY: CGFloat?
     @State private var rowFramesByID: [String: CGRect] = [:]
     @State private var bottomButtonLayout: JChordPadLayout?
+    @State private var presetPickerWidth: CGFloat?
 
     var body: some View {
         NavigationStack {
@@ -71,6 +72,7 @@ struct PresetPickerView: View {
             .onGeometryChange(for: CGSize.self) { proxy in
                 proxy.size
             } action: { size in
+                presetPickerWidth = size.width
                 bottomButtonLayout = JChordPadLayout.make(
                     size: size,
                     safeArea: .init()
@@ -79,6 +81,9 @@ struct PresetPickerView: View {
             .onAppear {
                 if bottomButtonLayout == nil {
                     bottomButtonLayout = Self.fallbackBottomButtonLayout()
+                }
+                if presetPickerWidth == nil {
+                    presetPickerWidth = 390
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -392,12 +397,18 @@ struct PresetPickerView: View {
         Group {
             if PresetFeatureAvailability.isShareImportEnabled {
                 let layout = bottomButtonLayout ?? Self.fallbackBottomButtonLayout()
+                let buttonCount = 3
+                let fixedButtonWidth = footerButtonWidth(
+                    layout: layout,
+                    buttonCount: buttonCount
+                )
                 HStack(spacing: layout.gridSpacing) {
                     presetFooterActionButton(
                         layout: layout,
                         title: L10n.string("preset.io.airdrop"),
                         isLocked: !isProPurchased,
                         primary: isProPurchased && canShareActive,
+                        fixedWidth: fixedButtonWidth,
                         action: handleAirDropTap
                     )
                     .accessibilityLabel(L10n.string("preset.io.airdrop"))
@@ -407,6 +418,7 @@ struct PresetPickerView: View {
                         title: L10n.string("preset.io.export"),
                         isLocked: !isProPurchased,
                         primary: isProPurchased && canShareActive,
+                        fixedWidth: fixedButtonWidth,
                         action: handleExportTap
                     )
                     .accessibilityLabel(L10n.string("preset.io.export"))
@@ -416,13 +428,11 @@ struct PresetPickerView: View {
                         title: L10n.string("preset.io.import"),
                         isLocked: !isProPurchased,
                         primary: isProPurchased,
+                        fixedWidth: fixedButtonWidth,
                         action: handleImportTap
                     )
                     .accessibilityLabel(L10n.string("preset.io.import"))
 
-                    if !isProPurchased {
-                        presetFooterPurchaseButton(layout: layout, action: onRequirePro)
-                    }
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: layout.noteOffHeight)
@@ -475,6 +485,7 @@ struct PresetPickerView: View {
         title: String,
         isLocked: Bool,
         primary: Bool,
+        fixedWidth: CGFloat?,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -489,26 +500,15 @@ struct PresetPickerView: View {
                 height: layout.noteOffHeight
             )
         )
-        .frame(width: layout.cellSide, height: layout.noteOffHeight)
+        .frame(width: fixedWidth ?? layout.cellSide, height: layout.noteOffHeight)
     }
 
-    private func presetFooterPurchaseButton(
-        layout: JChordPadLayout,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Text(L10n.string("pro.picker.purchase"))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .buttonStyle(
-            JChordNoteOffStyle(
-                isActive: true,
-                fontSize: layout.noteOffFontSize,
-                height: layout.noteOffHeight
-            )
-        )
-        .frame(width: layout.cellSide, height: layout.noteOffHeight)
-        .accessibilityLabel(L10n.string("pro.picker.purchase.accessibility"))
+    private func footerButtonWidth(layout: JChordPadLayout, buttonCount: Int) -> CGFloat? {
+        guard let presetPickerWidth else { return nil }
+        let paddedWidth = max(0, presetPickerWidth - 36)
+        let spacing = layout.gridSpacing * CGFloat(max(0, buttonCount - 1))
+        let rawWidth = floor((paddedWidth - spacing) / CGFloat(buttonCount))
+        return max(72, rawWidth)
     }
 
     private func storeEntryRow(_ entry: JcstoreCatalogEntry) -> some View {

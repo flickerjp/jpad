@@ -19,6 +19,7 @@ enum JChordPhoneHeightClass {
 
 struct JChordPadLayout {
     let isLandscape: Bool
+    let isPadDevice: Bool
     let columnCount: Int
     let rowCount: Int
     let horizontalPadding: CGFloat
@@ -51,27 +52,31 @@ struct JChordPadLayout {
         let availableWidth = max(0, size.width - safeArea.leading - safeArea.trailing)
         let availableHeight = max(0, size.height - safeArea.top - safeArea.bottom)
         let heightClass = JChordPhoneHeightClass(height: availableHeight)
+        let isPadDevice = UIDevice.current.userInterfaceIdiom == .pad
 
         if isLandscape {
             return landscape(
                 availableWidth: availableWidth,
                 availableHeight: availableHeight,
                 heightClass: heightClass,
-                layoutLongSide: max(size.width, size.height)
+                layoutLongSide: max(size.width, size.height),
+                isPadDevice: isPadDevice
             )
         }
 
         return portrait(
             availableWidth: availableWidth,
             availableHeight: availableHeight,
-            heightClass: heightClass
+            heightClass: heightClass,
+            isPadDevice: isPadDevice
         )
     }
 
     private static func portrait(
         availableWidth: CGFloat,
         availableHeight: CGFloat,
-        heightClass: JChordPhoneHeightClass
+        heightClass: JChordPhoneHeightClass,
+        isPadDevice: Bool
     ) -> JChordPadLayout {
         let columnCount = 3
         let rowCount = 4
@@ -90,13 +95,18 @@ struct JChordPadLayout {
             minCell: metrics.minCell
         )
 
+        let cellSide = isPadDevice
+            ? max(max(48, metrics.minCell - 6), floor(fit * 0.91))
+            : fit
+
         return JChordPadLayout(
             isLandscape: false,
+            isPadDevice: isPadDevice,
             columnCount: columnCount,
             rowCount: rowCount,
             horizontalPadding: metrics.horizontalPadding,
             gridSpacing: metrics.gridSpacing,
-            cellSide: fit,
+            cellSide: cellSide,
             topBarHeight: metrics.topBarHeight,
             gearIconSize: metrics.gearIconSize,
             midiSliderLabelSize: metrics.midiSliderLabelSize,
@@ -105,8 +115,8 @@ struct JChordPadLayout {
             midiSliderRowHeight: metrics.midiSliderRowHeight,
             noteOffHeight: metrics.noteOffHeight,
             noteOffFontSize: metrics.noteOffFontSize,
-            padCornerRadius: max(14, fit * 0.16),
-            padContentPadding: max(8, fit * 0.11),
+            padCornerRadius: max(14, cellSide * 0.16),
+            padContentPadding: max(8, cellSide * 0.11),
             headerToPadSpacerWeight: Self.headerToPadSpacerWeight
         )
     }
@@ -115,7 +125,8 @@ struct JChordPadLayout {
         availableWidth: CGFloat,
         availableHeight: CGFloat,
         heightClass: JChordPhoneHeightClass,
-        layoutLongSide: CGFloat
+        layoutLongSide: CGFloat,
+        isPadDevice: Bool
     ) -> JChordPadLayout {
         let columnCount = 6
         let rowCount = 2
@@ -153,6 +164,7 @@ struct JChordPadLayout {
         }
         return JChordPadLayout(
             isLandscape: true,
+            isPadDevice: isPadDevice,
             columnCount: columnCount,
             rowCount: rowCount,
             horizontalPadding: metrics.horizontalPadding,

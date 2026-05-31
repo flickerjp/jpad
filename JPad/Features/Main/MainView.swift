@@ -26,6 +26,9 @@ struct MainView: View {
     /// ラベル入力などでキーボードが出ても PAD グリッドの寸法を維持する
     @State private var frozenPadLayoutSize: CGSize?
     @State private var frozenPadSafeArea: EdgeInsets = .init()
+    @State private var activeHardwarePadKeys: Set<String> = []
+
+    private static let hardwarePadKeys = ["1", "2", "3", "q", "w", "e", "a", "s", "d", "z", "x", "c"]
 
     init(viewModel: MainViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -50,6 +53,16 @@ struct MainView: View {
                 mainContent(layout: layout, columns: columns)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, layout.horizontalPadding)
+                    .background {
+                        HardwareKeyboardPadInputView(isEnabled: isHardwarePadInputEnabled) { key, isPressed in
+                            handleHardwarePadKeyChange(
+                                key,
+                                isPressed: isPressed,
+                                layout: layout
+                            )
+                        }
+                        .frame(width: 0, height: 0)
+                    }
                     .safeAreaInset(edge: .top, spacing: 0) {
                         topBar(layout: layout)
                             .padding(.horizontal, layout.horizontalPadding)
@@ -68,6 +81,11 @@ struct MainView: View {
                             frozenPadSafeArea = geometry.safeAreaInsets
                         } else {
                             frozenPadLayoutSize = nil
+                        }
+                    }
+                    .onChange(of: isHardwarePadInputEnabled) { _, isEnabled in
+                        if !isEnabled {
+                            clearHardwarePadKeysAndStopPlaybackIfNeeded()
                         }
                     }
             }
@@ -796,6 +814,60 @@ struct MainView: View {
         padVisualStyle == .performance && !viewModel.isPadEditMode
     }
 
+    private var isHardwarePadInputEnabled: Bool {
+        !viewModel.isShowingSettings
+            && !viewModel.isShowingPresetRename
+            && !viewModel.isShowingPresetPicker
+            && !viewModel.isShowingPadEditor
+            && viewModel.notesEditorViewModel == nil
+    }
+
+    private func handleHardwarePadKeyChange(
+        _ key: String,
+        isPressed: Bool,
+        layout: JChordPadLayout
+    ) {
+        guard let slot = Self.hardwarePadKeys.firstIndex(of: key) else { return }
+        let orderedPads = viewModel.displayOrder(isLandscape: layout.isLandscape)
+        guard slot < orderedPads.count else { return }
+
+        if isPressed {
+            guard activeHardwarePadKeys.insert(key).inserted else { return }
+        } else {
+            guard activeHardwarePadKeys.remove(key) != nil else { return }
+        }
+
+        let pad = orderedPads[slot]
+        let grid = PadGridLayoutGeometry.gridCoordinate(
+            slot: slot,
+            columnCount: layout.columnCount
+        )
+
+        viewModel.handlePadPressChange(isPressed, pad: pad)
+        if isPressed {
+            handlePerformancePadPressDown(
+                padID: pad.id,
+                originCol: grid.col,
+                originRow: grid.row,
+                layout: layout,
+                animationTime: nil
+            )
+        } else {
+            handlePerformancePadPressUp(
+                padID: pad.id,
+                originCol: grid.col,
+                originRow: grid.row,
+                animationTime: nil
+            )
+        }
+    }
+
+    private func clearHardwarePadKeysAndStopPlaybackIfNeeded() {
+        guard !activeHardwarePadKeys.isEmpty else { return }
+        activeHardwarePadKeys.removeAll()
+        viewModel.sendAllNotesOff()
+    }
+
     private func fixedSpacer(height: CGFloat) -> some View {
         Color.clear.frame(height: height)
     }
@@ -1027,9 +1099,15 @@ struct MainView: View {
         onTap: @escaping () -> Void
     ) -> some View {
         let slotWidth = floor((layout.gridWidth - (layout.gridSpacing * 3)) / 4)
-        let buttonHeight = max(40, floor(slotWidth * 3 / 4))
-        let labelFontSize = max(11, buttonHeight * 0.22 - 2)
-        let valueFontSize = max(12, buttonHeight * 0.28 - 2)
+        let buttonHeight = layout.isPadDevice
+            ? max(40, floor(slotWidth * 2 / 3))
+            : max(40, floor(slotWidth * 3 / 4))
+        let labelFontSize = layout.isPadDevice
+            ? max(10, buttonHeight * 0.18 - 1)
+            : max(11, buttonHeight * 0.22 - 2)
+        let valueFontSize = layout.isPadDevice
+            ? max(11, buttonHeight * 0.23 - 1)
+            : max(12, buttonHeight * 0.28 - 2)
         let valueWidth = max(24, valueFontSize * 1.9)
         let labelWidth = max(28, labelFontSize * 2.4)
         let labelColor = selected

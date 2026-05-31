@@ -304,7 +304,12 @@ enum PadPerformanceEffectEngine {
         let localTime = time - arrivalTime
         guard localTime >= 0, localTime < config.rippleFlashDuration else { return 0 }
 
-        return whiteFlashStrength(localTime: localTime, config: config)
+        let isOriginCell = gridCol == wave.originCol && gridRow == wave.originRow
+        return whiteFlashStrength(
+            localTime: localTime,
+            config: config,
+            isOriginCell: isOriginCell
+        )
     }
 
     private static func neighborBlinkFlash(
@@ -412,7 +417,8 @@ enum PadPerformanceEffectEngine {
 
     private static func whiteFlashStrength(
         localTime: TimeInterval,
-        config: PadPerformanceAnimationConfig
+        config: PadPerformanceAnimationConfig,
+        isOriginCell: Bool
     ) -> Double {
         let hop = config.rippleHopDuration
         let attackEnd = hop * config.ripple.attackFractionOfHop
@@ -421,6 +427,9 @@ enum PadPerformanceEffectEngine {
 
         if localTime < attackEnd {
             guard attackEnd > 0 else { return peak }
+            if isOriginCell {
+                return 1
+            }
             return peak * (localTime / attackEnd)
         }
         if localTime < sustainEnd {

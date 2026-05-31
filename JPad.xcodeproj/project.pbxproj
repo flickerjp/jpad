@@ -93,6 +93,7 @@
 		CD3339BDA3BADFB0414046B1 /* JChordPresetShareItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 888DEF265168C4AC988BB483 /* JChordPresetShareItem.swift */; };
 		CE521B82D44D4E7C9E36B134 /* PadPerformanceScanPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4878860CA3BD296A9C59295 /* PadPerformanceScanPattern.swift */; };
 		D09EC4DDF39B3210DAE062F1 /* JChordUnlockButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0B107B291EDA326A8BE5C8C /* JChordUnlockButton.swift */; };
+		D2B49A581DB977BF74D93EF0 /* AirDropSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8E7B0A14201E6571CCDC89 /* AirDropSheet.swift */; };
 		D7D266DD40C1624D5FA74739 /* PreviewSoundPresetOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53CED3984E6807427D643481 /* PreviewSoundPresetOption.swift */; };
 		D85C23147FC4961009A72E16 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD38C8E81D7E9D3AA70697C /* Preset.swift */; };
 		DAC71F3A35D0954461877906 /* JChordTopActionStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED8F3870A2F3EBB5E12FD4B /* JChordTopActionStyle.swift */; };
@@ -100,6 +101,7 @@
 		DBC5CC450A4AA4E674683082 /* ChordCandidateRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2650BCAFE095E0EB67B7A61 /* ChordCandidateRecognizer.swift */; };
 		DCA5CBFDB79A055A35CCDDD4 /* JChordPresetActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 579B5A44E212D00055C6F40A /* JChordPresetActionButton.swift */; };
 		E06D1F1556D00435A86D1DF5 /* MidiMessageParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539CA7D574D0C5D63B43104C /* MidiMessageParser.swift */; };
+		E144EB8087461244361AFBD6 /* HardwareKeyboardPadInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C55320BF2C7D871AA9EC5D2 /* HardwareKeyboardPadInputView.swift */; };
 		E615BE4D60CA2C12E6C8C94A /* Preset+Codable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66ABC07BC7B2815C6012087D /* Preset+Codable.swift */; };
 		E783CAB60AB7B09EEF4C9050 /* PadEditorPopupOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81895385AF13A901E75F2EC4 /* PadEditorPopupOverlay.swift */; };
 		E79CEC48CB7EF937CBEE3731 /* TinySynth.json in Resources */ = {isa = PBXBuildFile; fileRef = 6E0651D270E69C082A8FB7DB /* TinySynth.json */; };
@@ -161,6 +163,7 @@
 		5D10B96C1FA5CA86B57C4365 /* PresetPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetPickerView.swift; sourceTree = "<group>"; };
 		5DA54B87A79EF90D6799EF4D /* InternalPreviewSynth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalPreviewSynth.swift; sourceTree = "<group>"; };
 		5DFD61D63D6171B2C97FF900 /* JcstoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JcstoreService.swift; sourceTree = "<group>"; };
+		5E8E7B0A14201E6571CCDC89 /* AirDropSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropSheet.swift; sourceTree = "<group>"; };
 		5FB60D5D9E79A2DA2758F81F /* ja.lproj */ = {isa = PBXFileReference; path = ja.lproj; sourceTree = "<group>"; };
 		632EC16309D9FE89D8AC3A19 /* Preset+Editing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Preset+Editing.swift"; sourceTree = "<group>"; };
 		64BF8BB8990A7731BD9D2964 /* TinyOrgan.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TinyOrgan.json; sourceTree = "<group>"; };
@@ -186,6 +189,7 @@
 		98489FFF71356A36ED438E03 /* PadDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadDefinition.swift; sourceTree = "<group>"; };
 		98B6028CECEE46A393F28FA3 /* JChordTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JChordTheme.swift; sourceTree = "<group>"; };
 		9B31B9257B74A152DDCFD905 /* MidiPadOutputChoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiPadOutputChoice.swift; sourceTree = "<group>"; };
+		9C55320BF2C7D871AA9EC5D2 /* HardwareKeyboardPadInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwareKeyboardPadInputView.swift; sourceTree = "<group>"; };
 		9D4B50850B802F667AD9721D /* PadEditorNotesEditorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadEditorNotesEditorFactory.swift; sourceTree = "<group>"; };
 		AEE99CE7DDB2B8D8BA3B4823 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = manifest.json; sourceTree = "<group>"; };
 		AF1F78DEEC90A2AC1873D0C0 /* PadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadView.swift; sourceTree = "<group>"; };
@@ -476,6 +480,8 @@
 		D11D96E2D395E4A919A07F95 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				5E8E7B0A14201E6571CCDC89 /* AirDropSheet.swift */,
+				9C55320BF2C7D871AA9EC5D2 /* HardwareKeyboardPadInputView.swift */,
 				2BE4D378E8C4E26EC1F38393 /* JChordDeviceRow.swift */,
 				F0FFCBAA206C5B9A61806E42 /* JChordEditorActionButtonStyle.swift */,
 				D01915A188E328FE8BF4504D /* JChordMidiChannelWheelPicker.swift */,
@@ -637,11 +643,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				3EC1AF7CB3397F44AF8B9789 /* ActiveMidiNote.swift in Sources */,
+				D2B49A581DB977BF74D93EF0 /* AirDropSheet.swift in Sources */,
 				C6B455E4FE853A28F33A2ED3 /* AppBuildIdentity.swift in Sources */,
 				AB6A58D08B0E0D95C1425195 /* BundledPresetDeletionStore.swift in Sources */,
 				DBC5CC450A4AA4E674683082 /* ChordCandidateRecognizer.swift in Sources */,
 				45176DF1AA3909D506060299 /* Entitlement.swift in Sources */,
 				040521F670AFC3CCD11FEFC1 /* GarageBandHelpView.swift in Sources */,
+				E144EB8087461244361AFBD6 /* HardwareKeyboardPadInputView.swift in Sources */,
 				31EC7A78FC12E8516C665F04 /* InternalPreviewSynth.swift in Sources */,
 				6AC917BAC99C142D347317CA /* JChordDeviceRow.swift in Sources */,
 				AC894FD4B034FD427F484273 /* JChordEditorActionButtonStyle.swift in Sources */,
@@ -747,7 +755,7 @@
 				CODE_SIGN_ENTITLEMENTS = JPad/JPad.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 122;
+				CURRENT_PROJECT_VERSION = 125;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
@@ -763,7 +771,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.01;
+				MARKETING_VERSION = 1.1.04;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
 				PRODUCT_NAME = JPad;
 				SDKROOT = iphoneos;
@@ -779,7 +787,7 @@
 				CODE_SIGN_ENTITLEMENTS = JPad/JPad.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 122;
+				CURRENT_PROJECT_VERSION = 125;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
@@ -795,7 +803,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.01;
+				MARKETING_VERSION = 1.1.04;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
 				PRODUCT_NAME = JPad;
 				SDKROOT = iphoneos;

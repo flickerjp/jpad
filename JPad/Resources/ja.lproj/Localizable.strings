@@ -65,8 +65,8 @@
 "alert.duplicate_requires_pro" = "セットの複製には JPad Pro が必要です。";
 
 /* JPad Yearly */
-"pro.picker.purchase" = "購入";
-"pro.picker.purchase.accessibility" = "JPad Yearly を購入";
+"pro.picker.purchase" = "アップグレード";
+"pro.picker.purchase.accessibility" = "JPad Yearly をアップグレード";
 "pro.upgrade.purchase_success" = "JPad Yearly が有効になりました。共有・取り込み・複製が使えます。";
 "pro.upgrade.title" = "JPad Yearly";
 "pro.upgrade.subtitle" = "保存枠の拡張、複製、セットの共有・取り込みが使えます。";

@@ -74,8 +74,8 @@
 "alert.duplicate_requires_pro" = "Duplicating sets requires JPad Pro.";
 
 /* JPad Yearly */
-"pro.picker.purchase" = "BUY";
-"pro.picker.purchase.accessibility" = "Buy JPad Yearly";
+"pro.picker.purchase" = "UPGRADE";
+"pro.picker.purchase.accessibility" = "Upgrade JPad Yearly";
 "pro.upgrade.purchase_success" = "JPad Yearly is now active. You can share, import, and duplicate sets.";
 "pro.upgrade.title" = "JPad Yearly";
 "pro.upgrade.subtitle" = "Unlock more sets, duplication, and sharing for JPad.";

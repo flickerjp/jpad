@@ -8,7 +8,7 @@ struct JChordMidiChannelWheelPicker: View {
 
     var body: some View {
         JChordValueWheelPicker(
-            values: Array(1 ... 16),
+            values: Array((1 ... 16).reversed()),
             value: $channel,
             width: width,
             height: height,
