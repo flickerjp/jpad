@@ -188,6 +188,8 @@ struct MainView: View {
                 Text(viewModel.presetNoticeMessage)
             })
             .task {
+                UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+                updateInterfaceOrientation()
                 proPurchaseService.startTransactionListener()
                 viewModel.onAppear()
             }
@@ -220,7 +222,24 @@ struct MainView: View {
             return
         }
 
-        interfaceOrientation = windowScene.interfaceOrientation
+        let sceneOrientation = windowScene.interfaceOrientation
+
+        // iPhone は縦持ちのまま上下逆へインターフェースを回さないため、
+        // 物理デバイスの向きを使って縦表示の上下逆を補完する。
+        guard sceneOrientation.isPortrait else {
+            interfaceOrientation = sceneOrientation
+            return
+        }
+
+        switch UIDevice.current.orientation {
+        case .portraitUpsideDown:
+            interfaceOrientation = .portraitUpsideDown
+        case .portrait:
+            interfaceOrientation = .portrait
+        default:
+            // faceUp / faceDown / landscape など曖昧な向きは直前の判定を維持する。
+            break
+        }
     }
 
     /// プリセットピッカー上に購入・共有・取り込みを重ねる（メイン画面の sheet とは別スタック）。
@@ -320,10 +339,29 @@ struct MainView: View {
 
             Group {
                 if layout.isLandscape {
-                    HStack(alignment: .top, spacing: layout.gridSpacing) {
-                        padGrid(layout: layout, columns: columns)
-                        landscapeControlPanel(layout: layout)
-                        landscapeSideDock(layout: layout)
+                    HStack(alignment: .top, spacing: 0) {
+                        landscapeSetCycleChevron(
+                            systemImage: "chevron.left",
+                            layout: layout,
+                            accessibilityKey: "main.set_previous.accessibility",
+                            action: { viewModel.selectPreviousRotationSlot() }
+                        )
+
+                        Spacer(minLength: 0)
+
+                        HStack(alignment: .top, spacing: layout.gridSpacing) {
+                            padGrid(layout: layout, columns: columns)
+                            landscapeControlPanel(layout: layout)
+                        }
+
+                        Spacer(minLength: 0)
+
+                        landscapeSetCycleChevron(
+                            systemImage: "chevron.right",
+                            layout: layout,
+                            accessibilityKey: "main.set_next.accessibility",
+                            action: { viewModel.selectNextRotationSlot() }
+                        )
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 } else {
@@ -990,45 +1028,41 @@ struct MainView: View {
 
     private func landscapeControlPanel(layout: JChordPadLayout) -> some View {
         VStack(spacing: 8) {
-            switch viewModel.padControlMode {
-            case .sliders:
-                landscapeSliderPanel(layout: layout)
-            case .transpose:
-                landscapeTransposePresetColumn(layout: layout)
+            Group {
+                switch viewModel.padControlMode {
+                case .sliders:
+                    landscapeSliderPanel(layout: layout)
+                case .transpose:
+                    landscapeTransposePresetColumn(layout: layout)
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
             landscapeActionButtonsRow(layout: layout)
         }
         .frame(width: layout.landscapeControlPanelWidth, height: layout.gridHeight, alignment: .top)
     }
 
-    private func landscapeSideDock(layout: JChordPadLayout) -> some View {
-        let side = layout.landscapeDockWidth
-
-        return VStack(spacing: layout.gridSpacing) {
-            JPadSetCycleChevronButton(
-                systemImage: "chevron.left",
-                isEnabled: viewModel.canNavigateRotationSlots,
-                size: side,
-                action: { viewModel.selectPreviousRotationSlot() }
-            )
-            .rotationEffect(.degrees(90))
-            .accessibilityLabel(L10n.string("main.set_previous.accessibility"))
-
-            JPadSetCycleChevronButton(
-                systemImage: "chevron.right",
-                isEnabled: viewModel.canNavigateRotationSlots,
-                size: side,
-                action: { viewModel.selectNextRotationSlot() }
-            )
-            .rotationEffect(.degrees(90))
-            .accessibilityLabel(L10n.string("main.set_next.accessibility"))
-        }
-        .frame(width: side, height: layout.gridHeight)
+    /// 横表示の左右端に上下中央で置くセット切替 ‹ ›（回転なし）。
+    private func landscapeSetCycleChevron(
+        systemImage: String,
+        layout: JChordPadLayout,
+        accessibilityKey: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        JPadSetCycleChevronButton(
+            systemImage: systemImage,
+            isEnabled: viewModel.canNavigateRotationSlots,
+            size: layout.landscapeDockWidth,
+            action: action
+        )
+        .frame(maxHeight: .infinity, alignment: .center)
+        .accessibilityLabel(L10n.string(accessibilityKey))
     }
 
     private func landscapeActionButtonsRow(layout: JChordPadLayout) -> some View {
-        let buttonWidth = max(24, floor(layout.landscapeControlPanelWidth * 0.26))
+        let spacing: CGFloat = 8
+        let buttonWidth = max(24, floor((layout.landscapeControlPanelWidth - spacing) / 2))
         let buttonHeight = max(26, floor(landscapeActionButtonReserveHeight(layout: layout) * 0.82))
         let buttonFontSize = max(14, layout.noteOffFontSize - 2)
 
@@ -1038,7 +1072,7 @@ struct MainView: View {
                 .frame(height: 1)
                 .frame(maxWidth: .infinity)
 
-            HStack(spacing: 6) {
+            HStack(spacing: spacing) {
                 JPadChromeDockButton(
                     title: "R",
                     style: .outline,
@@ -1061,9 +1095,9 @@ struct MainView: View {
                 .jChordGentlePulse(viewModel.isHoldEnabled)
                 .accessibilityLabel(L10n.string("main.hold"))
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity)
     }
 
     @ViewBuilder
@@ -1110,7 +1144,7 @@ struct MainView: View {
     }
 
     private func landscapeSliderPanel(layout: JChordPadLayout) -> some View {
-        HStack(alignment: .top, spacing: 18) {
+        HStack(alignment: .top, spacing: 16) {
             landscapeSliderControl(
                 title: "V",
                 value: viewModel.velocity,
@@ -1126,7 +1160,7 @@ struct MainView: View {
                 layout: layout
             )
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func landscapeSliderControl(
@@ -1136,12 +1170,8 @@ struct MainView: View {
         onChange: @escaping (Double) -> Void,
         layout: JChordPadLayout
     ) -> some View {
-        VStack(spacing: 10) {
-            Text(title)
-                .font(.system(size: 13, weight: .heavy))
-                .foregroundStyle(JPadChromeTheme.primaryLabel)
-                .frame(maxWidth: .infinity, alignment: .center)
-
+        VStack(spacing: 8) {
+            // 縦スライダー: 上方向で増加、下方向で減少。利用可能な高さいっぱいまで伸ばす。
             JChordMidiSlider(
                 value: Binding(
                     get: { value },
@@ -1150,9 +1180,16 @@ struct MainView: View {
                 range: range,
                 isVertical: true
             )
-            .frame(width: 34, height: 168)
+            .frame(width: 34)
+            .frame(maxHeight: .infinity)
+
+            // ラベルはスライダーの下方に配置する。
+            Text(title)
+                .font(.system(size: 13, weight: .heavy))
+                .foregroundStyle(JPadChromeTheme.primaryLabel)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
-        .frame(maxWidth: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private func landscapeTransposePresetColumn(layout: JChordPadLayout) -> some View {
@@ -1305,6 +1342,8 @@ struct MainView: View {
             : Color.white.opacity(0.9)
         let selectedBackground = AnyShapeStyle(JPadChromeTheme.buttonIdleFill)
         let selectedBorder = JPadChromeTheme.buttonIdleBorder
+        // パッドの角丸とバランスを取りつつ、縦長ボタンで丸くなりすぎないよう高さで頭打ち。
+        let cornerRadius = min(layout.padCornerRadius, buttonHeight * 0.32)
 
         return Button(action: onTap) {
             VStack(alignment: .leading, spacing: 4) {
@@ -1330,7 +1369,7 @@ struct MainView: View {
             .foregroundStyle(labelColor)
             .frame(maxWidth: .infinity, minHeight: buttonHeight, alignment: .center)
             .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(
                         selected
                             ? selectedBackground
@@ -1338,7 +1377,7 @@ struct MainView: View {
                     )
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .strokeBorder(
                         selected
                             ? selectedBorder

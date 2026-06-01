@@ -153,7 +153,8 @@ struct JChordPadLayout {
             availableWidth
                 - metrics.horizontalPadding * 2
                 - panelWidth
-                - dockWidth
+                // チェブロンを左右両端に置くため、ドック幅を 2 つ分確保する。
+                - dockWidth * 2
                 - metrics.gridSpacing * 2
         )
 

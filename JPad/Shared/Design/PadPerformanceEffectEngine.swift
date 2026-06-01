@@ -71,15 +71,69 @@ enum PadPerformanceEffectEngine {
         time: TimeInterval
     ) -> IdleAppearance {
         let step = Int(floor(time / config.colorShiftDuration))
-        let pattern: PadPerformanceScanPattern = isLandscape ? .columnsLeftToRight : .rowsTopToBottom
+        let cycle = config.patterns.patternCycle(at: time)
+
+        // 横表示は専用座標で処理する。縦表示の padIndex 分割（1–6 / 7–12 のミラー）を
+        // 持ち込まないことで、横表示グリッドの実座標だけで動く。
+        if isLandscape {
+            switch cycle.pattern {
+            case .rowsTopToBottom, .rowsBottomToTop:
+                // 上下移動: グリッド行に沿った均一スイープ。
+                return landscapeRowSweepIdleAppearance(
+                    row: row,
+                    step: step,
+                    topToBottom: cycle.pattern == .rowsTopToBottom,
+                    config: config
+                )
+            case .columnsLeftToRight, .columnsRightToLeft:
+                // 左右移動: グリッド列に沿った均一スイープ。
+                return landscapeColumnSweepIdleAppearance(
+                    col: col,
+                    step: step,
+                    leftToRight: cycle.pattern == .columnsLeftToRight,
+                    config: config
+                )
+            }
+        }
+
         return standardPaletteIdleAppearance(
             col: col,
             row: row,
             columnCount: columnCount,
             padIndex: padIndex,
             step: step,
-            pattern: pattern,
+            pattern: cycle.pattern,
             config: config
+        )
+    }
+
+    /// 横表示の左右スイープ待機: グリッド列に沿って均一に色が流れる。
+    private static func landscapeColumnSweepIdleAppearance(
+        col: Int,
+        step: Int,
+        leftToRight: Bool,
+        config: PadPerformanceAnimationConfig
+    ) -> IdleAppearance {
+        let shifted = leftToRight ? (col - step) : (col + step)
+        let paletteIndex = positiveMod(shifted, PerformancePadPalette.colorCount)
+        return IdleAppearance(
+            colorPhase: Double(paletteIndex),
+            brightness: config.idle.baseBrightness
+        )
+    }
+
+    /// 横表示の上下スイープ待機: グリッド行に沿って均一に色が流れる。
+    private static func landscapeRowSweepIdleAppearance(
+        row: Int,
+        step: Int,
+        topToBottom: Bool,
+        config: PadPerformanceAnimationConfig
+    ) -> IdleAppearance {
+        let shifted = topToBottom ? (row + step) : (row - step)
+        let paletteIndex = positiveMod(shifted, PerformancePadPalette.colorCount)
+        return IdleAppearance(
+            colorPhase: Double(paletteIndex),
+            brightness: config.idle.baseBrightness
         )
     }
 
@@ -103,37 +157,6 @@ enum PadPerformanceEffectEngine {
         return IdleAppearance(
             colorPhase: Double(paletteIndex),
             brightness: config.idle.baseBrightness
-        )
-    }
-
-    /// 横画面・上下パターンのみ: 4 グループ＋色ローテーション＋行波。
-    private static func landscapeRowGroupIdleAppearance(
-        col: Int,
-        row: Int,
-        columnCount: Int,
-        padIndex: Int,
-        step: Int,
-        pattern: PadPerformanceScanPattern,
-        config: PadPerformanceAnimationConfig
-    ) -> IdleAppearance {
-        let paletteIndex = PerformancePadPalette.paletteIndexForLandscapeRowGroupAnimation(
-            padIndex: padIndex,
-            step: step
-        )
-        let waveBand = pattern.colorIndex(
-            col: col,
-            row: row,
-            step: step,
-            colorCount: PerformancePadPalette.landscapeGroupColorCount,
-            columnCount: columnCount,
-            padIndex: padIndex
-        )
-        let isAccent = positiveMod(waveBand, PerformancePadPalette.landscapeGroupColorCount) == paletteIndex
-        let base = config.idle.baseBrightness
-        let brightness = base * (isAccent ? 1.26 : 0.74)
-        return IdleAppearance(
-            colorPhase: Double(paletteIndex),
-            brightness: brightness
         )
     }
 
