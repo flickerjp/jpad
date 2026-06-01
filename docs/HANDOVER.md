@@ -770,3 +770,13 @@
 **作者:** tone <tone@tonem4max.local>
 
 **参照:** `git show d947bbe` / `git log -1 d947bbe`
+
+<!-- handover:auto:22d6fa40952ba862e61db47a4bbae13f4ec8db0e -->
+### 2026-06-02 00:53:50 +0900 — `22d6fa4` — main
+
+**件名:** Snapshot current JPad layout work
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 22d6fa4` / `git log -1 22d6fa4`
+
