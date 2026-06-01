@@ -790,3 +790,13 @@
 
 **参照:** `git show 01317f9` / `git log -1 01317f9`
 
+
+<!-- handover:auto:3a6bd06e58a086655004370dbc8a8e33bf54ca90 -->
+### 2026-06-02 01:39:09 +0900 — `3a6bd06` — main
+
+**件名:** Bump version to 1.1.6 (128) for App Store submission
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 3a6bd06` / `git log -1 3a6bd06`
+
