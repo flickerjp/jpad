@@ -780,3 +780,13 @@
 
 **参照:** `git show 22d6fa4` / `git log -1 22d6fa4`
 
+
+<!-- handover:auto:01317f9453a6a24c8d2783363ff31900971d0676 -->
+### 2026-06-02 01:30:13 +0900 — `01317f9` — main
+
+**件名:** Landscape layout fixes, animation patterns, and bump to 1.1.1 (127)
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 01317f9` / `git log -1 01317f9`
+
