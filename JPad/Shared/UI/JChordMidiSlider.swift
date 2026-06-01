@@ -5,40 +5,22 @@ import UIKit
 struct JChordMidiSlider: UIViewRepresentable {
     @Binding var value: Double
     var range: ClosedRange<Double> = 1 ... 127
+    var isVertical = false
 
     func makeCoordinator() -> Coordinator {
         Coordinator(value: $value)
     }
 
-    func makeUIView(context: Context) -> UISlider {
-        let slider = UISlider(frame: .zero)
-        slider.minimumValue = Float(range.lowerBound)
-        slider.maximumValue = Float(range.upperBound)
-        slider.value = Float(value)
-        applyChromeStyle(to: slider)
-        slider.addTarget(
-            context.coordinator,
-            action: #selector(Coordinator.valueChanged(_:)),
-            for: .valueChanged
+    func makeUIView(context: Context) -> SliderHostView {
+        SliderHostView(coordinator: context.coordinator)
+    }
+
+    func updateUIView(_ host: SliderHostView, context: Context) {
+        host.configure(
+            range: range,
+            value: value,
+            isVertical: isVertical
         )
-        return slider
-    }
-
-    func updateUIView(_ slider: UISlider, context: Context) {
-        slider.minimumValue = Float(range.lowerBound)
-        slider.maximumValue = Float(range.upperBound)
-        let floatValue = Float(value.rounded())
-        if slider.value != floatValue {
-            slider.value = floatValue
-        }
-        applyChromeStyle(to: slider)
-    }
-
-    private func applyChromeStyle(to slider: UISlider) {
-        ThinSliderTrackImage.apply(to: slider)
-        let thumb = OrangeGradientSliderThumb.image
-        slider.setThumbImage(thumb, for: .normal)
-        slider.setThumbImage(thumb, for: .highlighted)
     }
 
     final class Coordinator: NSObject {
@@ -50,6 +32,67 @@ struct JChordMidiSlider: UIViewRepresentable {
 
         @objc func valueChanged(_ sender: UISlider) {
             value.wrappedValue = Double(sender.value.rounded())
+        }
+    }
+}
+
+final class SliderHostView: UIView {
+    private let slider = UISlider(frame: .zero)
+    private weak var coordinator: JChordMidiSlider.Coordinator?
+    private var isVertical = false
+    private var didApplyChrome = false
+
+    init(coordinator: JChordMidiSlider.Coordinator) {
+        self.coordinator = coordinator
+        super.init(frame: .zero)
+        addSubview(slider)
+        slider.addTarget(
+            coordinator,
+            action: #selector(JChordMidiSlider.Coordinator.valueChanged(_:)),
+            for: .valueChanged
+        )
+        clipsToBounds = false
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func configure(
+        range: ClosedRange<Double>,
+        value: Double,
+        isVertical: Bool
+    ) {
+        self.isVertical = isVertical
+        slider.minimumValue = Float(range.lowerBound)
+        slider.maximumValue = Float(range.upperBound)
+        let floatValue = Float(value.rounded())
+        if slider.value != floatValue {
+            slider.value = floatValue
+        }
+        if !didApplyChrome {
+            ThinSliderTrackImage.apply(to: slider)
+            let thumb = OrangeGradientSliderThumb.image
+            slider.setThumbImage(thumb, for: .normal)
+            slider.setThumbImage(thumb, for: .highlighted)
+            didApplyChrome = true
+        }
+        setNeedsLayout()
+        layoutIfNeeded()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        if isVertical {
+            let targetSize = CGSize(width: bounds.height, height: bounds.width)
+            slider.bounds = CGRect(origin: .zero, size: targetSize)
+            slider.center = CGPoint(x: bounds.midX, y: bounds.midY)
+            slider.transform = CGAffineTransform(rotationAngle: -.pi / 2)
+        } else {
+            slider.frame = bounds
+            slider.transform = .identity
         }
     }
 }

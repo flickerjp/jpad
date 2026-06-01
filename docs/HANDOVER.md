@@ -8,9 +8,14 @@
 - **現行ビルド:** `1.0.02 (108)` · `sheet-chrome-v1`（設定フッターで確認）
 - **シート外周白枠:** iPhone（MAX 含む）は非表示、iPad mini 以上のみ（`JChordDeviceTraits`）
 - **TRANSPOSE JSON:** `KEY/OCT` 情報は `Preset.transposeSettings` として `EXPORT/IMPORT` に含まれる。`Preset+Codable.swift` と `PresetImportExportService.swift` を参照。
+- **横表示の現状:** パッド右側に `TRANSPOSE / SLIDER` の切替と、`H/R` を分離した構成まで入っている。`JChordMidiSlider` は `UISlider` ラップに切り替えて、縦スライダーのタップ/ドラッグが崩れないように調整済み。
+- **FLASH 待機アニメ:** `PadPerformanceEffectEngine` 側で、横/縦で配色順が混ざらないように固定化した。待機中のランダム配色崩れはここを見る。
+- **P-6 同期フレーズ案:** `docs/PATTERN_SYNC_PLAN.md` を追加。MIDI Clock 受信、パターン記録、SMF 出力の具体案をまとめた。まだ実装しない。
+- **パッドグリッド拡張案:** `docs/PAD_GRID_LAYOUT_REQUIREMENTS.md` を追加。4x4 モード、3x4 横向き 4x3 表示、左下 01 → 右上最大番号の配置ルールを要件化。まだ実装しない。
 - **LABEL の CHANGE:** `PadDefinition.labelAllowsTranspose` を JSON に保持する。未記載 JSON は `true` 扱いで読む。LABEL 画面右上の `CHANGE` チェックで編集。
 - **セット選択画面:** `CHECK` / `ALL` は最新判断で現状維持。外さない。
 - **次回の着手項目:**
+  - 横表示の最終調整: `TRANSPOSE` パネルの高さ、`H/R` の位置、`SLIDER` の縦操作感を実機で詰める
   - 設定画面の実機確認: `PRESET` → `TT/GB` → `PAD OUT/MIDI IN` の並び、選択済み `PAD OUT` 再タップで `TEST NOTE`、TinyTone 専用 `TEST NOTE`、右隣の再読み込みアイコンの使い勝手を確認する
 - 次にやること・未解決・注意点をここに書いてください。
 
@@ -765,4 +770,3 @@
 **作者:** tone <tone@tonem4max.local>
 
 **参照:** `git show d947bbe` / `git log -1 d947bbe`
-

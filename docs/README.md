@@ -15,6 +15,10 @@
 | [TINYTONE_AUDIO.md](TINYTONE_AUDIO.md) | **内蔵 TinyTone オーディオ（本線・全ビルド）** — 起動遅延・ゲート・ウォームアップ・移行 |
 | [TINYTONE_APP_GROUP_SHARING.md](TINYTONE_APP_GROUP_SHARING.md) | **TinyTone / JPad App Group 共有案**（JSON LOAD/EXPORT 併用、次バージョン以降） |
 | [TINYTONE_MIDI_PLUGIN_DIRECTION.md](TINYTONE_MIDI_PLUGIN_DIRECTION.md) | **TinyTone MIDI / AUv3 plugin 化方針**（GarageBand/AUM/Loopy/Cubasis、JPad非依存、TinyTone Pro機能） |
+| [AGENTS.md](AGENTS.md) | **Codex / Ollama 作業ルール**（勝手に大改造しない、互換性を壊さない、まず調査する） |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | **JPad 全体構造**（UI / MIDI / TinyTone / 保存 / 課金 / App Group） |
+| [DATA_FORMATS.md](DATA_FORMATS.md) | **データ形式**（`.jpd`、TinyTone patch、App Group 共有データ、保存数制限） |
+| [TASKS.md](TASKS.md) | **今やる開発タスク**（レイアウト可変化、横表示対応、トランスポーズ強化など） |
 | [TINYTONE_FACTORY_PATCH.json](TINYTONE_FACTORY_PATCH.json) | TinyTone 現行パラメータの保存版 |
 | [HANDOVER.md](HANDOVER.md) | 引き継ぎ・コミット自動ログ |
 

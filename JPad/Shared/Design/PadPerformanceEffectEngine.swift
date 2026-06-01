@@ -71,25 +71,14 @@ enum PadPerformanceEffectEngine {
         time: TimeInterval
     ) -> IdleAppearance {
         let step = Int(floor(time / config.colorShiftDuration))
-        let cycle = config.patterns.patternCycle(at: time)
-        if isLandscape, cycle.pattern.usesLandscapePadGroupColors {
-            return landscapeRowGroupIdleAppearance(
-                col: col,
-                row: row,
-                columnCount: columnCount,
-                padIndex: padIndex,
-                step: step,
-                pattern: cycle.pattern,
-                config: config
-            )
-        }
+        let pattern: PadPerformanceScanPattern = isLandscape ? .columnsLeftToRight : .rowsTopToBottom
         return standardPaletteIdleAppearance(
             col: col,
             row: row,
             columnCount: columnCount,
             padIndex: padIndex,
             step: step,
-            pattern: cycle.pattern,
+            pattern: pattern,
             config: config
         )
     }

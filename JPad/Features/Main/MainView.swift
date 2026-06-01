@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
 
 struct MainView: View {
@@ -27,6 +28,7 @@ struct MainView: View {
     @State private var frozenPadLayoutSize: CGSize?
     @State private var frozenPadSafeArea: EdgeInsets = .init()
     @State private var activeHardwarePadKeys: Set<String> = []
+    @State private var interfaceOrientation: UIInterfaceOrientation = .unknown
 
     private static let hardwarePadKeys = ["1", "2", "3", "q", "w", "e", "a", "s", "d", "z", "x", "c"]
 
@@ -49,6 +51,7 @@ struct MainView: View {
                     repeating: GridItem(.fixed(layout.cellSide), spacing: layout.gridSpacing, alignment: .center),
                     count: layout.columnCount
                 )
+                let isPortraitUpsideDown = interfaceOrientation == .portraitUpsideDown
 
                 mainContent(layout: layout, columns: columns)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -63,18 +66,6 @@ struct MainView: View {
                         }
                         .frame(width: 0, height: 0)
                     }
-                    .safeAreaInset(edge: .top, spacing: 0) {
-                        topBar(layout: layout)
-                            .padding(.horizontal, layout.horizontalPadding)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: layout.topBarHeight)
-                    }
-                    .safeAreaInset(edge: .bottom, spacing: 0) {
-                        bottomButtons(layout: layout)
-                            .padding(.horizontal, layout.horizontalPadding)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: layout.noteOffHeight)
-                    }
                     .onChange(of: viewModel.notesEditorViewModel != nil) { _, isEditorOpen in
                         if isEditorOpen {
                             frozenPadLayoutSize = geometry.size
@@ -83,6 +74,18 @@ struct MainView: View {
                             frozenPadLayoutSize = nil
                         }
                     }
+                    .onChange(of: layout.isLandscape) { _, isLandscape in
+                        guard isLandscape, viewModel.isPadEditMode else { return }
+                        viewModel.toggleEditMode()
+                    }
+                    .modifier(
+                        MainScreenChromeModifier(
+                            layout: layout,
+                            topBar: { topBar(layout: layout) },
+                            bottomButtons: { bottomButtons(layout: layout) }
+                        )
+                    )
+                    .rotationEffect(.degrees(isPortraitUpsideDown ? 180 : 0))
                     .onChange(of: isHardwarePadInputEnabled) { _, isEnabled in
                         if !isEnabled {
                             clearHardwarePadKeysAndStopPlaybackIfNeeded()
@@ -100,6 +103,7 @@ struct MainView: View {
                 .ignoresSafeArea()
             }
             .onAppear {
+                updateInterfaceOrientation()
                 syncPerformanceTimelineIfNeeded()
             }
             .onChange(of: padVisualStyleRaw) { _, _ in
@@ -137,7 +141,9 @@ struct MainView: View {
                 }
             }
             .onChange(of: scenePhase) { _, phase in
-                guard phase == .active, usesPerformanceMainChrome else { return }
+                guard phase == .active else { return }
+                updateInterfaceOrientation()
+                guard usesPerformanceMainChrome else { return }
                 resetPerformanceTimeline()
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -185,9 +191,13 @@ struct MainView: View {
                 proPurchaseService.startTransactionListener()
                 viewModel.onAppear()
             }
+            .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                updateInterfaceOrientation()
+            }
             .onChange(of: scenePhase) { _, newPhase in
                 switch newPhase {
                 case .active:
+                    updateInterfaceOrientation()
                     viewModel.onBecomeActive()
                 case .inactive, .background:
                     viewModel.onResignActive()
@@ -197,6 +207,20 @@ struct MainView: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+
+    private func updateInterfaceOrientation() {
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive })
+            ?? UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first
+        else {
+            return
+        }
+
+        interfaceOrientation = windowScene.interfaceOrientation
     }
 
     /// プリセットピッカー上に購入・共有・取り込みを重ねる（メイン画面の sheet とは別スタック）。
@@ -292,37 +316,54 @@ struct MainView: View {
 
     private func mainContent(layout: JChordPadLayout, columns: [GridItem]) -> some View {
         GeometryReader { geometry in
-            let spacers = layout.interSectionSpacerHeights(forAvailableHeight: geometry.size.height)
             let controlTopSpacer: CGFloat = 10
 
-            VStack(spacing: 0) {
-                fixedSpacer(height: spacers.headerToPads)
-
-                padGrid(layout: layout, columns: columns)
-
-                fixedSpacer(height: controlTopSpacer)
-
+            Group {
                 if layout.isLandscape {
-                    landscapeMidiControls(layout: layout)
+                    HStack(alignment: .top, spacing: layout.gridSpacing) {
+                        padGrid(layout: layout, columns: columns)
+                        landscapeControlPanel(layout: layout)
+                        landscapeSideDock(layout: layout)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 } else {
+                    let spacers = layout.interSectionSpacerHeights(forAvailableHeight: geometry.size.height)
+
                     portraitControlPanel(
                         layout: layout,
-                        spacing: viewModel.isPadEditMode ? controlTopSpacer : spacers.betweenSections
+                        spacing: viewModel.isPadEditMode ? controlTopSpacer : spacers.betweenSections,
+                        spacers: spacers,
+                        columns: columns,
+                        controlTopSpacer: controlTopSpacer
                     )
                 }
-
-                fixedSpacer(height: spacers.betweenSections)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
     }
 
-    private func portraitControlPanel(layout: JChordPadLayout, spacing: CGFloat) -> some View {
-        VStack(spacing: spacing) {
+    private func portraitControlPanel(
+        layout: JChordPadLayout,
+        spacing: CGFloat,
+        spacers: (headerToPads: CGFloat, betweenSections: CGFloat),
+        columns: [GridItem],
+        controlTopSpacer: CGFloat
+    ) -> some View {
+        VStack(spacing: 0) {
+            fixedSpacer(height: spacers.headerToPads)
+
+            padGrid(layout: layout, columns: columns)
+
+            fixedSpacer(height: controlTopSpacer)
+
             if !viewModel.isPadEditMode {
-                controlRows(layout: layout)
+                VStack(spacing: spacing) {
+                    controlRows(layout: layout)
+                }
             }
+
+            fixedSpacer(height: spacers.betweenSections)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private func padGrid(layout: JChordPadLayout, columns: [GridItem]) -> some View {
@@ -947,13 +988,82 @@ struct MainView: View {
         }
     }
 
-    private func landscapeMidiControls(layout: JChordPadLayout) -> some View {
-        VStack(spacing: layout.gridSpacing) {
-            if !viewModel.isPadEditMode {
-                controlRows(layout: layout)
+    private func landscapeControlPanel(layout: JChordPadLayout) -> some View {
+        VStack(spacing: 8) {
+            switch viewModel.padControlMode {
+            case .sliders:
+                landscapeSliderPanel(layout: layout)
+            case .transpose:
+                landscapeTransposePresetColumn(layout: layout)
             }
+
+            landscapeActionButtonsRow(layout: layout)
         }
-        .frame(width: layout.gridWidth)
+        .frame(width: layout.landscapeControlPanelWidth, height: layout.gridHeight, alignment: .top)
+    }
+
+    private func landscapeSideDock(layout: JChordPadLayout) -> some View {
+        let side = layout.landscapeDockWidth
+
+        return VStack(spacing: layout.gridSpacing) {
+            JPadSetCycleChevronButton(
+                systemImage: "chevron.left",
+                isEnabled: viewModel.canNavigateRotationSlots,
+                size: side,
+                action: { viewModel.selectPreviousRotationSlot() }
+            )
+            .rotationEffect(.degrees(90))
+            .accessibilityLabel(L10n.string("main.set_previous.accessibility"))
+
+            JPadSetCycleChevronButton(
+                systemImage: "chevron.right",
+                isEnabled: viewModel.canNavigateRotationSlots,
+                size: side,
+                action: { viewModel.selectNextRotationSlot() }
+            )
+            .rotationEffect(.degrees(90))
+            .accessibilityLabel(L10n.string("main.set_next.accessibility"))
+        }
+        .frame(width: side, height: layout.gridHeight)
+    }
+
+    private func landscapeActionButtonsRow(layout: JChordPadLayout) -> some View {
+        let buttonWidth = max(24, floor(layout.landscapeControlPanelWidth * 0.26))
+        let buttonHeight = max(26, floor(landscapeActionButtonReserveHeight(layout: layout) * 0.82))
+        let buttonFontSize = max(14, layout.noteOffFontSize - 2)
+
+        return VStack(spacing: 6) {
+            Rectangle()
+                .fill(Color.white.opacity(0.16))
+                .frame(height: 1)
+                .frame(maxWidth: .infinity)
+
+            HStack(spacing: 6) {
+                JPadChromeDockButton(
+                    title: "R",
+                    style: .outline,
+                    fontSize: buttonFontSize,
+                    width: buttonWidth,
+                    height: buttonHeight,
+                    action: { viewModel.sendAllNotesOff() }
+                )
+                .accessibilityLabel(L10n.string("main.reset"))
+
+                JPadChromeDockButton(
+                    title: "H",
+                    style: .accentToggle,
+                    isOn: viewModel.isHoldEnabled,
+                    fontSize: buttonFontSize,
+                    width: buttonWidth,
+                    height: buttonHeight,
+                    action: { viewModel.toggleHold() }
+                )
+                .jChordGentlePulse(viewModel.isHoldEnabled)
+                .accessibilityLabel(L10n.string("main.hold"))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder
@@ -999,6 +1109,81 @@ struct MainView: View {
         }
     }
 
+    private func landscapeSliderPanel(layout: JChordPadLayout) -> some View {
+        HStack(alignment: .top, spacing: 18) {
+            landscapeSliderControl(
+                title: "V",
+                value: viewModel.velocity,
+                range: 1 ... 127,
+                onChange: { viewModel.updateVelocity($0) },
+                layout: layout
+            )
+            landscapeSliderControl(
+                title: "E",
+                value: viewModel.expression,
+                range: 1 ... 127,
+                onChange: { viewModel.updateExpression($0) },
+                layout: layout
+            )
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func landscapeSliderControl(
+        title: String,
+        value: Double,
+        range: ClosedRange<Double>,
+        onChange: @escaping (Double) -> Void,
+        layout: JChordPadLayout
+    ) -> some View {
+        VStack(spacing: 10) {
+            Text(title)
+                .font(.system(size: 13, weight: .heavy))
+                .foregroundStyle(JPadChromeTheme.primaryLabel)
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            JChordMidiSlider(
+                value: Binding(
+                    get: { value },
+                    set: { onChange($0) }
+                ),
+                range: range,
+                isVertical: true
+            )
+            .frame(width: 34, height: 168)
+        }
+        .frame(maxWidth: .infinity, alignment: .top)
+    }
+
+    private func landscapeTransposePresetColumn(layout: JChordPadLayout) -> some View {
+        let buttonHeight = landscapeTransposeButtonHeightForLandscape(layout: layout)
+        return VStack(spacing: layout.gridSpacing) {
+            ForEach(Array((0 ..< PresetControlSettings.shiftMemoryCount).reversed()), id: \.self) { index in
+                transposePresetButton(
+                    preset: viewModel.transposePreset(at: index),
+                    layout: layout,
+                    selected: viewModel.selectedTransposePresetIndex == index,
+                    onTap: { viewModel.selectTransposePreset(index: index, forEdit: false) },
+                    fixedWidth: layout.landscapeControlPanelWidth,
+                    fixedHeight: buttonHeight
+                )
+                .buttonStyle(.plain)
+            }
+        }
+        .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private func landscapeTransposeButtonHeightForLandscape(layout: JChordPadLayout) -> CGFloat {
+        let actionReserve = landscapeActionButtonReserveHeight(layout: layout)
+        let available = layout.gridHeight - actionReserve - layout.gridSpacing * CGFloat(PresetControlSettings.shiftMemoryCount - 1) - 4
+        let buttonHeight = floor(available / CGFloat(PresetControlSettings.shiftMemoryCount))
+        return max(56, buttonHeight)
+    }
+
+    private func landscapeActionButtonReserveHeight(layout: JChordPadLayout) -> CGFloat {
+        max(26, floor(layout.landscapeTransposeButtonHeight * 0.36))
+    }
+
     private func transposePresetSelectorRow(layout: JChordPadLayout) -> some View {
         HStack(spacing: layout.gridSpacing) {
             ForEach(0 ..< PresetControlSettings.shiftMemoryCount, id: \.self) { index in
@@ -1008,7 +1193,9 @@ struct MainView: View {
                     selected: viewModel.isPadEditMode
                         ? viewModel.editSelectedTransposePresetIndex == index
                         : viewModel.selectedTransposePresetIndex == index,
-                    onTap: { viewModel.selectTransposePreset(index: index, forEdit: viewModel.isPadEditMode) }
+                    onTap: { viewModel.selectTransposePreset(index: index, forEdit: viewModel.isPadEditMode) },
+                    fixedWidth: nil,
+                    fixedHeight: nil
                 )
                 .buttonStyle(.plain)
             }
@@ -1096,18 +1283,21 @@ struct MainView: View {
         preset: PresetShiftMemory,
         layout: JChordPadLayout,
         selected: Bool,
-        onTap: @escaping () -> Void
+        onTap: @escaping () -> Void,
+        fixedWidth: CGFloat?,
+        fixedHeight: CGFloat?
     ) -> some View {
-        let slotWidth = floor((layout.gridWidth - (layout.gridSpacing * 3)) / 4)
-        let buttonHeight = layout.isPadDevice
-            ? max(40, floor(slotWidth * 2 / 3))
-            : max(40, floor(slotWidth * 3 / 4))
-        let labelFontSize = layout.isPadDevice
-            ? max(10, buttonHeight * 0.18 - 1)
-            : max(11, buttonHeight * 0.22 - 2)
-        let valueFontSize = layout.isPadDevice
-            ? max(11, buttonHeight * 0.23 - 1)
-            : max(12, buttonHeight * 0.28 - 2)
+        let slotWidth = fixedWidth ?? floor((layout.gridWidth - (layout.gridSpacing * 3)) / 4)
+        let buttonHeight = fixedWidth == nil
+            ? (layout.isPadDevice ? max(40, floor(slotWidth * 2 / 3)) : max(40, floor(slotWidth * 3 / 4)))
+            : (fixedHeight ?? max(40, floor(slotWidth * 0.74)))
+        let isFixedLandscapeButton = fixedWidth != nil
+        let labelFontSize = isFixedLandscapeButton
+            ? layout.landscapeTransposeLabelFontSize
+            : (layout.isPadDevice ? max(10, buttonHeight * 0.18 - 1) : max(11, buttonHeight * 0.22 - 2))
+        let valueFontSize = isFixedLandscapeButton
+            ? layout.landscapeTransposeValueFontSize
+            : (layout.isPadDevice ? max(11, buttonHeight * 0.23 - 1) : max(12, buttonHeight * 0.28 - 2))
         let valueWidth = max(24, valueFontSize * 1.9)
         let labelWidth = max(28, labelFontSize * 2.4)
         let labelColor = selected
@@ -1157,7 +1347,8 @@ struct MainView: View {
                     )
             )
         }
-        .accessibilityLabel("\(L10n.string("main.key")) \(signedValue(preset.keyShift)), \(L10n.string("main.oct")) \(signedValue(preset.octaveShift))")
+        .frame(width: fixedWidth)
+            .accessibilityLabel("\(L10n.string("main.key")) \(signedValue(preset.keyShift)), \(L10n.string("main.oct")) \(signedValue(preset.octaveShift))")
     }
 
     private func padControlModeRadioButton(
@@ -1288,6 +1479,33 @@ private struct MainPadNotesEditorOverlay: View {
             .ignoresSafeArea()
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .transition(.opacity)
+        }
+    }
+}
+
+private struct MainScreenChromeModifier<TopBar: View, BottomButtons: View>: ViewModifier {
+    let layout: JChordPadLayout
+    @ViewBuilder let topBar: () -> TopBar
+    @ViewBuilder let bottomButtons: () -> BottomButtons
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if layout.isLandscape {
+            content
+        } else {
+            content
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    topBar()
+                        .padding(.horizontal, layout.horizontalPadding)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: layout.topBarHeight)
+                }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    bottomButtons()
+                        .padding(.horizontal, layout.horizontalPadding)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: layout.noteOffHeight)
+                }
         }
     }
 }

@@ -80,7 +80,8 @@ struct PadView: View {
             if usesPerformanceLook {
                 PadPerformanceRippleOverlay(
                     ripple: rippleAppearance,
-                    cornerRadius: cornerRadius
+                    cornerRadius: cornerRadius,
+                    sideLength: sideLength
                 )
             }
 

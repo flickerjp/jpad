@@ -7,8 +7,8 @@ enum PadGridLayoutGeometry {
     /// 時計回り外周＋内側2マス（Orbit Flow の通過順）
     static let portraitOrbitSlotOrder = [0, 1, 2, 5, 8, 11, 10, 9, 6, 3, 4, 7]
 
-    /// 横画面 6×2（外周を時計回り）
-    static let landscapeOrbitSlotOrder = [0, 1, 2, 3, 4, 5, 11, 10, 9, 8, 7, 6]
+    /// 横画面 4×3（外周を時計回り）
+    static let landscapeOrbitSlotOrder = [0, 1, 2, 3, 7, 11, 10, 9, 8, 4, 5, 6]
 
     static func orbitSlotOrder(isLandscape: Bool) -> [Int] {
         isLandscape ? landscapeOrbitSlotOrder : portraitOrbitSlotOrder

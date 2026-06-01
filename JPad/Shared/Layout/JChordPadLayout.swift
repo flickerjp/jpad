@@ -46,11 +46,20 @@ struct JChordPadLayout {
     let padCornerRadius: CGFloat
     let padContentPadding: CGFloat
     let headerToPadSpacerWeight: CGFloat
+    let landscapeControlPanelWidth: CGFloat
+    let landscapeDockWidth: CGFloat
+    let landscapeTransposeButtonHeight: CGFloat
+    let landscapeTransposeLabelFontSize: CGFloat
+    let landscapeTransposeValueFontSize: CGFloat
 
     static func make(size: CGSize, safeArea: EdgeInsets) -> JChordPadLayout {
         let isLandscape = size.width > size.height
-        let availableWidth = max(0, size.width - safeArea.leading - safeArea.trailing)
-        let availableHeight = max(0, size.height - safeArea.top - safeArea.bottom)
+        let availableWidth = isLandscape
+            ? size.width
+            : max(0, size.width - safeArea.leading - safeArea.trailing)
+        let availableHeight = isLandscape
+            ? size.height
+            : max(0, size.height - safeArea.top - safeArea.bottom)
         let heightClass = JChordPhoneHeightClass(height: availableHeight)
         let isPadDevice = UIDevice.current.userInterfaceIdiom == .pad
 
@@ -117,7 +126,12 @@ struct JChordPadLayout {
             noteOffFontSize: metrics.noteOffFontSize,
             padCornerRadius: max(14, cellSide * 0.16),
             padContentPadding: max(8, cellSide * 0.11),
-            headerToPadSpacerWeight: Self.headerToPadSpacerWeight
+            headerToPadSpacerWeight: Self.headerToPadSpacerWeight,
+            landscapeControlPanelWidth: 0,
+            landscapeDockWidth: 0,
+            landscapeTransposeButtonHeight: 0,
+            landscapeTransposeLabelFontSize: 0,
+            landscapeTransposeValueFontSize: 0
         )
     }
 
@@ -128,15 +142,23 @@ struct JChordPadLayout {
         layoutLongSide: CGFloat,
         isPadDevice: Bool
     ) -> JChordPadLayout {
-        let columnCount = 6
-        let rowCount = 2
+        let columnCount = 4
+        let rowCount = 3
         let metrics = landscapeMetrics(for: heightClass)
-        let sliderChrome = metrics.midiSliderRowHeight
-        let contentAreaHeight = availableHeight - metrics.topBarHeight - metrics.noteOffHeight
+        let contentAreaHeight = availableHeight
+        let panelWidth = metrics.landscapeControlPanelWidth
+        let dockWidth = metrics.landscapeDockWidth
+        let gridWidthBudget = max(
+            0,
+            availableWidth
+                - metrics.horizontalPadding * 2
+                - panelWidth
+                - dockWidth
+                - metrics.gridSpacing * 2
+        )
 
-        let widthBudget = max(0, availableWidth - metrics.horizontalPadding * 2)
         let widthCap = floor(
-            (widthBudget - metrics.gridSpacing * CGFloat(columnCount - 1)) / CGFloat(columnCount)
+            (gridWidthBudget - metrics.gridSpacing * CGFloat(columnCount - 1)) / CGFloat(columnCount)
         )
         let usesBoost = usesLandscapePadSizeBoost(layoutLongSide: layoutLongSide)
         let headerWeight = usesBoost
@@ -146,10 +168,10 @@ struct JChordPadLayout {
             columnCount: columnCount,
             rowCount: rowCount,
             gridSpacing: metrics.gridSpacing,
-            widthBudget: widthBudget,
+            widthBudget: gridWidthBudget,
             availableHeight: contentAreaHeight,
-            baseChrome: sliderChrome,
-            sectionGapWeight: headerWeight + standardInterSectionSpacerWeight * 2,
+            baseChrome: 0,
+            sectionGapWeight: 0,
             minCell: metrics.minCell
         )
         let cellSide: CGFloat
@@ -162,6 +184,12 @@ struct JChordPadLayout {
         } else {
             cellSide = min(fitted, widthCap)
         }
+        let transposeButtonHeight = floor(
+            (CGFloat(rowCount) * cellSide
+                + CGFloat(rowCount - 1) * metrics.gridSpacing
+                - CGFloat(PresetControlSettings.shiftMemoryCount - 1) * metrics.gridSpacing)
+                / CGFloat(PresetControlSettings.shiftMemoryCount)
+        )
         return JChordPadLayout(
             isLandscape: true,
             isPadDevice: isPadDevice,
@@ -180,7 +208,12 @@ struct JChordPadLayout {
             noteOffFontSize: metrics.noteOffFontSize,
             padCornerRadius: max(12, cellSide * 0.15),
             padContentPadding: max(8, cellSide * 0.1),
-            headerToPadSpacerWeight: headerWeight
+            headerToPadSpacerWeight: headerWeight,
+            landscapeControlPanelWidth: panelWidth,
+            landscapeDockWidth: dockWidth,
+            landscapeTransposeButtonHeight: transposeButtonHeight,
+            landscapeTransposeLabelFontSize: metrics.landscapeTransposeLabelFontSize,
+            landscapeTransposeValueFontSize: metrics.landscapeTransposeValueFontSize
         )
     }
 
@@ -224,6 +257,11 @@ struct JChordPadLayout {
         let noteOffHeight: CGFloat
         let noteOffFontSize: CGFloat
         let minCell: CGFloat
+        let landscapeControlPanelWidth: CGFloat
+        let landscapeDockWidth: CGFloat
+        let landscapeTransposeButtonHeight: CGFloat
+        let landscapeTransposeLabelFontSize: CGFloat
+        let landscapeTransposeValueFontSize: CGFloat
     }
 
     private static let minimumSectionGap: CGFloat = interSectionMinSpacing
@@ -242,7 +280,12 @@ struct JChordPadLayout {
                 midiSliderRowHeight: 32,
                 noteOffHeight: 42,
                 noteOffFontSize: 17,
-                minCell: 54
+                minCell: 54,
+                landscapeControlPanelWidth: 0,
+                landscapeDockWidth: 0,
+                landscapeTransposeButtonHeight: 0,
+                landscapeTransposeLabelFontSize: 0,
+                landscapeTransposeValueFontSize: 0
             )
         case .regular:
             return LayoutMetrics(
@@ -256,7 +299,12 @@ struct JChordPadLayout {
                 midiSliderRowHeight: 34,
                 noteOffHeight: 48,
                 noteOffFontSize: 18,
-                minCell: 62
+                minCell: 62,
+                landscapeControlPanelWidth: 0,
+                landscapeDockWidth: 0,
+                landscapeTransposeButtonHeight: 0,
+                landscapeTransposeLabelFontSize: 0,
+                landscapeTransposeValueFontSize: 0
             )
         case .large:
             return LayoutMetrics(
@@ -270,7 +318,12 @@ struct JChordPadLayout {
                 midiSliderRowHeight: 36,
                 noteOffHeight: 52,
                 noteOffFontSize: 20,
-                minCell: 72
+                minCell: 72,
+                landscapeControlPanelWidth: 0,
+                landscapeDockWidth: 0,
+                landscapeTransposeButtonHeight: 0,
+                landscapeTransposeLabelFontSize: 0,
+                landscapeTransposeValueFontSize: 0
             )
         }
     }
@@ -279,7 +332,7 @@ struct JChordPadLayout {
         switch heightClass {
         case .compact:
             return LayoutMetrics(
-                horizontalPadding: 12,
+                horizontalPadding: 4,
                 gridSpacing: 8,
                 topBarHeight: 40,
                 gearIconSize: 22,
@@ -289,11 +342,16 @@ struct JChordPadLayout {
                 midiSliderRowHeight: 32,
                 noteOffHeight: 40,
                 noteOffFontSize: 16,
-                minCell: 52
+                minCell: 52,
+                landscapeControlPanelWidth: 86,
+                landscapeDockWidth: 44,
+                landscapeTransposeButtonHeight: 90,
+                landscapeTransposeLabelFontSize: 13,
+                landscapeTransposeValueFontSize: 17
             )
         case .regular, .large:
             return LayoutMetrics(
-                horizontalPadding: 14,
+                horizontalPadding: 6,
                 gridSpacing: 10,
                 topBarHeight: 46,
                 gearIconSize: 26,
@@ -303,9 +361,18 @@ struct JChordPadLayout {
                 midiSliderRowHeight: 34,
                 noteOffHeight: 46,
                 noteOffFontSize: 18,
-                minCell: 60
+                minCell: 60,
+                landscapeControlPanelWidth: isPadDeviceWidth() ? 108 : 92,
+                landscapeDockWidth: isPadDeviceWidth() ? 56 : 48,
+                landscapeTransposeButtonHeight: isPadDeviceWidth() ? 108 : 96,
+                landscapeTransposeLabelFontSize: 13,
+                landscapeTransposeValueFontSize: 17
             )
         }
+    }
+
+    private static func isPadDeviceWidth() -> Bool {
+        UIDevice.current.userInterfaceIdiom == .pad
     }
 
     /// iPad は幅キャップ。iPhone 14 Pro 以上（長辺 852+、16 Pro は 874）を横画面で拡大。

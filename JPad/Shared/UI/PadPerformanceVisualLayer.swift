@@ -26,6 +26,7 @@ struct PadPerformanceOrbitFill: View {
 struct PadPerformanceRippleOverlay: View {
     let ripple: PadPerformanceEffectEngine.RippleAppearance
     let cornerRadius: CGFloat
+    let sideLength: CGFloat
 
     private var padShape: RoundedRectangle {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -33,19 +34,23 @@ struct PadPerformanceRippleOverlay: View {
 
     var body: some View {
         if ripple.whiteFlash > 0.02 {
-            padShape.fill(Color.white.opacity(0.81 * ripple.whiteFlash))
-            padShape.fill(
-                RadialGradient(
-                    colors: [
-                        Color.white.opacity(0.90 * ripple.whiteFlash),
-                        Color.white.opacity(0.665 * ripple.whiteFlash),
-                        Color.clear
-                    ],
-                    center: .center,
-                    startRadius: 0,
-                    endRadius: 88
+            let flashRadius = max(36, sideLength * 0.68)
+
+            ZStack {
+                padShape.fill(Color.white.opacity(0.81 * ripple.whiteFlash))
+                padShape.fill(
+                    RadialGradient(
+                        colors: [
+                            Color.white.opacity(0.90 * ripple.whiteFlash),
+                            Color.white.opacity(0.665 * ripple.whiteFlash),
+                            Color.clear
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: flashRadius
+                    )
                 )
-            )
+            }
             .clipShape(padShape)
             .allowsHitTesting(false)
         }
