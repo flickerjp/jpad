@@ -68,17 +68,17 @@
 "jcstore.replace_title" = "Replace which set?";
 "alert.new_slot_success" = "New set created.";
 "alert.import_success" = "Import complete.";
-"alert.import_unsupported_file" = "This file is not a JPad shared preset (.jpd).";
-"alert.share_requires_pro" = "This feature requires JPad Pro.";
+"alert.import_unsupported_file" = "This file is not a TinyTone shared preset (.jpd).";
+"alert.share_requires_pro" = "This feature requires Pro.";
 "alert.share_requires_active_set" = "Select a set in MY SETS before sharing.";
-"alert.duplicate_requires_pro" = "Duplicating sets requires JPad Pro.";
+"alert.duplicate_requires_pro" = "Duplicating sets requires Pro.";
 
-/* JPad Yearly */
+/* TinyTone Yearly */
 "pro.picker.purchase" = "UPGRADE";
-"pro.picker.purchase.accessibility" = "Upgrade JPad Yearly";
-"pro.upgrade.purchase_success" = "JPad Yearly is now active. You can share, import, and duplicate sets.";
-"pro.upgrade.title" = "JPad Yearly";
-"pro.upgrade.subtitle" = "Unlock more sets, duplication, and sharing for JPad.";
+"pro.picker.purchase.accessibility" = "Upgrade TinyTone Yearly";
+"pro.upgrade.purchase_success" = "TinyTone Yearly is now active. You can share, import, and duplicate sets.";
+"pro.upgrade.title" = "TinyTone Yearly";
+"pro.upgrade.subtitle" = "Unlock more sets, duplication, and sharing for TinyTone.";
 "pro.upgrade.annual_label" = "Annual subscription";
 "pro.upgrade.annual_price" = "%@ / year";
 "pro.upgrade.trial_headline" = "%@ free";
@@ -91,7 +91,7 @@
 "pro.upgrade.purchase_button_trial" = "Start Free Trial";
 "pro.upgrade.purchase_button_no_price" = "Subscribe";
 "pro.upgrade.subscription_footnote" = "Payment is charged to your Apple ID. Subscription renews every year unless canceled at least 24 hours before the period ends. Manage in Settings › Apple ID › Subscriptions.";
-"pro.upgrade.subscription_period" = "JPad Yearly — 1 year, auto-renewable";
+"pro.upgrade.subscription_period" = "TinyTone Yearly — 1 year, auto-renewable";
 "pro.upgrade.privacy_policy" = "Privacy Policy";
 "pro.upgrade.terms_of_use" = "Terms of Use";
 "pro.period.1day" = "1 day";
@@ -123,7 +123,7 @@
 "alert.no_saved_set" = "No saved pad set yet. Select My Stage and edit your pads.";
 
 /* Onboarding */
-"onboarding.title" = "Welcome to JPad";
+"onboarding.title" = "Welcome to TinyTone";
 "onboarding.subtitle" = "Play right away with TinyTone's built-in sounds. Choose your sound and pad style below.";
 "help.garageband.title" = "Connecting to GarageBand";
 "onboarding.garageband.title" = "GarageBand Setup";
@@ -132,7 +132,7 @@
 "onboarding.garageband.step3" = "In GarageBand, tap the gear (top right) → Details → turn on Run in Background.";
 "onboarding.garageband.step4" = "Return here. Select GarageBand below the preset, or choose an external MIDI device under PAD OUT.";
 "onboarding.garageband.step5" = "Hold TEST NOTE and confirm GarageBand receives MIDI.";
-"onboarding.continue" = "Continue to JPad";
+"onboarding.continue" = "Continue to TinyTone";
 "onboarding.close" = "Close";
 "onboarding.sound" = "SOUND";
 "onboarding.note" = "NOTE";
@@ -150,7 +150,7 @@
 "settings.preview_sound.overwrite.title" = "Replace custom sound?";
 "settings.preview_sound.overwrite.message" = "A custom sound is already loaded. Replace it with the new JSON file?";
 "settings.preview_sound.overwrite.confirm" = "Replace";
-"settings.pro.section_title" = "JPAD YEARLY";
+"settings.pro.section_title" = "TINYTONE YEARLY";
 "settings.pro.status_purchased" = "Purchased";
 "settings.pro.status_free" = "Not subscribed";
 "settings.pro.renewal_label" = "Renews";
@@ -170,7 +170,7 @@
 "settings.pad_out.external_in_use" = "Using external MIDI: %@";
 "settings.pad_out.garage_band" = "GarageBand";
 "settings.primary_pad_out.garage_band" = "GarageBand / MIDI";
-"settings.pad_out.garage_band.helper" = "Sends pad MIDI to GarageBand via the JPad virtual source. See Help for setup.";
+"settings.pad_out.garage_band.helper" = "Sends pad MIDI to GarageBand via the TinyTone virtual source. See Help for setup.";
 "settings.midi_out" = "MIDI OUT";
 "settings.pad_out.tiny_piano" = "TinyTone";
 "settings.pad_out.tiny_piano.subtitle" = "Built-in lightweight sound for checking notes and chords.";

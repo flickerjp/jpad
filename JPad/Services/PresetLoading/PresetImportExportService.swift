@@ -33,7 +33,7 @@ enum PresetImportExportService {
   private static let legacyFileSuffixes = [
     ".jpd", ".jch", ".jchord.zip", ".jchord.json", ".jchord", ".json", ".zip",
   ]
-  private static let legacyFileNamePrefix = "JPad."
+  private static let exportFileNamePrefixes = ["TinyTone.", "JPad."]
 
   static func makeExportEnvelope(slotName: String, origin: PresetSlotOrigin, preset: Preset) -> PresetExportEnvelope {
     PresetExportEnvelope(
@@ -122,9 +122,7 @@ enum PresetImportExportService {
       .replacingOccurrences(of: ":", with: "-")
       .trimmingCharacters(in: .whitespacesAndNewlines)
     var stem = sanitized
-    if stem.hasPrefix(legacyFileNamePrefix) {
-      stem = String(stem.dropFirst(legacyFileNamePrefix.count))
-    }
+    stem = droppingKnownFileNamePrefix(from: stem)
     if stem.isEmpty { stem = "Preset" }
     return "\(stem).\(fileExtension)"
   }
@@ -143,10 +141,15 @@ enum PresetImportExportService {
       .replacingOccurrences(of: ":", with: "-")
       .trimmingCharacters(in: .whitespacesAndNewlines)
     var stem = sanitized
-    if stem.hasPrefix(legacyFileNamePrefix) {
-      stem = String(stem.dropFirst(legacyFileNamePrefix.count))
-    }
+    stem = droppingKnownFileNamePrefix(from: stem)
     if stem.isEmpty { stem = "Preset" }
+    return stem
+  }
+
+  private static func droppingKnownFileNamePrefix(from stem: String) -> String {
+    for prefix in exportFileNamePrefixes where stem.hasPrefix(prefix) {
+      return String(stem.dropFirst(prefix.count))
+    }
     return stem
   }
 

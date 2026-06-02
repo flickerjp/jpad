@@ -2,13 +2,13 @@
   "createdAt": "2026-05-23T12:06:23Z",
   "engine": "TinyTone",
   "metadata": {
-    "author": "JPad Dev",
+    "author": "TinyTone Dev",
     "benchmarkHint": "",
-    "notes": "JPad factory TinySynth",
+    "notes": "TinyTone factory TinySynth",
     "source": "TinyToneTuner",
     "tags": [
       "factory",
-      "jpad"
+      "tinytone"
     ]
   },
   "parameters": {

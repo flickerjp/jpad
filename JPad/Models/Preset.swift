@@ -223,7 +223,7 @@ struct Preset: Decodable, Identifiable, Equatable {
             ?? "Untitled Preset"
         id = try container.decodeIfPresent(String.self, forKey: .id)
             ?? Self.slug(from: resolvedSetName)
-        appName = try container.decodeIfPresent(String.self, forKey: .appName) ?? "JPad"
+        appName = try container.decodeIfPresent(String.self, forKey: .appName) ?? "TinyTone"
         setName = resolvedSetName
         description = try container.decodeIfPresent(String.self, forKey: .description) ?? ""
         version = try container.decodeIfPresent(Int.self, forKey: .version) ?? 1
@@ -272,7 +272,7 @@ extension Preset {
     /// 新規スロット用（MY SETS の +）。各パッドに C2〜B2 の単音コードを割り当てる。
     static let blankUserSet = Preset(
         id: "blank",
-        appName: "JPad",
+        appName: "TinyTone",
         setName: "Untitled",
         description: "",
         version: 2,
@@ -304,7 +304,7 @@ extension Preset {
 
     static let fallback = Preset(
         id: "fallback",
-        appName: "JPad",
+        appName: "TinyTone",
         setName: "Preset",
         description: "",
         version: 1,

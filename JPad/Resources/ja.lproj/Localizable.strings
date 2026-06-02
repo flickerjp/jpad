@@ -59,17 +59,17 @@
 "jcstore.replace_title" = "Replace which set?";
 "alert.new_slot_success" = "New set created.";
 "alert.import_success" = "Import complete.";
-"alert.import_unsupported_file" = "JPad プリセット（.jpd など）ではありません。";
-"alert.share_requires_pro" = "この機能には JPad Pro が必要です。";
+"alert.import_unsupported_file" = "TinyTone プリセット（.jpd など）ではありません。";
+"alert.share_requires_pro" = "この機能には Pro が必要です。";
 "alert.share_requires_active_set" = "共有するには MY SETS でセットを選択してください。";
-"alert.duplicate_requires_pro" = "セットの複製には JPad Pro が必要です。";
+"alert.duplicate_requires_pro" = "セットの複製には Pro が必要です。";
 
-/* JPad Yearly */
+/* TinyTone Yearly */
 "pro.picker.purchase" = "アップグレード";
-"pro.picker.purchase.accessibility" = "JPad Yearly をアップグレード";
-"pro.upgrade.purchase_success" = "JPad Yearly が有効になりました。共有・取り込み・複製が使えます。";
-"pro.upgrade.title" = "JPad Yearly";
-"pro.upgrade.subtitle" = "保存枠の拡張、複製、セットの共有・取り込みが使えます。";
+"pro.picker.purchase.accessibility" = "TinyTone Yearly をアップグレード";
+"pro.upgrade.purchase_success" = "TinyTone Yearly が有効になりました。共有・取り込み・複製が使えます。";
+"pro.upgrade.title" = "TinyTone Yearly";
+"pro.upgrade.subtitle" = "TinyTone の保存枠拡張、複製、セットの共有・取り込みが使えます。";
 "pro.upgrade.annual_label" = "年額プラン";
 "pro.upgrade.annual_price" = "年額 %@";
 "pro.upgrade.trial_headline" = "%@無料";
@@ -82,7 +82,7 @@
 "pro.upgrade.purchase_button_trial" = "無料で試す";
 "pro.upgrade.purchase_button_no_price" = "登録する";
 "pro.upgrade.subscription_footnote" = "お支払いは Apple ID に請求されます。1 年ごとに自動更新されます。設定 › Apple ID › サブスクリプションで管理・解約できます。";
-"pro.upgrade.subscription_period" = "JPad Yearly — 1年間、自動更新";
+"pro.upgrade.subscription_period" = "TinyTone Yearly — 1年間、自動更新";
 "pro.upgrade.privacy_policy" = "プライバシーポリシー";
 "pro.upgrade.terms_of_use" = "利用規約";
 "pro.period.1day" = "1日間";
@@ -114,16 +114,16 @@
 "alert.no_saved_set" = "No saved pad set yet. Select My Stage and edit your pads.";
 
 /* Onboarding（日本語） */
-"onboarding.title" = "JPadへようこそ";
+"onboarding.title" = "TinyToneへようこそ";
 "onboarding.subtitle" = "TinyToneの内蔵音源ですぐに弾けます。音色とパッドの見た目は下で設定できます。";
 "help.garageband.title" = "GarageBandとつなぐには";
 "onboarding.garageband.title" = "GarageBand の設定";
 "onboarding.garageband.step1" = "GarageBand を開き、曲を新規作成するか、既存の曲を開きます。";
 "onboarding.garageband.step2" = "ソフトウェア楽器トラック（キーボード、シンセなど）を追加します。";
 "onboarding.garageband.step3" = "右上の歯車 →「詳細」→「バックグラウンドで実行」をオンにします。";
-"onboarding.garageband.step4" = "JPad に戻り、プリセットの下で GarageBand を選ぶか、PAD OUT から外部 MIDI 機器を選びます。";
+"onboarding.garageband.step4" = "TinyTone に戻り、プリセットの下で GarageBand を選ぶか、PAD OUT から外部 MIDI 機器を選びます。";
 "onboarding.garageband.step5" = "TEST NOTE を押し続け、GarageBand に MIDI が届くことを確認します。";
-"onboarding.continue" = "JPad をはじめる";
+"onboarding.continue" = "TinyTone をはじめる";
 "onboarding.close" = "閉じる";
 "onboarding.sound" = "SOUND";
 "onboarding.note" = "NOTE";
@@ -141,7 +141,7 @@
 "settings.preview_sound.overwrite.title" = "カスタム音色を置き換えますか？";
 "settings.preview_sound.overwrite.message" = "すでに読み込んだカスタム音色があります。新しい JSON で置き換えますか？";
 "settings.preview_sound.overwrite.confirm" = "置き換える";
-"settings.pro.section_title" = "JPAD 年額";
+"settings.pro.section_title" = "TINYTONE 年額";
 "settings.pro.status_purchased" = "購入済";
 "settings.pro.status_free" = "未購入";
 "settings.pro.renewal_label" = "次回更新";
@@ -161,7 +161,7 @@
 "settings.pad_out.external_in_use" = "外部 MIDI を使用中: %@";
 "settings.pad_out.garage_band" = "GarageBand";
 "settings.primary_pad_out.garage_band" = "GarageBand / MIDI";
-"settings.pad_out.garage_band.helper" = "JPad 仮想 MIDI ソース経由で GarageBand にパッド MIDI を送ります。接続手順はヘルプを参照してください。";
+"settings.pad_out.garage_band.helper" = "TinyTone 仮想 MIDI ソース経由で GarageBand にパッド MIDI を送ります。接続手順はヘルプを参照してください。";
 "settings.midi_out" = "MIDI OUT";
 "settings.pad_out.tiny_piano" = "TinyTone";
 "settings.pad_out.tiny_piano.subtitle" = "Built-in lightweight sound for checking notes and chords.";

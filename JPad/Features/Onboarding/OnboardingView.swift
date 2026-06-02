@@ -54,7 +54,7 @@ struct OnboardingView: View {
 
                     Spacer(minLength: 0)
 
-                    Text("JPad © 2026 FLICKER PRODUCT")
+                    Text("TinyTone © 2026 FLICKER PRODUCT")
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(JChordTheme.muted)
                         .padding(.bottom, 12)
@@ -123,7 +123,7 @@ struct OnboardingView: View {
         }
     }
 
-    /// ラベルの描画幅 + 余白（ウェルカムの「JPad をはじめる」等）
+    /// ラベルの描画幅 + 余白（ウェルカムの「TinyTone をはじめる」等）
     private static func buttonWidth(title: String, fontSize: CGFloat, extraWidth: CGFloat) -> CGFloat {
         let font = UIFont.systemFont(ofSize: fontSize, weight: .heavy)
         let textWidth = (title as NSString).size(withAttributes: [.font: font]).width

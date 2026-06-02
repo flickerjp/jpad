@@ -37,7 +37,7 @@ struct GarageBandHelpView: View {
                     .padding(.bottom, 12)
                 }
 
-                Text("JPad © 2026 FLICKER PRODUCT")
+                Text("TinyTone © 2026 FLICKER PRODUCT")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(JChordTheme.muted)
                     .multilineTextAlignment(.center)

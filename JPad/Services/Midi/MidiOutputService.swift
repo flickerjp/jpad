@@ -60,7 +60,7 @@ private final class MidiInputPortFactory: @unchecked Sendable {
         bridge: MidiNoteCaptureBridge,
         port: inout MIDIPortRef
     ) -> OSStatus {
-        MIDIInputPortCreateWithBlock(client, "JPad MIDI Input" as CFString, &port) { packetList, _ in
+        MIDIInputPortCreateWithBlock(client, "TinyTone MIDI Input" as CFString, &port) { packetList, _ in
             bridge.ingest(packetList: packetList)
         }
     }
@@ -79,7 +79,7 @@ final class MidiOutputService: ObservableObject {
     @Published private(set) var outputRoute: MidiOutputRoute = .tinyPiano
     /// 内蔵プレビュー音源が実際に動作中（設定 UI の Active 表示用）。
     @Published private(set) var isInternalPreviewReady = false
-    /// GarageBand ルートで JPad 仮想 MIDI ソースが利用可能（PAD OUT の Active 表示用）。
+    /// GarageBand ルートで TinyTone 仮想 MIDI ソースが利用可能（PAD OUT の Active 表示用）。
     @Published private(set) var isGarageBandRouteReady = false
     @Published private(set) var garageBandDiagnosticDescription = "GB source not checked"
     @Published private(set) var lastMidiEventDescription = "—"
@@ -114,7 +114,7 @@ final class MidiOutputService: ObservableObject {
     private var shouldResumePreviewEngineAfterBackground = false
     private let previewEngine: any InternalPreviewSynth = TinyToneEngine()
 
-    private static let virtualSourceName = "JPad"
+    private static let virtualSourceName = "TinyTone"
     /// CoreMIDI 端末 ID と衝突しない内蔵 PAD OUT 用の固定 ID。
     static let tinyPianoUniqueID: MIDIUniqueID = 2_130_741_505
     /// CoreMIDI 端末 ID と衝突しない GarageBand ルート用の固定 ID。
@@ -1632,12 +1632,12 @@ final class MidiOutputService: ObservableObject {
 
     private func unavailableSourceDescription() -> String {
         if lastVirtualSourceError == kMIDINotPermitted {
-            return "MIDI not permitted — open JPad once, then GarageBand"
+            return "MIDI not permitted — open TinyTone once, then GarageBand"
         }
         if midiClient == 0 {
             return "MIDI client unavailable (\(lastVirtualSourceError))"
         }
-        return "JPad MIDI source unavailable (\(lastVirtualSourceError))"
+        return "TinyTone MIDI source unavailable (\(lastVirtualSourceError))"
     }
 
     private func midiErrorDescription(_ status: OSStatus) -> String {
@@ -1788,7 +1788,7 @@ final class MidiOutputService: ObservableObject {
 
     private func createMidiClientIfNeeded() {
         guard midiClient == 0 else { return }
-        let status = MIDIClientCreateWithBlock("JPad MIDI Client" as CFString, &midiClient) { [weak self] notification in
+        let status = MIDIClientCreateWithBlock("TinyTone MIDI Client" as CFString, &midiClient) { [weak self] notification in
             switch notification.pointee.messageID {
             case .msgSetupChanged, .msgObjectAdded, .msgObjectRemoved:
                 Task { @MainActor [weak self] in
@@ -1806,7 +1806,7 @@ final class MidiOutputService: ObservableObject {
 
     private func createOutputPortIfNeeded() {
         guard outputPort == 0 else { return }
-        MIDIOutputPortCreate(midiClient, "JPad Output Port" as CFString, &outputPort)
+        MIDIOutputPortCreate(midiClient, "TinyTone Output Port" as CFString, &outputPort)
     }
 
     private func createInputPortIfNeeded() {

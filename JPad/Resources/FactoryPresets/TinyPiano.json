@@ -2,13 +2,13 @@
   "createdAt": "2026-05-23T09:56:26Z",
   "engine": "TinyTone",
   "metadata": {
-    "author": "JPad Dev",
+    "author": "TinyTone Dev",
     "benchmarkHint": "Safe reference",
-    "notes": "JPad factory TinyTone derived from TinyPianoEngine.swift",
+    "notes": "TinyTone factory TinyTone derived from TinyPianoEngine.swift",
     "source": "TinyToneTuner",
     "tags": [
       "factory",
-      "jpad"
+      "tinytone"
     ]
   },
   "parameters": {
