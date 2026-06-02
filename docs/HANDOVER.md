@@ -800,3 +800,13 @@
 
 **参照:** `git show 3a6bd06` / `git log -1 3a6bd06`
 
+
+<!-- handover:auto:d4cd9f6a6ebfad4863efb445fb5a1a23d607b8a3 -->
+### 2026-06-02 18:04:32 +0900 — `d4cd9f6` — main
+
+**件名:** Rebrand JPad to TinyTone
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show d4cd9f6` / `git log -1 d4cd9f6`
+
