@@ -820,3 +820,13 @@
 
 **参照:** `git show 2ada145` / `git log -1 2ada145`
 
+
+<!-- handover:auto:90f7fa6506984270a2eac568150e627aa6e39acf -->
+### 2026-06-04 22:29:19 +0900 — `90f7fa6` — main
+
+**件名:** Bump build to 131; fix TinyToneCore package path in SPM script
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 90f7fa6` / `git log -1 90f7fa6`
+
