@@ -48,7 +48,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.flickerproduct.jchord
         PRODUCT_NAME: TinyTone
         MARKETING_VERSION: 1.2.01
-        CURRENT_PROJECT_VERSION: 130
+        CURRENT_PROJECT_VERSION: 131
         SWIFT_VERSION: 6.0
         DEVELOPMENT_TEAM: G942ZU3CGC
         CODE_SIGN_STYLE: Automatic
