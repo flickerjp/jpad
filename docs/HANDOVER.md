@@ -840,3 +840,13 @@
 
 **参照:** `git show 3984603` / `git log -1 3984603`
 
+
+<!-- handover:auto:d6bbbf79bd2faa871af43b1fae676fee6b49fa89 -->
+### 2026-06-05 05:31:32 +0900 — `d6bbbf7` — main
+
+**件名:** Bump version to 1.2.2 (build 132)
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show d6bbbf7` / `git log -1 d6bbbf7`
+
