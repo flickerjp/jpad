@@ -810,3 +810,13 @@
 
 **参照:** `git show d4cd9f6` / `git log -1 d4cd9f6`
 
+
+<!-- handover:auto:2ada145d499ccf3c7e1474ef80d2d7d5c9ad6e03 -->
+### 2026-06-04 22:28:12 +0900 — `2ada145` — main
+
+**件名:** Fix App Store rejection and update TinyToneEngine to new sound source
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 2ada145` / `git log -1 2ada145`
+
