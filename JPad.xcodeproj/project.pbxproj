@@ -161,6 +161,7 @@
 		5BFE4B8CC9C6BB870A2E0844 /* UserPresetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPresetStore.swift; sourceTree = "<group>"; };
 		5C10CE734DF72E9441574D5D /* PresetRotationSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetRotationSettings.swift; sourceTree = "<group>"; };
 		5D10B96C1FA5CA86B57C4365 /* PresetPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetPickerView.swift; sourceTree = "<group>"; };
+		5D38E6A4BC2DFA8AE0562E73 /* TinyToneCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TinyToneCore; path = ../ToneEditor/Packages/TinyToneCore; sourceTree = SOURCE_ROOT; };
 		5DA54B87A79EF90D6799EF4D /* InternalPreviewSynth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalPreviewSynth.swift; sourceTree = "<group>"; };
 		5DFD61D63D6171B2C97FF900 /* JcstoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JcstoreService.swift; sourceTree = "<group>"; };
 		5E8E7B0A14201E6571CCDC89 /* AirDropSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropSheet.swift; sourceTree = "<group>"; };
@@ -397,13 +398,22 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
+		830EAE34A3AF52C21ED0E906 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				5D38E6A4BC2DFA8AE0562E73 /* TinyToneCore */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
 		8AA5E825C5DCFA7CD0CD9406 = {
 			isa = PBXGroup;
 			children = (
 				4C730F0812F9EFEE34279AE7 /* PresetBundles */,
 				235BF3814B481234CEC129CC /* FactoryPresets */,
 				6D69DB639F072DBA4867734A /* JPad */,
-						16D5EB6DFD1D5E76DA92AC34 /* Resources */,
+				830EAE34A3AF52C21ED0E906 /* Packages */,
+				16D5EB6DFD1D5E76DA92AC34 /* Resources */,
 				8D7C3F42799DBA0B5882BB52 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -604,7 +614,7 @@
 			mainGroup = 8AA5E825C5DCFA7CD0CD9406;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				7E42395BE12014EF2F7DAB5B /* XCLocalSwiftPackageReference "../tinytone/Packages/TinyToneCore" */,
+				B00E070AE198A6B1D2721320 /* XCLocalSwiftPackageReference "../ToneEditor/Packages/TinyToneCore" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8D7C3F42799DBA0B5882BB52 /* Products */;
@@ -955,16 +965,15 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		7E42395BE12014EF2F7DAB5B /* XCLocalSwiftPackageReference "../tinytone/Packages/TinyToneCore" */ = {
+		B00E070AE198A6B1D2721320 /* XCLocalSwiftPackageReference "../ToneEditor/Packages/TinyToneCore" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../tinytone/Packages/TinyToneCore;
+			relativePath = ../ToneEditor/Packages/TinyToneCore;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		39B901804BD009599147614C /* TinyToneCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 7E42395BE12014EF2F7DAB5B /* XCLocalSwiftPackageReference "../tinytone/Packages/TinyToneCore" */;
 			productName = TinyToneCore;
 		};
 /* End XCSwiftPackageProductDependency section */

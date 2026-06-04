@@ -13,7 +13,7 @@ options:
 
 packages:
   TinyToneCore:
-    path: ../tinytone/Packages/TinyToneCore
+    path: ../ToneEditor/Packages/TinyToneCore
 
 targets:
   JPad:

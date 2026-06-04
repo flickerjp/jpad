@@ -33,4 +33,7 @@ protocol InternalPreviewSynth: AnyObject, Sendable {
     func allNotesOff()
     func setPreviewLevel(_ level: Float)
     func loadSoundPatch(from data: Data) throws
+    func prepareSoundPatch(from data: Data) throws
+    func updatePatch(_ patch: TinyTonePatch)
+    func resetRenderMetrics()
 }

@@ -1245,10 +1245,8 @@ final class MidiOutputService: ObservableObject {
         if startEngineIfNeeded, outputRoute == .tinyPiano {
             try previewEngine.loadSoundPatch(from: data)
             previewEngine.allNotesOff()
-        } else if let tinyEngine = previewEngine as? TinyToneEngine {
-            try tinyEngine.prepareSoundPatch(from: data)
         } else {
-            try previewEngine.loadSoundPatch(from: data)
+            try previewEngine.prepareSoundPatch(from: data)
         }
     }
 
