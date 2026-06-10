@@ -99,6 +99,9 @@ final class MainViewModel: ObservableObject {
         sequencerEngine.stepInterval = { [weak self] in
             self?.currentStepInterval ?? 0.125
         }
+        sequencerEngine.seqGate = { [weak self] in
+            self?.seqSettings.gate ?? 0.5
+        }
         clockReceiver.setEnabled(isExternalClockStored)
     }
 
@@ -843,7 +846,11 @@ final class MainViewModel: ObservableObject {
 
     func selectSeqSlot(_ index: Int) {
         var updated = preset.sequencerSettings
-        updated.seq = PresetSeqSettings(slots: updated.seq.slots, selectedSlotIndex: index)
+        updated.seq = PresetSeqSettings(
+            slots: updated.seq.slots,
+            selectedSlotIndex: index,
+            gate: updated.seq.gate
+        )
         applySequencerSettings(updated)
         if sequencerEngine.isSeqPlaying {
             sequencerEngine.replaceSeqEvents(resolvedSeqEvents())
@@ -878,6 +885,16 @@ final class MainViewModel: ObservableObject {
         sequencerEngine.stopSeq()
         var updated = preset.sequencerSettings
         updated.seq = updated.seq.replacingSelectedSlot(SeqPatternSlot())
+        applySequencerSettings(updated)
+    }
+
+    func updateSeqGate(_ gate: Double) {
+        var updated = preset.sequencerSettings
+        updated.seq = PresetSeqSettings(
+            slots: updated.seq.slots,
+            selectedSlotIndex: updated.seq.selectedSlotIndex,
+            gate: gate
+        )
         applySequencerSettings(updated)
     }
 

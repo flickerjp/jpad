@@ -181,25 +181,30 @@ struct SeqPatternSlot: Codable, Equatable {
 
 struct PresetSeqSettings: Codable, Equatable {
     static let slotCount = 4
+    static let gateRange: ClosedRange<Double> = 0.05 ... 1.0
     static let `default` = PresetSeqSettings()
 
     var slots: [SeqPatternSlot]
     var selectedSlotIndex: Int
+    /// 1 ステップ長に対する発音長の割合。短めにすると連打が詰まりにくい。
+    var gate: Double
 
-    init(slots: [SeqPatternSlot] = [], selectedSlotIndex: Int = 0) {
+    init(slots: [SeqPatternSlot] = [], selectedSlotIndex: Int = 0, gate: Double = 0.5) {
         self.slots = Self.normalizedSlots(slots)
         self.selectedSlotIndex = max(0, min(selectedSlotIndex, Self.slotCount - 1))
+        self.gate = Self.gateRange.clampValue(gate)
     }
 
     enum CodingKeys: String, CodingKey {
-        case slots, selectedSlotIndex
+        case slots, selectedSlotIndex, gate
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let slots = try container.decodeIfPresent([SeqPatternSlot].self, forKey: .slots) ?? []
         let index = try container.decodeIfPresent(Int.self, forKey: .selectedSlotIndex) ?? 0
-        self.init(slots: slots, selectedSlotIndex: index)
+        let gate = try container.decodeIfPresent(Double.self, forKey: .gate) ?? 0.5
+        self.init(slots: slots, selectedSlotIndex: index, gate: gate)
     }
 
     var selectedSlot: SeqPatternSlot {
@@ -211,7 +216,11 @@ struct PresetSeqSettings: Codable, Equatable {
         var updated = slots
         guard updated.indices.contains(selectedSlotIndex) else { return self }
         updated[selectedSlotIndex] = slot
-        return PresetSeqSettings(slots: updated, selectedSlotIndex: selectedSlotIndex)
+        return PresetSeqSettings(slots: updated, selectedSlotIndex: selectedSlotIndex, gate: gate)
+    }
+
+    func updatingGate(_ gate: Double) -> PresetSeqSettings {
+        PresetSeqSettings(slots: slots, selectedSlotIndex: selectedSlotIndex, gate: gate)
     }
 
     private static func normalizedSlots(_ raw: [SeqPatternSlot]) -> [SeqPatternSlot] {

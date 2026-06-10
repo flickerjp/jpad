@@ -113,6 +113,8 @@ final class PadSequencerEngine: ObservableObject {
     var noteOff: (UInt8) -> Void = { _ in }
     /// 16 分音符 1 個ぶんの秒数。内部 BPM / MIDI Clock 追従の解決は呼び出し側が行う。
     var stepInterval: () -> TimeInterval = { 0.125 }
+    /// SEQ のゲート長。短いほど連打時に音が詰まりにくい。
+    var seqGate: () -> Double = { 0.5 }
 
     // MARK: - ARP
 
@@ -146,12 +148,14 @@ final class PadSequencerEngine: ObservableObject {
 
     private func scheduleNextArpStep(after reference: ContinuousClock.Instant, generation: Int) {
         let deadline = reference.advanced(by: .seconds(stepInterval()))
-        Task { @MainActor [weak self] in
+        Task.detached(priority: .userInitiated) { [weak self] in
             try? await Task.sleep(until: deadline, clock: .continuous)
-            guard let self, generation == self.arpGeneration else { return }
-            self.arpStepIndex = (self.arpStepIndex + 1) % ArpPatternSlot.stepCount
-            self.fireArpStep()
-            self.scheduleNextArpStep(after: deadline, generation: generation)
+            await MainActor.run {
+                guard let self, generation == self.arpGeneration else { return }
+                self.arpStepIndex = (self.arpStepIndex + 1) % ArpPatternSlot.stepCount
+                self.fireArpStep()
+                self.scheduleNextArpStep(after: deadline, generation: generation)
+            }
         }
     }
 
@@ -183,9 +187,6 @@ final class PadSequencerEngine: ObservableObject {
     private var seqRawStepCount = 0
     private var seqEventIndex = 0
     private var seqGeneration = 0
-
-    /// SEQ で通常 1 ステップに使うゲート比。TIE 分は丸ごと加算される。
-    private static let seqGateRatio = 0.8
 
     func startSeq(events: [SeqPlaybackEvent]) {
         stopSeq()
@@ -221,12 +222,14 @@ final class PadSequencerEngine: ObservableObject {
         guard seqEvents.indices.contains(seqEventIndex) else { return }
         let currentLength = seqEvents[seqEventIndex].stepLength
         let deadline = reference.advanced(by: .seconds(stepInterval() * Double(currentLength)))
-        Task { @MainActor [weak self] in
+        Task.detached(priority: .userInitiated) { [weak self] in
             try? await Task.sleep(until: deadline, clock: .continuous)
-            guard let self, generation == self.seqGeneration else { return }
-            self.advanceSeq()
-            self.fireSeqEvent()
-            self.scheduleNextSeqEvent(after: deadline, generation: generation)
+            await MainActor.run {
+                guard let self, generation == self.seqGeneration else { return }
+                self.advanceSeq()
+                self.fireSeqEvent()
+                self.scheduleNextSeqEvent(after: deadline, generation: generation)
+            }
         }
     }
 
@@ -246,7 +249,7 @@ final class PadSequencerEngine: ObservableObject {
         guard !event.notes.isEmpty else { return }
 
         let interval = stepInterval()
-        let duration = max(0.01, interval * (Double(event.stepLength - 1) + Self.seqGateRatio))
+        let duration = max(0.01, interval * (Double(event.stepLength - 1) + seqGate()))
         playGatedNotes(event.notes, duration: duration, generation: seqGeneration, isArp: false)
     }
 
@@ -276,13 +279,15 @@ final class PadSequencerEngine: ObservableObject {
             }
         }
 
-        Task { @MainActor [weak self] in
+        Task.detached(priority: .userInitiated) { [weak self, notes, duration, generation, isArp] in
             try? await Task.sleep(for: .seconds(duration))
-            guard let self else { return }
-            let stillRunning = isArp ? generation == self.arpGeneration : generation == self.seqGeneration
-            guard stillRunning else { return }
-            for note in notes {
-                self.releaseOne(note: note, isArp: isArp)
+            await MainActor.run {
+                guard let self else { return }
+                let stillRunning = isArp ? generation == self.arpGeneration : generation == self.seqGeneration
+                guard stillRunning else { return }
+                for note in notes {
+                    self.releaseOne(note: note, isArp: isArp)
+                }
             }
         }
     }

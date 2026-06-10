@@ -58,6 +58,10 @@ struct ArpControlRows: View {
         max(40, layout.noteOffHeight * 0.62)
     }
 
+    private var controlButtonWidth: CGFloat {
+        floor(layout.gridWidth * 0.24)
+    }
+
     var body: some View {
         VStack(spacing: 10) {
             HStack(spacing: layout.gridSpacing) {
@@ -80,7 +84,7 @@ struct ArpControlRows: View {
                     title: L10n.string("main.arp.on"),
                     style: .accentToggle,
                     isOn: viewModel.isArpPerformanceOn,
-                    width: floor(layout.gridWidth * 0.24),
+                    width: controlButtonWidth,
                     height: max(32, layout.noteOffHeight * 0.52),
                     action: { viewModel.toggleArpPerformance() }
                 )
@@ -92,7 +96,7 @@ struct ArpControlRows: View {
                 JPadChromeDockButton(
                     title: L10n.string("main.arp.edit"),
                     style: .outline,
-                    width: floor(layout.gridWidth * 0.24),
+                    width: controlButtonWidth,
                     height: max(32, layout.noteOffHeight * 0.52),
                     action: { viewModel.presentArpEditor() }
                 )
@@ -116,6 +120,10 @@ struct SeqControlRows: View {
         max(32, layout.noteOffHeight * 0.5)
     }
 
+    private var dialWidth: CGFloat {
+        76
+    }
+
     var body: some View {
         VStack(spacing: 8) {
             HStack(spacing: layout.gridSpacing) {
@@ -130,9 +138,29 @@ struct SeqControlRows: View {
                         action: { viewModel.selectSeqSlot(index) }
                     )
                 }
+            }
+            .frame(width: layout.gridWidth)
+
+            HStack(spacing: layout.gridSpacing) {
+                Color.clear
+                    .frame(width: dialWidth, height: max(32, layout.noteOffHeight * 0.5))
 
                 SequencerBpmLabel(text: viewModel.displayBpmText, isExternal: viewModel.isExternalClockEnabled)
                     .frame(maxWidth: .infinity, alignment: .center)
+
+                VStack(spacing: 1) {
+                    SequencerFieldLabel(text: L10n.string("main.seq.gate"))
+                    JChordValueWheelPicker(
+                        values: Array(stride(from: 100, through: 5, by: -1)),
+                        value: Binding(
+                            get: { Int((viewModel.seqSettings.gate * 100).rounded()) },
+                            set: { viewModel.updateSeqGate(Double($0) / 100) }
+                        ),
+                        width: dialWidth,
+                        height: max(32, layout.noteOffHeight * 0.5),
+                        displayText: { "\($0)%" }
+                    )
+                }
             }
             .frame(width: layout.gridWidth)
 
@@ -293,11 +321,25 @@ struct SequencerBpmLabel: View {
     }
 }
 
+struct SequencerFieldLabel: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 13, weight: .heavy))
+            .foregroundStyle(JChordTheme.muted)
+    }
+}
+
 // MARK: - 横表示パネル (スロット選択は横でも可能)
 
 struct ArpLandscapePanel: View {
     @ObservedObject var viewModel: MainViewModel
     let layout: JChordPadLayout
+
+    private var controlButtonWidth: CGFloat {
+        layout.landscapeControlPanelWidth
+    }
 
     var body: some View {
         VStack(spacing: layout.gridSpacing) {
@@ -318,7 +360,7 @@ struct ArpLandscapePanel: View {
                 style: .accentToggle,
                 isOn: viewModel.isArpPerformanceOn,
                 fontSize: 13,
-                width: layout.landscapeControlPanelWidth,
+                width: controlButtonWidth,
                 height: 34,
                 action: { viewModel.toggleArpPerformance() }
             )
@@ -334,6 +376,10 @@ struct SeqLandscapePanel: View {
     @ObservedObject var viewModel: MainViewModel
     let layout: JChordPadLayout
 
+    private var dialWidth: CGFloat {
+        min(78, layout.landscapeControlPanelWidth)
+    }
+
     var body: some View {
         VStack(spacing: layout.gridSpacing) {
             ForEach(0 ..< PresetSeqSettings.slotCount, id: \.self) { index in
@@ -345,6 +391,22 @@ struct SeqLandscapePanel: View {
                     height: 44,
                     cornerRadius: 10,
                     action: { viewModel.selectSeqSlot(index) }
+                )
+            }
+
+            SequencerBpmLabel(text: viewModel.displayBpmText, isExternal: viewModel.isExternalClockEnabled)
+
+            VStack(spacing: 1) {
+                SequencerFieldLabel(text: L10n.string("main.seq.gate"))
+                JChordValueWheelPicker(
+                    values: Array(stride(from: 100, through: 5, by: -1)),
+                    value: Binding(
+                        get: { Int((viewModel.seqSettings.gate * 100).rounded()) },
+                        set: { viewModel.updateSeqGate(Double($0) / 100) }
+                    ),
+                    width: dialWidth,
+                    height: 34,
+                    displayText: { "\($0)%" }
                 )
             }
 
@@ -360,8 +422,6 @@ struct SeqLandscapePanel: View {
                 action: { viewModel.toggleSeqPlayback() }
             )
             .jChordGentlePulse(viewModel.sequencerEngine.isSeqPlaying)
-
-            SequencerBpmLabel(text: viewModel.displayBpmText, isExternal: viewModel.isExternalClockEnabled)
         }
         .frame(maxHeight: .infinity, alignment: .top)
     }

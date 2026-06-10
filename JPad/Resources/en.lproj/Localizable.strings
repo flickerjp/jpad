@@ -32,6 +32,7 @@
 "main.seq.rest" = "REST";
 "main.seq.delete" = "DEL";
 "main.seq.clear" = "CLR";
+"main.seq.gate" = "GATE";
 "main.midi_out.active.accessibility" = "MIDI output connected";
 "main.midi_out.inactive.accessibility" = "MIDI output not connected";
 "main.edit_pad_notes.accessibility" = "Edit input notes";
