@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MidiSettingsView: View {
     @ObservedObject var midiService: MidiOutputService
+    var onClockSourceChanged: ((Bool) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @StateObject private var proPurchaseService = ProPurchaseService()
     @AppStorage(ProPurchaseService.purchasedAppStorageKey) private var hasPresetSavePurchased = false
@@ -30,7 +31,8 @@ struct MidiSettingsView: View {
                         proMembershipStatus: proMembershipStatus,
                         onProPurchaseTap: proMembershipStatus.isActive ? nil : { isShowingProUpgrade = true },
                         compactPanelMaxWidth: compactPanelMaxWidth,
-                        availableContentWidth: contentWidth
+                        availableContentWidth: contentWidth,
+                        onClockSourceChanged: onClockSourceChanged
                     )
                     .padding(.horizontal, outerHorizontalPadding)
                     .padding(.top, 52)

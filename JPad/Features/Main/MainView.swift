@@ -148,8 +148,11 @@ struct MainView: View {
             }
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $viewModel.isShowingSettings) {
-                MidiSettingsView(midiService: viewModel.midiService)
-                    .presentationCornerRadius(18)
+                MidiSettingsView(
+                    midiService: viewModel.midiService,
+                    onClockSourceChanged: { viewModel.setExternalClockEnabled($0) }
+                )
+                .presentationCornerRadius(18)
             }
             .sheet(isPresented: $viewModel.isShowingPresetRename) {
                 PresetRenameSheet(
@@ -175,6 +178,11 @@ struct MainView: View {
             .overlay {
                 if viewModel.notesEditorViewModel != nil {
                     MainPadNotesEditorOverlay(viewModel: viewModel)
+                }
+            }
+            .overlay {
+                if viewModel.isShowingArpEditor {
+                    ArpPatternEditorOverlay(viewModel: viewModel)
                 }
             }
             .alert(L10n.string("alert.preset_load_error"), isPresented: $viewModel.isShowingPresetError, actions: {
@@ -1034,6 +1042,10 @@ struct MainView: View {
                     landscapeSliderPanel(layout: layout)
                 case .transpose:
                     landscapeTransposePresetColumn(layout: layout)
+                case .arp:
+                    ArpLandscapePanel(viewModel: viewModel, layout: layout)
+                case .seq:
+                    SeqLandscapePanel(viewModel: viewModel, layout: layout)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -1113,6 +1125,10 @@ struct MainView: View {
                     transposePresetSelectorRow(layout: layout)
                     transposeValueWheelRow(layout: layout)
                 }
+            case .arp:
+                ArpControlRows(viewModel: viewModel, layout: layout)
+            case .seq:
+                SeqControlRows(viewModel: viewModel, layout: layout)
             }
         }
     }
@@ -1305,6 +1321,22 @@ struct MainView: View {
                 layout: layout
             ) {
                 viewModel.updatePadControlMode(.transpose)
+            }
+
+            padControlModeRadioButton(
+                title: L10n.string("main.controls.arp"),
+                isSelected: viewModel.padControlMode == .arp,
+                layout: layout
+            ) {
+                viewModel.updatePadControlMode(.arp)
+            }
+
+            padControlModeRadioButton(
+                title: L10n.string("main.controls.seq"),
+                isSelected: viewModel.padControlMode == .seq,
+                layout: layout
+            ) {
+                viewModel.updatePadControlMode(.seq)
             }
 
             Spacer(minLength: 0)

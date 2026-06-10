@@ -3,6 +3,14 @@ import Foundation
 enum PresetPadControlMode: String, Codable, CaseIterable {
     case sliders
     case transpose
+    case arp
+    case seq
+
+    /// 未知のモード値は sliders 扱いにして古い/新しい preset の取り込みを壊さない。
+    init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = PresetPadControlMode(rawValue: raw) ?? .sliders
+    }
 }
 
 struct PresetShiftMemory: Codable, Equatable {
@@ -180,12 +188,13 @@ struct Preset: Decodable, Identifiable, Equatable {
     let defaultVelocity: UInt8
     let defaultExpression: UInt8
     let transposeSettings: PresetControlSettings
+    let sequencerSettings: PresetSequencerSettings
     let pads: [PadDefinition]
 
     var name: String { setName }
 
     enum CodingKeys: String, CodingKey {
-        case id, appName, setName, name, description, version, defaultPlaybackMode, autoBassOctave, defaultChannel, defaultExpression, defaultVelocity, transposeSettings, pads
+        case id, appName, setName, name, description, version, defaultPlaybackMode, autoBassOctave, defaultChannel, defaultExpression, defaultVelocity, transposeSettings, sequencerSettings, pads
     }
 
     init(
@@ -200,6 +209,7 @@ struct Preset: Decodable, Identifiable, Equatable {
         defaultVelocity: UInt8,
         defaultExpression: UInt8,
         transposeSettings: PresetControlSettings = .default,
+        sequencerSettings: PresetSequencerSettings = .default,
         pads: [PadDefinition]
     ) {
         self.id = id
@@ -213,6 +223,7 @@ struct Preset: Decodable, Identifiable, Equatable {
         self.defaultVelocity = defaultVelocity
         self.defaultExpression = defaultExpression
         self.transposeSettings = transposeSettings
+        self.sequencerSettings = sequencerSettings
         self.pads = pads
     }
 
@@ -234,6 +245,7 @@ struct Preset: Decodable, Identifiable, Equatable {
         defaultVelocity = resolvedVelocity
         defaultExpression = try container.decodeIfPresent(UInt8.self, forKey: .defaultExpression) ?? 100
         transposeSettings = try container.decodeIfPresent(PresetControlSettings.self, forKey: .transposeSettings) ?? .default
+        sequencerSettings = try container.decodeIfPresent(PresetSequencerSettings.self, forKey: .sequencerSettings) ?? .default
         pads = try container.decode([PadDefinition].self, forKey: .pads)
     }
 

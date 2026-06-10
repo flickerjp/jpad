@@ -30,6 +30,7 @@ extension Preset: Encodable {
         try container.encode(defaultVelocity, forKey: .defaultVelocity)
         try container.encode(defaultExpression, forKey: .defaultExpression)
         try container.encode(transposeSettings, forKey: .transposeSettings)
+        try container.encode(sequencerSettings, forKey: .sequencerSettings)
         try container.encode(pads, forKey: .pads)
     }
 }

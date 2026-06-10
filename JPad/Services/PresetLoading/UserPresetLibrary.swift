@@ -241,6 +241,7 @@ enum UserPresetLibrary {
       defaultVelocity: blank.defaultVelocity,
       defaultExpression: blank.defaultExpression,
       transposeSettings: blank.transposeSettings,
+      sequencerSettings: blank.sequencerSettings,
       pads: blank.pads
     )
     return try createSlot(
@@ -274,6 +275,7 @@ enum UserPresetLibrary {
       defaultVelocity: copied.defaultVelocity,
       defaultExpression: copied.defaultExpression,
       transposeSettings: copied.transposeSettings,
+      sequencerSettings: copied.sequencerSettings,
       pads: copied.pads
     )
     return try createSlot(

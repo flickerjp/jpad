@@ -37,6 +37,12 @@ final class MainViewModel: ObservableObject {
     @AppStorage(ProPurchaseService.purchasedAppStorageKey) var hasPresetSavePurchased = false
     @AppStorage(PresetRotationSettings.useAllSlotsKey) var rotationUseAllSlots = true
     @AppStorage(PresetRotationSettings.slotIDsKey) private var rotationSlotIDsStorage = ""
+    @AppStorage(MidiClockReceiver.tempoSourceStorageKey) private var isExternalClockStored = false
+
+    // ARP / SEQ の演奏中トグル（セットには保存しない）
+    @Published var isArpPerformanceOn = false
+    @Published var isSeqRecording = false
+    @Published var isShowingArpEditor = false
 
     private var holdLatchedPadID: Int?
     private var pendingTransposeSemitones: Int?
@@ -47,6 +53,8 @@ final class MainViewModel: ObservableObject {
     private var jcstoreManifest: JcstoreManifest?
 
     let midiService: MidiOutputService
+    let sequencerEngine = PadSequencerEngine()
+    let clockReceiver = MidiClockReceiver()
 
     private let presetLoader: PresetLoader
     private var cancellables = Set<AnyCancellable>()
@@ -67,6 +75,31 @@ final class MainViewModel: ObservableObject {
                 self?.objectWillChange.send()
             }
             .store(in: &cancellables)
+
+        sequencerEngine.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        clockReceiver.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        sequencerEngine.noteOn = { [weak self] note in
+            self?.midiService.sendPreviewNoteOn(note)
+        }
+        sequencerEngine.noteOff = { [weak self] note in
+            self?.midiService.sendPreviewNoteOff(note)
+        }
+        sequencerEngine.stepInterval = { [weak self] in
+            self?.currentStepInterval ?? 0.125
+        }
+        clockReceiver.setEnabled(isExternalClockStored)
     }
 
     var entitlement: Entitlement {
@@ -672,8 +705,254 @@ final class MainViewModel: ObservableObject {
     }
 
     func updatePadControlMode(_ mode: PresetPadControlMode) {
+        if mode != padControlMode {
+            sequencerEngine.stopAll()
+            isSeqRecording = false
+            isShowingArpEditor = false
+        }
         let updated = preset.transposeSettings.selectingPadControlMode(mode)
         applyControlSettings(updated)
+    }
+
+    // MARK: - ARP / SEQ
+
+    var sequencerSettings: PresetSequencerSettings {
+        preset.sequencerSettings
+    }
+
+    var arpSettings: PresetArpSettings {
+        preset.sequencerSettings.arp
+    }
+
+    var seqSettings: PresetSeqSettings {
+        preset.sequencerSettings.seq
+    }
+
+    var isExternalClockEnabled: Bool {
+        isExternalClockStored
+    }
+
+    /// 表示用テンポ。外部クロック追従中は推定 BPM、未受信なら内部 BPM。
+    var displayBpmText: String {
+        if isExternalClockEnabled {
+            if let external = clockReceiver.estimatedBpm {
+                return String(format: "%.0f", external)
+            }
+            return "EXT"
+        }
+        return String(format: "%.0f", sequencerSettings.bpm)
+    }
+
+    private var currentStepInterval: TimeInterval {
+        let bpm: Double
+        if isExternalClockStored, let external = clockReceiver.estimatedBpm {
+            bpm = external
+        } else {
+            bpm = preset.sequencerSettings.bpm
+        }
+        let clamped = PresetSequencerSettings.bpmRange.contains(bpm)
+            ? bpm
+            : min(max(bpm, 20), 400)
+        return 60.0 / clamped / 4.0
+    }
+
+    func setExternalClockEnabled(_ enabled: Bool) {
+        isExternalClockStored = enabled
+        clockReceiver.setEnabled(enabled)
+    }
+
+    func updateSequencerBpm(_ bpm: Double) {
+        var updated = preset.sequencerSettings
+        updated = PresetSequencerSettings(bpm: bpm, arp: updated.arp, seq: updated.seq)
+        applySequencerSettings(updated)
+    }
+
+    func toggleArpPerformance() {
+        if isArpPerformanceOn {
+            isArpPerformanceOn = false
+            sequencerEngine.stopArp()
+        } else {
+            sendAllNotesOff()
+            isArpPerformanceOn = true
+        }
+    }
+
+    func selectArpSlot(_ index: Int) {
+        var updated = preset.sequencerSettings
+        updated.arp = PresetArpSettings(
+            slots: updated.arp.slots,
+            selectedSlotIndex: index,
+            baseKey: updated.arp.baseKey
+        )
+        applySequencerSettings(updated)
+        if sequencerEngine.arpActivePadID != nil {
+            sequencerEngine.updateArpPattern(updated.arp.selectedSlot)
+        }
+    }
+
+    func toggleArpStep(voice: Int, step: Int) {
+        var updated = preset.sequencerSettings
+        updated.arp = updated.arp.replacingSelectedSlot(
+            updated.arp.selectedSlot.toggling(voice: voice, step: step)
+        )
+        applySequencerSettings(updated)
+        if sequencerEngine.arpActivePadID != nil {
+            sequencerEngine.updateArpPattern(updated.arp.selectedSlot)
+        }
+    }
+
+    func updateArpGate(_ gate: Double) {
+        var updated = preset.sequencerSettings
+        var slot = updated.arp.selectedSlot
+        slot = ArpPatternSlot(steps: slot.steps, gate: gate)
+        updated.arp = updated.arp.replacingSelectedSlot(slot)
+        applySequencerSettings(updated)
+        if sequencerEngine.arpActivePadID != nil {
+            sequencerEngine.updateArpPattern(updated.arp.selectedSlot)
+        }
+    }
+
+    func updateArpBaseKey(_ baseKey: Int) {
+        var updated = preset.sequencerSettings
+        updated.arp = PresetArpSettings(
+            slots: updated.arp.slots,
+            selectedSlotIndex: updated.arp.selectedSlotIndex,
+            baseKey: UInt8(clamping: baseKey)
+        )
+        applySequencerSettings(updated)
+    }
+
+    func presentArpEditor() {
+        sendAllNotesOff()
+        isShowingArpEditor = true
+    }
+
+    func dismissArpEditor() {
+        isShowingArpEditor = false
+    }
+
+    func toggleSeqPlayback() {
+        if sequencerEngine.isSeqPlaying {
+            sequencerEngine.stopSeq()
+            return
+        }
+        isSeqRecording = false
+        sendAllNotesOff()
+        sequencerEngine.startSeq(events: resolvedSeqEvents())
+    }
+
+    func selectSeqSlot(_ index: Int) {
+        var updated = preset.sequencerSettings
+        updated.seq = PresetSeqSettings(slots: updated.seq.slots, selectedSlotIndex: index)
+        applySequencerSettings(updated)
+        if sequencerEngine.isSeqPlaying {
+            sequencerEngine.replaceSeqEvents(resolvedSeqEvents())
+        }
+    }
+
+    func toggleSeqRecording() {
+        if sequencerEngine.isSeqPlaying {
+            sequencerEngine.stopSeq()
+        }
+        isSeqRecording.toggle()
+    }
+
+    func recordSeqTie() {
+        guard isSeqRecording else { return }
+        appendSeqStep(.tie)
+    }
+
+    func recordSeqRest() {
+        guard isSeqRecording else { return }
+        appendSeqStep(.rest)
+    }
+
+    func deleteLastSeqStep() {
+        guard isSeqRecording else { return }
+        var updated = preset.sequencerSettings
+        updated.seq = updated.seq.replacingSelectedSlot(updated.seq.selectedSlot.removingLast())
+        applySequencerSettings(updated)
+    }
+
+    func clearSeqPattern() {
+        sequencerEngine.stopSeq()
+        var updated = preset.sequencerSettings
+        updated.seq = updated.seq.replacingSelectedSlot(SeqPatternSlot())
+        applySequencerSettings(updated)
+    }
+
+    private func appendSeqStep(_ step: SeqStep) {
+        var updated = preset.sequencerSettings
+        let slot = updated.seq.selectedSlot.appending(step)
+        updated.seq = updated.seq.replacingSelectedSlot(slot)
+        applySequencerSettings(updated)
+        if slot.isFull {
+            isSeqRecording = false
+        }
+    }
+
+    private func resolvedSeqEvents() -> [SeqPlaybackEvent] {
+        SeqPatternResolver.resolve(
+            slot: preset.sequencerSettings.seq.selectedSlot,
+            pads: preset.pads,
+            transposeSemitones: preset.transposeSettings.selectedMemory.totalSemitones
+        )
+    }
+
+    private func applySequencerSettings(_ settings: PresetSequencerSettings) {
+        guard settings != preset.sequencerSettings else { return }
+        preset = preset.replacingSequencerSettings(settings)
+        persistActiveSlotIfNeeded()
+    }
+
+    /// ARP モードで ON のとき、パッド押下をアルペジオ再生に回す。
+    private var isArpPlaybackActive: Bool {
+        padControlMode == .arp && isArpPerformanceOn && !isPadEditMode
+    }
+
+    private func startArp(for pad: PadDefinition) {
+        let transposeSemitones = preset.transposeSettings.selectedMemory.totalSemitones
+        let notes = SeqPatternResolver.playbackNotes(for: pad, transposeSemitones: transposeSemitones)
+        let voices = ArpVoiceGrouper.groupedVoices(
+            chordNotes: notes,
+            baseKey: preset.sequencerSettings.arp.baseKey
+        )
+        sequencerEngine.startArp(
+            padID: pad.id,
+            voices: voices,
+            pattern: preset.sequencerSettings.arp.selectedSlot
+        )
+    }
+
+    private func padOn(_ pad: PadDefinition) {
+        if isArpPlaybackActive {
+            startArp(for: pad)
+        } else {
+            midiService.sendPadOn(pad)
+        }
+    }
+
+    private func padOff(_ pad: PadDefinition) {
+        if sequencerEngine.arpActivePadID == pad.id {
+            sequencerEngine.stopArp()
+        } else {
+            midiService.sendPadOff(pad)
+        }
+    }
+
+    private func padTransition(from oldPad: PadDefinition, to newPad: PadDefinition) {
+        let oldPadWasArpDriven = sequencerEngine.arpActivePadID == oldPad.id
+        if oldPadWasArpDriven {
+            sequencerEngine.stopArp()
+        } else if isArpPlaybackActive {
+            // ARP ON 直前に通常発音で押されたパッドからの遷移
+            midiService.sendPadOff(oldPad)
+        }
+        if oldPadWasArpDriven || isArpPlaybackActive {
+            padOn(newPad)
+        } else {
+            midiService.transitionPad(from: oldPad, to: newPad)
+        }
     }
 
     func updateKeyTranspose(_ newValue: Int) {
@@ -709,6 +988,7 @@ final class MainViewModel: ObservableObject {
         isHoldEnabled = false
         playingPadID = nil
         holdLatchedPadID = nil
+        sequencerEngine.stopAll()
         markPendingTransposeReadyIfNeeded()
         midiService.sendAllNotesOff()
         midiService.preparePreviewAudioIfNeeded()
@@ -867,6 +1147,9 @@ final class MainViewModel: ObservableObject {
     }
 
     private func applyLoadedPreset(_ loadedPreset: Preset) {
+        sequencerEngine.stopAll()
+        isSeqRecording = false
+        isShowingArpEditor = false
         preset = loadedPreset
         velocity = Double(loadedPreset.defaultVelocity)
         expression = Double(loadedPreset.defaultExpression)
@@ -919,6 +1202,7 @@ final class MainViewModel: ObservableObject {
         isHoldEnabled = false
         playingPadID = nil
         holdLatchedPadID = nil
+        sequencerEngine.stopAll()
         midiService.sendAllNotesOff()
         midiService.preparePreviewAudioIfNeeded()
     }
@@ -965,6 +1249,11 @@ final class MainViewModel: ObservableObject {
     private func handlePadPressDown(_ pad: PadDefinition) {
         applyPendingTransposeIfArmed()
 
+        // SEQ のステップ入力中はパッドをステップとして記録しつつ、通常どおり試聴も鳴らす。
+        if padControlMode == .seq, isSeqRecording, !isPadEditMode {
+            appendSeqStep(.pad(pad.index))
+        }
+
         if isHoldEnabled {
             if holdLatchedPadID == pad.id {
                 releasePlayingPad(pad)
@@ -983,16 +1272,16 @@ final class MainViewModel: ObservableObject {
                let previousPad = preset.pads.first(where: { $0.id == previousID }) {
                 markPendingTransposeReadyIfNeeded()
                 applyPendingTransposeIfArmed()
-                midiService.transitionPad(from: previousPad, to: pad)
+                padTransition(from: previousPad, to: pad)
             } else {
-                midiService.sendPadOn(pad)
+                padOn(pad)
             }
             playingPadID = pad.id
             return
         }
 
         playingPadID = pad.id
-        midiService.sendPadOn(pad)
+        padOn(pad)
     }
 
     private func handlePadPressUp(_ pad: PadDefinition) {
@@ -1004,14 +1293,14 @@ final class MainViewModel: ObservableObject {
         }
 
         playingPadID = nil
-        midiService.sendPadOff(pad)
+        padOff(pad)
         markPendingTransposeReadyIfNeeded()
     }
 
     private func releasePlayingPad(_ pad: PadDefinition) {
         playingPadID = nil
         holdLatchedPadID = nil
-        midiService.sendPadOff(pad)
+        padOff(pad)
         markPendingTransposeReadyIfNeeded()
     }
 

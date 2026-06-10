@@ -119,6 +119,9 @@ final class MidiOutputService: ObservableObject {
     static let tinyPianoUniqueID: MIDIUniqueID = 2_130_741_505
     /// CoreMIDI 端末 ID と衝突しない GarageBand ルート用の固定 ID。
     static let garageBandUniqueID: MIDIUniqueID = 2_130_741_506
+    /// TinyTone 仮想ソースの固定 unique ID。GarageBand 側が接続を永続化できるようにする
+    /// （ID が起動ごとに変わると iOS 26 系の GarageBand がソースを見失う）。
+    static let virtualSourceUniqueID: MIDIUniqueID = 2_130_741_507
     private static let selectedRouteKey = "selectedMidiOutputRoute"
     private static let lastPrimaryPadOutputRouteKey = "lastPrimaryMidiOutputRoute"
     private static let selectedPadOutputKey = "selectedMidiOutputUniqueID"
@@ -1499,8 +1502,13 @@ final class MidiOutputService: ObservableObject {
         }
 
         if virtualSource != 0, isLiveEndpoint(virtualSource) {
-            updateGarageBandRouteReadyState()
-            return true
+            if isVirtualSourceVisibleInSystem() {
+                updateGarageBandRouteReadyState()
+                return true
+            }
+            // OS アップデートや midiserver 再起動後、参照は生きていても
+            // システムに公開されていない stale ソースになることがある。作り直す。
+            MIDIEndpointDispose(virtualSource)
         }
 
         virtualSource = 0
@@ -1538,10 +1546,16 @@ final class MidiOutputService: ObservableObject {
         let ready = outputRoute == .garageBand
             && virtualSource != 0
             && isLiveEndpoint(virtualSource)
+            && isVirtualSourceVisibleInSystem()
         if isGarageBandRouteReady != ready {
             isGarageBandRouteReady = ready
         }
         updateGarageBandDiagnosticDescription(lastMessageDescription: nil, report: nil)
+    }
+
+    /// 自前の仮想ソースが実際にシステムのソース一覧へ公開されているか。
+    private func isVirtualSourceVisibleInSystem() -> Bool {
+        locateJChordSourceInSystem() != nil
     }
 
     private func ensureMidiOutputReady() -> Bool {
@@ -1655,8 +1669,10 @@ final class MidiOutputService: ObservableObject {
         for index in 0..<count {
             let endpoint = MIDIGetSource(index)
             guard endpoint != 0 else { continue }
-            let name = endpointName(endpoint, fallback: "")
-            if name.localizedCaseInsensitiveCompare(Self.virtualSourceName) == .orderedSame {
+            if virtualSource != 0, endpoint == virtualSource {
+                return endpoint
+            }
+            if intProperty(kMIDIPropertyUniqueID, endpoint: endpoint) == Self.virtualSourceUniqueID {
                 return endpoint
             }
         }
@@ -1824,15 +1840,9 @@ final class MidiOutputService: ObservableObject {
     private func createVirtualSourceIfNeeded() {
         guard virtualSource == 0, midiClient != 0 else { return }
 
-        var status = MIDISourceCreate(midiClient, Self.virtualSourceName as CFString, &virtualSource)
-        if status == noErr, virtualSource != 0 {
-            virtualSourceUsesEventList = false
-            lastVirtualSourceError = noErr
-            return
-        }
-
-        virtualSource = 0
-        status = MIDISourceCreateWithProtocol(
+        // iOS 26 系では legacy MIDISourceCreate 経路の公開・配信が不安定なため、
+        // 現行 API (MIDI 1.0 protocol) を先に試し、失敗時のみ legacy へ落とす。
+        var status = MIDISourceCreateWithProtocol(
             midiClient,
             Self.virtualSourceName as CFString,
             MIDIProtocolID(rawValue: 1)!,
@@ -1841,12 +1851,29 @@ final class MidiOutputService: ObservableObject {
         if status == noErr, virtualSource != 0 {
             virtualSourceUsesEventList = true
             lastVirtualSourceError = noErr
+            applyVirtualSourceUniqueID()
+            return
+        }
+
+        virtualSource = 0
+        status = MIDISourceCreate(midiClient, Self.virtualSourceName as CFString, &virtualSource)
+        if status == noErr, virtualSource != 0 {
+            virtualSourceUsesEventList = false
+            lastVirtualSourceError = noErr
+            applyVirtualSourceUniqueID()
             return
         }
 
         virtualSource = 0
         virtualSourceUsesEventList = false
         lastVirtualSourceError = status
+    }
+
+    /// 仮想ソースへ固定 unique ID を付ける（Apple 推奨。受信側アプリの再接続を安定させる）。
+    /// 既に他端末が同じ ID を使っている場合はシステム採番のまま使う。
+    private func applyVirtualSourceUniqueID() {
+        guard virtualSource != 0 else { return }
+        MIDIObjectSetIntegerProperty(virtualSource, kMIDIPropertyUniqueID, Self.virtualSourceUniqueID)
     }
 
     private func endpointName(_ endpoint: MIDIEndpointRef, fallback: String) -> String {
@@ -1922,7 +1949,8 @@ final class MidiOutputService: ObservableObject {
     }
 
     private static func isJChordVirtualSource(_ source: MidiSourceInfo) -> Bool {
-        source.displayName.localizedCaseInsensitiveCompare(virtualSourceName) == .orderedSame
+        source.uniqueID == virtualSourceUniqueID
+            || source.displayName.localizedCaseInsensitiveCompare(virtualSourceName) == .orderedSame
     }
 
     private static func isExcludedKeyboardInput(_ source: MidiSourceInfo) -> Bool {

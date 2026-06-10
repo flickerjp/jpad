@@ -9,6 +9,7 @@ struct MidiRoutingSettingsContent: View {
 
     @ObservedObject var midiService: MidiOutputService
     @AppStorage(PadVisualStyleSettings.storageKey) private var padVisualStyleRaw = PadVisualStyle.dark.rawValue
+    @AppStorage(MidiClockReceiver.tempoSourceStorageKey) private var isExternalClockOn = false
     let testPadWidth: CGFloat
     var presentation: Presentation = .settings
     var onHelpTapped: (() -> Void)? = nil
@@ -19,6 +20,8 @@ struct MidiRoutingSettingsContent: View {
     var compactPanelMaxWidth: CGFloat? = nil
     /// ScrollView の実効コンテンツ幅。iPhone 幅で固定列がはみ出さないように使う。
     var availableContentWidth: CGFloat? = nil
+    /// ARP / SEQ のテンポ源（内部 BPM / MIDI Clock 追従）切替の通知先。
+    var onClockSourceChanged: ((Bool) -> Void)? = nil
 
     private var showsDeviceRouting: Bool { presentation == .settings }
 
@@ -53,6 +56,15 @@ struct MidiRoutingSettingsContent: View {
                         selectedItemsUseActiveStyle: true
                     )
 
+                    // GarageBand ルートが Active にならないときだけ診断を出す（原因の切り分け用）
+                    if midiService.outputRoute == .garageBand, !midiService.isGarageBandRouteReady {
+                        Text(midiService.garageBandDiagnosticDescription)
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(JPadChromeTheme.accentLight)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .textSelection(.enabled)
+                    }
+
                     fieldTitle(L10n.string("settings.keyboard_in"))
                         .padding(.top, 6)
                     deviceSection(
@@ -73,6 +85,10 @@ struct MidiRoutingSettingsContent: View {
                         height: settingsActionButtonHeight
                     )
                 }
+            }
+
+            settingsCard {
+                clockSourceRadioRow
             }
 
             settingsCard {
@@ -369,6 +385,36 @@ struct MidiRoutingSettingsContent: View {
             }
 
             Spacer(minLength: 0)
+        }
+        .frame(width: settingsGridWidth, alignment: .leading)
+        .accessibilityElement(children: .contain)
+    }
+
+    /// ARP / SEQ のテンポ源。内部 BPM か MIDI Clock (24 ppqn) 追従か。
+    private var clockSourceRadioRow: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            fieldTitle(L10n.string("settings.clock_source"))
+            HStack(spacing: 14) {
+                primaryPadOutputModeRadioButton(
+                    title: L10n.string("settings.clock_source.internal"),
+                    isSelected: !isExternalClockOn
+                ) {
+                    guard isExternalClockOn else { return }
+                    isExternalClockOn = false
+                    onClockSourceChanged?(false)
+                }
+
+                primaryPadOutputModeRadioButton(
+                    title: L10n.string("settings.clock_source.midi_clock"),
+                    isSelected: isExternalClockOn
+                ) {
+                    guard !isExternalClockOn else { return }
+                    isExternalClockOn = true
+                    onClockSourceChanged?(true)
+                }
+
+                Spacer(minLength: 0)
+            }
         }
         .frame(width: settingsGridWidth, alignment: .leading)
         .accessibilityElement(children: .contain)

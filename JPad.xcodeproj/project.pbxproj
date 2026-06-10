@@ -77,6 +77,7 @@
 		9D119F2115D80C04F60CFE94 /* PresetShareZipArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119084F57D21D526924E9B1C /* PresetShareZipArchive.swift */; };
 		A043BAE0C046B8582A2B12B6 /* PadEditorSectionExpansionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27029DA3D85BD1CB5962AAF /* PadEditorSectionExpansionStore.swift */; };
 		A4292104DBB6506CDB9C6BB4 /* MidiPerformanceSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD5DD7D2449105D09B9A4E3A /* MidiPerformanceSettings.swift */; };
+		A8C90F89CE88AA2E5713A46C /* PadSequencerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B854965F9B3AF84465E36AC9 /* PadSequencerSettings.swift */; };
 		A8CC986D2B22EC8563C59A08 /* PadEditorNotesEditorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4B50850B802F667AD9721D /* PadEditorNotesEditorFactory.swift */; };
 		A954FB67D256C16D80BDBF0D /* JPadChromeIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4522E4D2869C85E4BEEBC7D1 /* JPadChromeIconButton.swift */; };
 		AA03ED366D394B4A16D30D0C /* PresetLibraryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F094BE40E640C01583BBB342 /* PresetLibraryModels.swift */; };
@@ -84,6 +85,7 @@
 		AB6A58D08B0E0D95C1425195 /* BundledPresetDeletionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26BA201AB3F57569FF0D5EA /* BundledPresetDeletionStore.swift */; };
 		AC894FD4B034FD427F484273 /* JChordEditorActionButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FFCBAA206C5B9A61806E42 /* JChordEditorActionButtonStyle.swift */; };
 		BBB29D8177537DB793910C4E /* jcstore-manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 7DB5FC57E02369E54C35DD8C /* jcstore-manifest.json */; };
+		C1B276D78C1D379699BA2ABE /* PadSequencerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD124DC9AE8694C33A0B7574 /* PadSequencerEngine.swift */; };
 		C53B7A5863D8551C96CBCA72 /* MidiMessageBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01C82B89F6371623C0A24EC0 /* MidiMessageBuilder.swift */; };
 		C6B455E4FE853A28F33A2ED3 /* AppBuildIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA460C273FEC453319322F52 /* AppBuildIdentity.swift */; };
 		C6E415B37B47BE636E1561C7 /* PerformancePadPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D335950246AF695DB6E869 /* PerformancePadPalette.swift */; };
@@ -97,6 +99,7 @@
 		D7D266DD40C1624D5FA74739 /* PreviewSoundPresetOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53CED3984E6807427D643481 /* PreviewSoundPresetOption.swift */; };
 		D85C23147FC4961009A72E16 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD38C8E81D7E9D3AA70697C /* Preset.swift */; };
 		DAC71F3A35D0954461877906 /* JChordTopActionStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED8F3870A2F3EBB5E12FD4B /* JChordTopActionStyle.swift */; };
+		DAF5611EAC056212BF7BBB98 /* MainArpSeqControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1B5A3BE02262AB2369670A /* MainArpSeqControls.swift */; };
 		DB24BEB0BD7CA93F1377E8E8 /* Preset+Editing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632EC16309D9FE89D8AC3A19 /* Preset+Editing.swift */; };
 		DBC5CC450A4AA4E674683082 /* ChordCandidateRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2650BCAFE095E0EB67B7A61 /* ChordCandidateRecognizer.swift */; };
 		DCA5CBFDB79A055A35CCDDD4 /* JChordPresetActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 579B5A44E212D00055C6F40A /* JChordPresetActionButton.swift */; };
@@ -119,6 +122,7 @@
 		F87EE26B0D97822826DC1B7C /* PresetPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D10B96C1FA5CA86B57C4365 /* PresetPickerView.swift */; };
 		F9009D614C6C37FB3250F30D /* PadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF1F78DEEC90A2AC1873D0C0 /* PadView.swift */; };
 		FA711C74B2F6B53FC8CA60A7 /* MidiDestinationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E35C709E2D0418C26909DB82 /* MidiDestinationInfo.swift */; };
+		FCF23B333444708ADC3E882E /* MidiClockReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22FA0C6C2FA68EE5744383CA /* MidiClockReceiver.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -135,6 +139,7 @@
 		11B325DEC811E955B74ACC6E /* ProSubscriptionPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProSubscriptionPresentation.swift; sourceTree = "<group>"; };
 		12695359AB2F07493C02CD47 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		1BF29C26329EBA08E51494B2 /* PadEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadEditorView.swift; sourceTree = "<group>"; };
+		22FA0C6C2FA68EE5744383CA /* MidiClockReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiClockReceiver.swift; sourceTree = "<group>"; };
 		240ABA865E09D58A81DF6869 /* PresetRenameSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetRenameSheet.swift; sourceTree = "<group>"; };
 		26B5AD511BEC93BD54B316FC /* GarageBandHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarageBandHelpView.swift; sourceTree = "<group>"; };
 		2BD38C8E81D7E9D3AA70697C /* Preset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preset.swift; sourceTree = "<group>"; };
@@ -196,6 +201,8 @@
 		B2650BCAFE095E0EB67B7A61 /* ChordCandidateRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordCandidateRecognizer.swift; sourceTree = "<group>"; };
 		B26BA201AB3F57569FF0D5EA /* BundledPresetDeletionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundledPresetDeletionStore.swift; sourceTree = "<group>"; };
 		B5841BB53D2FA060EA6160C2 /* ProSubscriptionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProSubscriptionStatus.swift; sourceTree = "<group>"; };
+		B854965F9B3AF84465E36AC9 /* PadSequencerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadSequencerSettings.swift; sourceTree = "<group>"; };
+		BB1B5A3BE02262AB2369670A /* MainArpSeqControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainArpSeqControls.swift; sourceTree = "<group>"; };
 		BECF3127005C00500596D426 /* MidiPacketTransmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiPacketTransmitter.swift; sourceTree = "<group>"; };
 		C0A112941AB47D73C366FCE9 /* PadEditorDisclosureSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadEditorDisclosureSection.swift; sourceTree = "<group>"; };
 		C3A4FCB8297E410FFC24205A /* PadKeyInputEditorSheetV11.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadKeyInputEditorSheetV11.swift; sourceTree = "<group>"; };
@@ -235,6 +242,7 @@
 		F984DB81E369ABF95DC5AF92 /* ProUpgradeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProUpgradeSheet.swift; sourceTree = "<group>"; };
 		FAA311F444CF7EDAB2E82680 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		FAA8A3140FD41AFF39BF400D /* PresetLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetLoader.swift; sourceTree = "<group>"; };
+		FD124DC9AE8694C33A0B7574 /* PadSequencerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadSequencerEngine.swift; sourceTree = "<group>"; };
 		FD5DD7D2449105D09B9A4E3A /* MidiPerformanceSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiPerformanceSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -277,6 +285,14 @@
 				C7D335950246AF695DB6E869 /* PerformancePadPalette.swift */,
 			);
 			path = Design;
+			sourceTree = "<group>";
+		};
+		1477550074FA0C0B718CAB64 /* Sequencer */ = {
+			isa = PBXGroup;
+			children = (
+				FD124DC9AE8694C33A0B7574 /* PadSequencerEngine.swift */,
+			);
+			path = Sequencer;
 			sourceTree = "<group>";
 		};
 		16D5EB6DFD1D5E76DA92AC34 /* Resources */ = {
@@ -356,6 +372,7 @@
 			isa = PBXGroup;
 			children = (
 				3FF641CBAF4407F9B7D89259 /* MidiAudioSession.swift */,
+				22FA0C6C2FA68EE5744383CA /* MidiClockReceiver.swift */,
 				4E1CE3772ED0E8397D49960F /* MidiDiagnostics.swift */,
 				01C82B89F6371623C0A24EC0 /* MidiMessageBuilder.swift */,
 				539CA7D574D0C5D63B43104C /* MidiMessageParser.swift */,
@@ -436,6 +453,7 @@
 				9B31B9257B74A152DDCFD905 /* MidiPadOutputChoice.swift */,
 				EB699567723AAB90F8592122 /* MidiSourceInfo.swift */,
 				98489FFF71356A36ED438E03 /* PadDefinition.swift */,
+				B854965F9B3AF84465E36AC9 /* PadSequencerSettings.swift */,
 				2BD38C8E81D7E9D3AA70697C /* Preset.swift */,
 				66ABC07BC7B2815C6012087D /* Preset+Codable.swift */,
 				632EC16309D9FE89D8AC3A19 /* Preset+Editing.swift */,
@@ -462,6 +480,7 @@
 				8040F5998B4C7F926E0F4C3A /* Onboarding */,
 				289A32D8E7FF08964A6A96C4 /* PresetLoading */,
 				E0F1156EF4E2A74E27E3DCD6 /* Purchases */,
+				1477550074FA0C0B718CAB64 /* Sequencer */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -519,6 +538,7 @@
 			isa = PBXGroup;
 			children = (
 				DD20C5D8F477C4FF108F6728 /* JcstorePickerView.swift */,
+				BB1B5A3BE02262AB2369670A /* MainArpSeqControls.swift */,
 				12695359AB2F07493C02CD47 /* MainView.swift */,
 				42D0D33A5D22373174363C7B /* MainViewModel.swift */,
 				5D10B96C1FA5CA86B57C4365 /* PresetPickerView.swift */,
@@ -676,9 +696,11 @@
 				057021AD0C510B6C28B8A48A /* JcstorePickerView.swift in Sources */,
 				F57D9E688D13EEAB0BD1388A /* JcstoreService.swift in Sources */,
 				46FF3C50C39C910A5D8C4CD9 /* L10n.swift in Sources */,
+				DAF5611EAC056212BF7BBB98 /* MainArpSeqControls.swift in Sources */,
 				83725A860D021AC17A2369B3 /* MainView.swift in Sources */,
 				C98A42C3E33D8085842E87EA /* MainViewModel.swift in Sources */,
 				7101AB4B571F5438714E7D72 /* MidiAudioSession.swift in Sources */,
+				FCF23B333444708ADC3E882E /* MidiClockReceiver.swift in Sources */,
 				FA711C74B2F6B53FC8CA60A7 /* MidiDestinationInfo.swift in Sources */,
 				3DE10909CE463A298F2FF2F5 /* MidiDiagnostics.swift in Sources */,
 				C53B7A5863D8551C96CBCA72 /* MidiMessageBuilder.swift in Sources */,
@@ -713,6 +735,8 @@
 				1376FB2EC9C9E6189C7F1124 /* PadPerformanceEffectEngine.swift in Sources */,
 				CE521B82D44D4E7C9E36B134 /* PadPerformanceScanPattern.swift in Sources */,
 				9646320ACC08EA81008A1E36 /* PadPerformanceVisualLayer.swift in Sources */,
+				C1B276D78C1D379699BA2ABE /* PadSequencerEngine.swift in Sources */,
+				A8C90F89CE88AA2E5713A46C /* PadSequencerSettings.swift in Sources */,
 				F9009D614C6C37FB3250F30D /* PadView.swift in Sources */,
 				6679F019169C66619607F2C0 /* PadVisualStyleSettings.swift in Sources */,
 				F5E30D8DF0AE93E384967B53 /* PerformancePadAnimationTimeline.swift in Sources */,
@@ -763,6 +787,7 @@
 				INFOPLIST_KEY_CFBundleName = TinyTone;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = audio;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -795,6 +820,7 @@
 				INFOPLIST_KEY_CFBundleName = TinyTone;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = audio;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
