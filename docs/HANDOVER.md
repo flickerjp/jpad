@@ -860,3 +860,13 @@
 
 **参照:** `git show 8ecfb8a` / `git log -1 8ecfb8a`
 
+
+<!-- handover:auto:498c105522d77434bd33f1013e740a90c6ddd056 -->
+### 2026-06-11 08:58:11 +0900 — `498c105` — main
+
+**件名:** Fix SEQ gate and timing
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 498c105` / `git log -1 498c105`
+
