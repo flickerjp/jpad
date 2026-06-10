@@ -850,3 +850,13 @@
 
 **参照:** `git show d6bbbf7` / `git log -1 d6bbbf7`
 
+
+<!-- handover:auto:8ecfb8a1e1c4896bd8192c18cb35df48120d6707 -->
+### 2026-06-11 08:40:59 +0900 — `8ecfb8a` — main
+
+**件名:** Fix SEQ GarageBand source recognition
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 8ecfb8a` / `git log -1 8ecfb8a`
+
