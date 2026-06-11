@@ -184,8 +184,8 @@ struct MainView: View {
                 }
             }
             .overlay {
-                if viewModel.isShowingArpEditor {
-                    ArpPatternEditorOverlay(viewModel: viewModel)
+                if viewModel.isShowingRiffEditor {
+                    RiffPatternEditorOverlay(viewModel: viewModel)
                 }
             }
             .alert(L10n.string("alert.preset_load_error"), isPresented: $viewModel.isShowingPresetError, actions: {
@@ -1045,8 +1045,8 @@ struct MainView: View {
                     landscapeSliderPanel(layout: layout)
                 case .transpose:
                     landscapeTransposePresetColumn(layout: layout)
-                case .arp:
-                    ArpLandscapePanel(viewModel: viewModel, layout: layout)
+                case .riff:
+                    RiffLandscapePanel(viewModel: viewModel, layout: layout)
                 case .seq:
                     SeqLandscapePanel(viewModel: viewModel, layout: layout)
                 }
@@ -1128,8 +1128,8 @@ struct MainView: View {
                     transposePresetSelectorRow(layout: layout)
                     transposeValueWheelRow(layout: layout)
                 }
-            case .arp:
-                ArpControlRows(viewModel: viewModel, layout: layout)
+            case .riff:
+                RiffControlRows(viewModel: viewModel, layout: layout)
             case .seq:
                 SeqControlRows(viewModel: viewModel, layout: layout)
             }
@@ -1327,11 +1327,11 @@ struct MainView: View {
             }
 
             padControlModeRadioButton(
-                title: L10n.string("main.controls.arp"),
-                isSelected: viewModel.padControlMode == .arp,
+                title: L10n.string("main.controls.riff"),
+                isSelected: viewModel.padControlMode == .riff,
                 layout: layout
             ) {
-                viewModel.updatePadControlMode(.arp)
+                viewModel.updatePadControlMode(.riff)
             }
 
             padControlModeRadioButton(

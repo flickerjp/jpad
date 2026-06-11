@@ -3,12 +3,17 @@ import Foundation
 enum PresetPadControlMode: String, Codable, CaseIterable {
     case sliders
     case transpose
-    case arp
+    case riff
     case seq
 
     /// 未知のモード値は sliders 扱いにして古い/新しい preset の取り込みを壊さない。
+    /// 旧称 "arp" は RIFF にリネームしたため互換マップする。
     init(from decoder: Decoder) throws {
         let raw = try decoder.singleValueContainer().decode(String.self)
+        if raw == "arp" {
+            self = .riff
+            return
+        }
         self = PresetPadControlMode(rawValue: raw) ?? .sliders
     }
 }

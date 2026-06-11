@@ -19,7 +19,7 @@
 | [ARCHITECTURE.md](ARCHITECTURE.md) | **JPad 全体構造**（UI / MIDI / TinyTone / 保存 / 課金 / App Group） |
 | [DATA_FORMATS.md](DATA_FORMATS.md) | **データ形式**（`.jpd`、TinyTone patch、App Group 共有データ、保存数制限） |
 | [TASKS.md](TASKS.md) | **今やる開発タスク**（レイアウト可変化、横表示対応、トランスポーズ強化など） |
-| [ARP_SEQ_REQUIREMENTS.md](ARP_SEQ_REQUIREMENTS.md) | **ARP / SEQ モード 要件 + 実装メモ**（アルペジエーター、16ステップシーケンサー、MIDI Clock 追従、ラベル短縮 SLD/TRSP） |
+| [RIFF_SEQ_REQUIREMENTS.md](RIFF_SEQ_REQUIREMENTS.md) | **RIFF / SEQ モード 要件 + 実装メモ**（RIFF=リフ、16ステップシーケンサー、MIDI Clock 追従、ラベル短縮 SLD/TRSP。旧称 ARP） |
 | [TINYTONE_FACTORY_PATCH.json](TINYTONE_FACTORY_PATCH.json) | TinyTone 現行パラメータの保存版 |
 | [HANDOVER.md](HANDOVER.md) | 引き継ぎ・コミット自動ログ |
 

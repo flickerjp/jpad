@@ -88,7 +88,7 @@ Application Support/JPad/library/user/
 - 由来
 - `Preset` 本体
 
-`Preset` は `transposeSettings`(モード・シフトメモリー)に加えて、ARP / SEQ 用の `sequencerSettings`(BPM、ARP 4 スロット + 基準キー、SEQ 4 スロット)を持つ。旧 JSON に `sequencerSettings` が無い場合はデフォルト値で decode する(`docs/ARP_SEQ_REQUIREMENTS.md` 参照)。
+`Preset` は `transposeSettings`(モード・シフトメモリー)に加えて、RIFF / SEQ 用の `sequencerSettings`(BPM、RIFF 4 スロット + 基準キー、SEQ 4 スロット)を持つ。旧 JSON に `sequencerSettings` が無い場合はデフォルト値で decode する。RIFF は旧称 ARP からのリネームで、`sequencerSettings.arp` キー・`padControlMode` の旧 `arp` 値は decode 時に `riff` へマップする(`docs/RIFF_SEQ_REQUIREMENTS.md` 参照)。
 
 ## 4.5 共有 export の JSON 本体
 
@@ -99,9 +99,11 @@ Application Support/JPad/library/user/
 - `exportedAt`
 - `slotName`
 - `origin`
+- `sequencerSettings`（RIFF / SEQ 設定。`preset.sequencerSettings` と同じ内容を明示的に持つ）
 - `preset`
 
 この envelope を ZIP に包んだものが `.jpd`。JSON 単体 export では同じ envelope をそのまま出す。
+`preset` 内にも `sequencerSettings` は含まれるが、IMPORT / EXPORT / AirDrop の往復で RIFF / SEQ 情報が落ちないよう、共有 envelope 直下にも同じ設定を入れる。読み込み時は envelope 直下の値があればそれを `preset` へ反映する。
 読み込み側は `.jpd` 以外の互換拡張子も受けるため、UI copy と importer の実装を混同しない。
 
 ## 5. 保存数制限

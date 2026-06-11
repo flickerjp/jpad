@@ -1,14 +1,14 @@
 import Foundation
 
-/// ARP / SEQ のステップクロックのテンポ源。
+/// RIFF / SEQ のステップクロックのテンポ源。
 /// 外部同期は MIDI Clock (24 ppqn) 受信。アプリ全体の設定（AppStorage）で切り替える。
 enum PadClockTempoSource: String, Codable {
     case internalClock = "internal"
     case midiClock = "midiClock"
 }
 
-/// ARP 1 スロットぶんのパターン。16 ステップ × 3 声部 (U/M/L) と発音ゲート長。
-struct ArpPatternSlot: Codable, Equatable {
+/// RIFF 1 スロットぶんのパターン。16 ステップ × 3 声部 (U/M/L) と発音ゲート長。
+struct RiffPatternSlot: Codable, Equatable {
     static let stepCount = 16
     static let voiceCount = 3
     static let gateRange = 0.05 ... 1.0
@@ -18,7 +18,7 @@ struct ArpPatternSlot: Codable, Equatable {
     /// 1 ステップ長に対する発音長の割合。
     var gate: Double
 
-    static let `default` = ArpPatternSlot()
+    static let `default` = RiffPatternSlot()
 
     init(steps: [[Bool]] = [], gate: Double = 0.6) {
         self.steps = Self.normalizedSteps(steps)
@@ -40,11 +40,19 @@ struct ArpPatternSlot: Codable, Equatable {
         steps.allSatisfy { row in row.allSatisfy { !$0 } }
     }
 
-    func toggling(voice: Int, step: Int) -> ArpPatternSlot {
+    func toggling(voice: Int, step: Int) -> RiffPatternSlot {
         guard steps.indices.contains(voice), steps[voice].indices.contains(step) else { return self }
         var updated = steps
         updated[voice][step].toggle()
-        return ArpPatternSlot(steps: updated, gate: gate)
+        return RiffPatternSlot(steps: updated, gate: gate)
+    }
+
+    func setting(voice: Int, step: Int, isOn: Bool) -> RiffPatternSlot {
+        guard steps.indices.contains(voice), steps[voice].indices.contains(step) else { return self }
+        guard steps[voice][step] != isOn else { return self }
+        var updated = steps
+        updated[voice][step] = isOn
+        return RiffPatternSlot(steps: updated, gate: gate)
     }
 
     private static func normalizedSteps(_ raw: [[Bool]]) -> [[Bool]] {
@@ -58,18 +66,18 @@ struct ArpPatternSlot: Codable, Equatable {
     }
 }
 
-struct PresetArpSettings: Codable, Equatable {
+struct PresetRiffSettings: Codable, Equatable {
     static let slotCount = 4
     static let baseKeyRange: ClosedRange<Int> = 12 ... 96
-    static let `default` = PresetArpSettings()
+    static let `default` = PresetRiffSettings()
 
-    var slots: [ArpPatternSlot]
+    var slots: [RiffPatternSlot]
     var selectedSlotIndex: Int
-    /// 基準キー。このノート以上のコード構成音だけを ARP の対象にする。
+    /// 基準キー。このノート以上のコード構成音だけを RIFF の対象にする。
     var baseKey: UInt8
 
     init(
-        slots: [ArpPatternSlot] = [],
+        slots: [RiffPatternSlot] = [],
         selectedSlotIndex: Int = 0,
         baseKey: UInt8 = 48
     ) {
@@ -84,25 +92,25 @@ struct PresetArpSettings: Codable, Equatable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let slots = try container.decodeIfPresent([ArpPatternSlot].self, forKey: .slots) ?? []
+        let slots = try container.decodeIfPresent([RiffPatternSlot].self, forKey: .slots) ?? []
         let index = try container.decodeIfPresent(Int.self, forKey: .selectedSlotIndex) ?? 0
         let baseKey = try container.decodeIfPresent(UInt8.self, forKey: .baseKey) ?? 48
         self.init(slots: slots, selectedSlotIndex: index, baseKey: baseKey)
     }
 
-    var selectedSlot: ArpPatternSlot {
+    var selectedSlot: RiffPatternSlot {
         guard slots.indices.contains(selectedSlotIndex) else { return .default }
         return slots[selectedSlotIndex]
     }
 
-    func replacingSelectedSlot(_ slot: ArpPatternSlot) -> PresetArpSettings {
+    func replacingSelectedSlot(_ slot: RiffPatternSlot) -> PresetRiffSettings {
         var updated = slots
         guard updated.indices.contains(selectedSlotIndex) else { return self }
         updated[selectedSlotIndex] = slot
-        return PresetArpSettings(slots: updated, selectedSlotIndex: selectedSlotIndex, baseKey: baseKey)
+        return PresetRiffSettings(slots: updated, selectedSlotIndex: selectedSlotIndex, baseKey: baseKey)
     }
 
-    private static func normalizedSlots(_ raw: [ArpPatternSlot]) -> [ArpPatternSlot] {
+    private static func normalizedSlots(_ raw: [RiffPatternSlot]) -> [RiffPatternSlot] {
         var normalized = Array(raw.prefix(slotCount))
         while normalized.count < slotCount {
             normalized.append(.default)
@@ -232,35 +240,46 @@ struct PresetSeqSettings: Codable, Equatable {
     }
 }
 
-/// セット単位で保存する ARP / SEQ の設定一式。BPM は ARP / SEQ で共有する。
+/// セット単位で保存する RIFF / SEQ の設定一式。BPM は RIFF / SEQ で共有する。
 struct PresetSequencerSettings: Codable, Equatable {
     static let bpmRange: ClosedRange<Double> = 40 ... 240
     static let `default` = PresetSequencerSettings()
 
     var bpm: Double
-    var arp: PresetArpSettings
+    var riff: PresetRiffSettings
     var seq: PresetSeqSettings
 
     init(
         bpm: Double = 120,
-        arp: PresetArpSettings = .default,
+        riff: PresetRiffSettings = .default,
         seq: PresetSeqSettings = .default
     ) {
         self.bpm = Self.bpmRange.clampValue(bpm)
-        self.arp = arp
+        self.riff = riff
         self.seq = seq
     }
 
     enum CodingKeys: String, CodingKey {
-        case bpm, arp, seq
+        case bpm, riff, seq
+        /// 旧称。RIFF へのリネーム前に保存された preset を読むための互換キー。
+        case legacyArp = "arp"
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let bpm = try container.decodeIfPresent(Double.self, forKey: .bpm) ?? 120
-        let arp = try container.decodeIfPresent(PresetArpSettings.self, forKey: .arp) ?? .default
+        let riff = try container.decodeIfPresent(PresetRiffSettings.self, forKey: .riff)
+            ?? container.decodeIfPresent(PresetRiffSettings.self, forKey: .legacyArp)
+            ?? .default
         let seq = try container.decodeIfPresent(PresetSeqSettings.self, forKey: .seq) ?? .default
-        self.init(bpm: bpm, arp: arp, seq: seq)
+        self.init(bpm: bpm, riff: riff, seq: seq)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(bpm, forKey: .bpm)
+        try container.encode(riff, forKey: .riff)
+        try container.encode(seq, forKey: .seq)
     }
 }
 

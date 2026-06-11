@@ -6,10 +6,14 @@ struct SequencerSlotButton: View {
     let index: Int
     let isSelected: Bool
     let hasContent: Bool
+    /// RIFF が ON、または SEQ が再生（ラッチ）中で、このスロットが鳴っている状態。
+    var isActive: Bool = false
     var width: CGFloat?
     var height: CGFloat
     var cornerRadius: CGFloat
     let action: () -> Void
+
+    private var highlighted: Bool { isSelected || isActive }
 
     var body: some View {
         Button(action: action) {
@@ -22,35 +26,44 @@ struct SequencerSlotButton: View {
                     .frame(width: 5, height: 5)
             }
             .foregroundStyle(
-                isSelected ? JPadChromeTheme.buttonLabelFilled : Color.white.opacity(0.9)
+                isActive
+                    ? JPadOrangeChromeStyle.foreground(isPressed: false, isAccentOn: true)
+                    : (isSelected ? JPadChromeTheme.buttonLabelFilled : Color.white.opacity(0.9))
             )
             .frame(maxWidth: .infinity, minHeight: height, alignment: .center)
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(
-                        isSelected
-                            ? AnyShapeStyle(JPadChromeTheme.buttonIdleFill)
-                            : AnyShapeStyle(Color.clear)
-                    )
+                    .fill(backgroundStyle)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .strokeBorder(
-                        isSelected ? JPadChromeTheme.buttonIdleBorder : Color.white.opacity(0.85),
+                        highlighted ? JPadChromeTheme.buttonIdleBorder : Color.white.opacity(0.85),
                         lineWidth: 1.2
                     )
             )
         }
         .buttonStyle(.plain)
         .frame(width: width)
+        .jChordGentlePulse(isActive)
         .accessibilityLabel("Pattern \(index + 1)")
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityAddTraits(highlighted ? .isSelected : [])
+    }
+
+    private var backgroundStyle: AnyShapeStyle {
+        if isActive {
+            return JPadOrangeChromeStyle.background(isPressed: false, isAccentOn: true)
+        }
+        if isSelected {
+            return AnyShapeStyle(JPadChromeTheme.buttonIdleFill)
+        }
+        return AnyShapeStyle(Color.clear)
     }
 }
 
-// MARK: - ARP 縦表示コントロール
+// MARK: - RIFF 縦表示コントロール
 
-struct ArpControlRows: View {
+struct RiffControlRows: View {
     @ObservedObject var viewModel: MainViewModel
     let layout: JChordPadLayout
 
@@ -73,22 +86,23 @@ struct ArpControlRows: View {
     var body: some View {
         VStack(spacing: 8) {
             HStack(spacing: layout.gridSpacing) {
-                ForEach(0 ..< PresetArpSettings.slotCount, id: \.self) { index in
+                ForEach(0 ..< PresetRiffSettings.slotCount, id: \.self) { index in
                     SequencerSlotButton(
                         index: index,
-                        isSelected: viewModel.arpSettings.selectedSlotIndex == index,
-                        hasContent: !viewModel.arpSettings.slots[index].isEmpty,
+                        isSelected: viewModel.riffSettings.selectedSlotIndex == index,
+                        hasContent: !viewModel.riffSettings.slots[index].isEmpty,
+                        isActive: viewModel.isRiffSlotActive(index),
                         width: topCellWidth,
                         height: slotHeight,
                         cornerRadius: min(layout.padCornerRadius, slotHeight * 0.32),
-                        action: { viewModel.selectArpSlot(index) }
+                        action: { viewModel.toggleRiffSlot(index) }
                     )
                 }
 
                 SequencerGateWheel(
                     gate: Binding(
-                        get: { Int((viewModel.arpSettings.selectedSlot.gate * 100).rounded()) },
-                        set: { viewModel.updateArpGate(Double($0) / 100) }
+                        get: { Int((viewModel.riffSettings.selectedSlot.gate * 100).rounded()) },
+                        set: { viewModel.updateRiffGate(Double($0) / 100) }
                     ),
                     width: topCellWidth,
                     height: slotHeight
@@ -96,30 +110,20 @@ struct ArpControlRows: View {
             }
             .frame(width: layout.gridWidth)
 
-            ArpStepDisplay(
-                slot: viewModel.arpSettings.selectedSlot,
+            RiffStepDisplay(
+                slot: viewModel.riffSettings.selectedSlot,
+                currentRawStep: viewModel.sequencerEngine.riffCurrentRawStep,
                 width: layout.gridWidth
             )
 
             HStack(spacing: layout.gridSpacing) {
                 JPadChromeDockButton(
-                    title: L10n.string("main.arp.on"),
-                    style: .accentToggle,
-                    isOn: viewModel.isArpPerformanceOn,
-                    fontSize: 12,
-                    width: transportButtonWidth,
-                    height: transportHeight,
-                    action: { viewModel.toggleArpPerformance() }
-                )
-                .jChordGentlePulse(viewModel.isArpPerformanceOn)
-
-                JPadChromeDockButton(
-                    title: L10n.string("main.arp.edit"),
+                    title: L10n.string("main.riff.edit"),
                     style: .outline,
                     fontSize: 12,
                     width: transportButtonWidth,
                     height: transportHeight,
-                    action: { viewModel.presentArpEditor() }
+                    action: { viewModel.presentRiffEditor() }
                 )
 
                 Spacer(minLength: 0)
@@ -155,10 +159,11 @@ struct SeqControlRows: View {
                         index: index,
                         isSelected: viewModel.seqSettings.selectedSlotIndex == index,
                         hasContent: !viewModel.seqSettings.slots[index].steps.isEmpty,
+                        isActive: viewModel.isSeqSlotPlaying(index),
                         width: topCellWidth,
                         height: slotHeight,
                         cornerRadius: min(layout.padCornerRadius, slotHeight * 0.32),
-                        action: { viewModel.selectSeqSlot(index) }
+                        action: { viewModel.toggleSeqSlot(index) }
                     )
                 }
 
@@ -181,17 +186,6 @@ struct SeqControlRows: View {
             )
 
             HStack(spacing: layout.gridSpacing) {
-                seqTransportButton(
-                    title: viewModel.sequencerEngine.isSeqPlaying
-                        ? L10n.string("main.seq.stop")
-                        : L10n.string("main.seq.play"),
-                    style: .accentToggle,
-                    isOn: viewModel.sequencerEngine.isSeqPlaying
-                ) {
-                    viewModel.toggleSeqPlayback()
-                }
-                .jChordGentlePulse(viewModel.sequencerEngine.isSeqPlaying)
-
                 seqTransportButton(
                     title: L10n.string("main.seq.rec"),
                     style: .accentToggle,
@@ -232,7 +226,7 @@ struct SeqControlRows: View {
             style: style,
             isOn: isOn,
             fontSize: 12,
-            width: floor((layout.gridWidth - layout.gridSpacing * 5) / 6),
+            width: floor((layout.gridWidth - layout.gridSpacing * 4) / 5),
             height: transportHeight,
             action: action
         )
@@ -241,18 +235,19 @@ struct SeqControlRows: View {
     }
 }
 
-// MARK: - SEQ ステップ表示 (16 セル)
+// MARK: - RIFF ステップ表示 (16 セル)
 
-struct ArpStepDisplay: View {
-    let slot: ArpPatternSlot
+struct RiffStepDisplay: View {
+    let slot: RiffPatternSlot
+    let currentRawStep: Int?
     let width: CGFloat
 
     private static let cellSpacing: CGFloat = 3
 
     var body: some View {
-        let cellWidth = floor((width - Self.cellSpacing * CGFloat(ArpPatternSlot.stepCount - 1)) / CGFloat(ArpPatternSlot.stepCount))
+        let cellWidth = floor((width - Self.cellSpacing * CGFloat(RiffPatternSlot.stepCount - 1)) / CGFloat(RiffPatternSlot.stepCount))
         HStack(spacing: Self.cellSpacing) {
-            ForEach(0 ..< ArpPatternSlot.stepCount, id: \.self) { step in
+            ForEach(0 ..< RiffPatternSlot.stepCount, id: \.self) { step in
                 stepCell(at: step, cellWidth: cellWidth)
             }
         }
@@ -260,14 +255,15 @@ struct ArpStepDisplay: View {
     }
 
     private func stepCell(at step: Int, cellWidth: CGFloat) -> some View {
-        let activeVoices = (0 ..< ArpPatternSlot.voiceCount).filter { voice in
+        let isPlayingHere = currentRawStep == step
+        let activeVoices = (0 ..< RiffPatternSlot.voiceCount).filter { voice in
             slot.steps.indices.contains(voice)
                 && slot.steps[voice].indices.contains(step)
                 && slot.steps[voice][step]
         }
 
         return VStack(spacing: 2) {
-            ForEach(0 ..< ArpPatternSlot.voiceCount, id: \.self) { voice in
+            ForEach(0 ..< RiffPatternSlot.voiceCount, id: \.self) { voice in
                 Capsule()
                     .fill(
                         activeVoices.contains(voice)
@@ -280,11 +276,20 @@ struct ArpStepDisplay: View {
         .frame(width: cellWidth, height: max(22, cellWidth * 1.05))
         .background(
             RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .fill(Color.white.opacity(step % 4 == 0 ? 0.08 : 0.04))
+                .fill(
+                    isPlayingHere
+                        ? AnyShapeStyle(JPadChromeTheme.buttonIdleFill)
+                        : AnyShapeStyle(Color.white.opacity(step % 4 == 0 ? 0.08 : 0.04))
+                )
         )
         .overlay(
             RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .strokeBorder(Color.white.opacity(activeVoices.isEmpty ? 0.2 : 0.35), lineWidth: 1)
+                .strokeBorder(
+                    isPlayingHere
+                        ? JPadChromeTheme.buttonIdleBorder
+                        : Color.white.opacity(activeVoices.isEmpty ? 0.2 : 0.35),
+                    lineWidth: isPlayingHere ? 1.4 : 1
+                )
         )
     }
 }
@@ -379,39 +384,29 @@ struct SequencerGateWheel: View {
 
 // MARK: - 横表示パネル (スロット選択は横でも可能)
 
-struct ArpLandscapePanel: View {
+struct RiffLandscapePanel: View {
     @ObservedObject var viewModel: MainViewModel
     let layout: JChordPadLayout
 
     var body: some View {
         VStack(spacing: layout.gridSpacing) {
-            ForEach(0 ..< PresetArpSettings.slotCount, id: \.self) { index in
+            ForEach(0 ..< PresetRiffSettings.slotCount, id: \.self) { index in
                 SequencerSlotButton(
                     index: index,
-                    isSelected: viewModel.arpSettings.selectedSlotIndex == index,
-                    hasContent: !viewModel.arpSettings.slots[index].isEmpty,
+                    isSelected: viewModel.riffSettings.selectedSlotIndex == index,
+                    hasContent: !viewModel.riffSettings.slots[index].isEmpty,
+                    isActive: viewModel.isRiffSlotActive(index),
                     width: layout.landscapeControlPanelWidth,
                     height: 44,
                     cornerRadius: 10,
-                    action: { viewModel.selectArpSlot(index) }
+                    action: { viewModel.toggleRiffSlot(index) }
                 )
             }
 
-            JPadChromeDockButton(
-                title: L10n.string("main.arp.on"),
-                style: .accentToggle,
-                isOn: viewModel.isArpPerformanceOn,
-                fontSize: 13,
-                width: layout.landscapeControlPanelWidth,
-                height: 34,
-                action: { viewModel.toggleArpPerformance() }
-            )
-            .jChordGentlePulse(viewModel.isArpPerformanceOn)
-
             SequencerGateWheel(
                 gate: Binding(
-                    get: { Int((viewModel.arpSettings.selectedSlot.gate * 100).rounded()) },
-                    set: { viewModel.updateArpGate(Double($0) / 100) }
+                    get: { Int((viewModel.riffSettings.selectedSlot.gate * 100).rounded()) },
+                    set: { viewModel.updateRiffGate(Double($0) / 100) }
                 ),
                 width: layout.landscapeControlPanelWidth,
                 height: 34
@@ -432,25 +427,13 @@ struct SeqLandscapePanel: View {
                     index: index,
                     isSelected: viewModel.seqSettings.selectedSlotIndex == index,
                     hasContent: !viewModel.seqSettings.slots[index].steps.isEmpty,
+                    isActive: viewModel.isSeqSlotPlaying(index),
                     width: layout.landscapeControlPanelWidth,
                     height: 44,
                     cornerRadius: 10,
-                    action: { viewModel.selectSeqSlot(index) }
+                    action: { viewModel.toggleSeqSlot(index) }
                 )
             }
-
-            JPadChromeDockButton(
-                title: viewModel.sequencerEngine.isSeqPlaying
-                    ? L10n.string("main.seq.stop")
-                    : L10n.string("main.seq.play"),
-                style: .accentToggle,
-                isOn: viewModel.sequencerEngine.isSeqPlaying,
-                fontSize: 13,
-                width: layout.landscapeControlPanelWidth,
-                height: 34,
-                action: { viewModel.toggleSeqPlayback() }
-            )
-            .jChordGentlePulse(viewModel.sequencerEngine.isSeqPlaying)
 
             SequencerGateWheel(
                 gate: Binding(
@@ -465,13 +448,19 @@ struct SeqLandscapePanel: View {
     }
 }
 
-// MARK: - ARP パターンエディタ (パッドエリアも使う全面オーバーレイ)
+// MARK: - RIFF パターンエディタ (パッドエリアも使う全面オーバーレイ)
 
-struct ArpPatternEditorOverlay: View {
+struct RiffPatternEditorOverlay: View {
     @ObservedObject var viewModel: MainViewModel
+    @State private var dragStepValue: Bool?
 
     private static let stepSpacing: CGFloat = 3
-    private static let voiceLabels = ["U", "M", "L"]
+    private static let voiceRowSpacing: CGFloat = 6
+    private static let sectionSpacing: CGFloat = 12
+    private static let stepLabelHeight: CGFloat = 14
+    private static let stepsPerRow = 8
+    private static let voiceLabels = ["H", "M", "L"]
+    private static let stepRowLabels = ["01-08", "09-16"]
 
     var body: some View {
         GeometryReader { geometry in
@@ -496,7 +485,7 @@ struct ArpPatternEditorOverlay: View {
 
     private func header(contentWidth: CGFloat) -> some View {
         HStack {
-            Text(L10n.string("main.arp.editor_title"))
+            Text(L10n.string("main.riff.editor_title"))
                 .font(.system(size: 18, weight: .heavy))
                 .foregroundStyle(JChordTheme.text)
 
@@ -508,7 +497,7 @@ struct ArpPatternEditorOverlay: View {
                 isOn: true,
                 width: 88,
                 height: 34,
-                action: { viewModel.dismissArpEditor() }
+                action: { viewModel.dismissRiffEditor() }
             )
         }
         .frame(width: contentWidth)
@@ -516,15 +505,15 @@ struct ArpPatternEditorOverlay: View {
 
     private func slotRow(contentWidth: CGFloat) -> some View {
         HStack(spacing: 8) {
-            ForEach(0 ..< PresetArpSettings.slotCount, id: \.self) { index in
+            ForEach(0 ..< PresetRiffSettings.slotCount, id: \.self) { index in
                 SequencerSlotButton(
                     index: index,
-                    isSelected: viewModel.arpSettings.selectedSlotIndex == index,
-                    hasContent: !viewModel.arpSettings.slots[index].isEmpty,
+                    isSelected: viewModel.riffSettings.selectedSlotIndex == index,
+                    hasContent: !viewModel.riffSettings.slots[index].isEmpty,
                     width: nil,
                     height: 44,
                     cornerRadius: 10,
-                    action: { viewModel.selectArpSlot(index) }
+                    action: { viewModel.selectRiffSlot(index) }
                 )
             }
         }
@@ -535,71 +524,164 @@ struct ArpPatternEditorOverlay: View {
         let labelWidth: CGFloat = 18
         let gridWidth = contentWidth - labelWidth - 8
         let cellWidth = floor(
-            (gridWidth - Self.stepSpacing * CGFloat(ArpPatternSlot.stepCount - 1)) / CGFloat(ArpPatternSlot.stepCount)
+            (gridWidth - Self.stepSpacing * CGFloat(Self.stepsPerRow - 1)) / CGFloat(Self.stepsPerRow)
         )
-        let slot = viewModel.arpSettings.selectedSlot
+        let cellHeight = stepCellHeight(width: cellWidth)
+        let sectionHeight = Self.stepLabelHeight
+            + Self.voiceRowSpacing
+            + CGFloat(RiffPatternSlot.voiceCount) * cellHeight
+            + CGFloat(RiffPatternSlot.voiceCount - 1) * Self.voiceRowSpacing
+        let gridHeight = CGFloat(Self.stepRowLabels.count) * sectionHeight
+            + CGFloat(Self.stepRowLabels.count - 1) * Self.sectionSpacing
+        let slot = viewModel.riffSettings.selectedSlot
 
-        return VStack(spacing: 6) {
-            ForEach(0 ..< ArpPatternSlot.voiceCount, id: \.self) { voice in
-                HStack(spacing: 8) {
-                    Text(Self.voiceLabels[voice])
-                        .font(.system(size: 13, weight: .heavy))
-                        .foregroundStyle(JChordTheme.muted)
-                        .frame(width: labelWidth, alignment: .center)
+        return ZStack(alignment: .topLeading) {
+            VStack(alignment: .leading, spacing: Self.sectionSpacing) {
+                ForEach(0 ..< Self.stepRowLabels.count, id: \.self) { row in
+                    VStack(alignment: .leading, spacing: Self.voiceRowSpacing) {
+                        Text(Self.stepRowLabels[row])
+                            .font(.system(size: 11, weight: .heavy))
+                            .monospacedDigit()
+                            .foregroundStyle(JChordTheme.muted.opacity(0.9))
+                            .frame(width: contentWidth, height: Self.stepLabelHeight, alignment: .leading)
 
-                    HStack(spacing: Self.stepSpacing) {
-                        ForEach(0 ..< ArpPatternSlot.stepCount, id: \.self) { step in
-                            stepCell(
-                                isOn: slot.steps[voice][step],
-                                isBeatHead: step % 4 == 0,
-                                width: cellWidth
-                            ) {
-                                viewModel.toggleArpStep(voice: voice, step: step)
+                        ForEach(0 ..< RiffPatternSlot.voiceCount, id: \.self) { voice in
+                            HStack(spacing: 8) {
+                                Text(Self.voiceLabels[voice])
+                                    .font(.system(size: 13, weight: .heavy))
+                                    .foregroundStyle(JChordTheme.muted)
+                                    .frame(width: labelWidth, height: cellHeight, alignment: .center)
+
+                                riffStepRow(
+                                    slot: slot,
+                                    voice: voice,
+                                    row: row,
+                                    cellWidth: cellWidth,
+                                    gridWidth: gridWidth
+                                )
                             }
                         }
                     }
                 }
             }
+
+            Color.clear
+                .frame(width: contentWidth, height: gridHeight)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            applyRiffGridDrag(
+                                value: value,
+                                slot: slot,
+                                labelWidth: labelWidth,
+                                cellWidth: cellWidth,
+                                cellHeight: cellHeight,
+                                sectionHeight: sectionHeight
+                            )
+                        }
+                        .onEnded { _ in
+                            dragStepValue = nil
+                        }
+                )
         }
-        .frame(width: contentWidth)
+        .frame(width: contentWidth, height: gridHeight)
+    }
+
+    private func riffStepRow(
+        slot: RiffPatternSlot,
+        voice: Int,
+        row: Int,
+        cellWidth: CGFloat,
+        gridWidth: CGFloat
+    ) -> some View {
+        HStack(spacing: Self.stepSpacing) {
+            ForEach(0 ..< Self.stepsPerRow, id: \.self) { column in
+                let step = row * Self.stepsPerRow + column
+                stepCell(
+                    isOn: slot.steps[voice][step],
+                    isBeatHead: step % 4 == 0,
+                    width: cellWidth
+                )
+            }
+        }
+        .frame(width: gridWidth, height: stepCellHeight(width: cellWidth))
+    }
+
+    private func applyRiffGridDrag(
+        value: DragGesture.Value,
+        slot: RiffPatternSlot,
+        labelWidth: CGFloat,
+        cellWidth: CGFloat,
+        cellHeight: CGFloat,
+        sectionHeight: CGFloat
+    ) {
+        let gridX = value.location.x - labelWidth - 8
+        guard gridX >= 0 else { return }
+        let columnStride = cellWidth + Self.stepSpacing
+        let rawColumn = Int((gridX / columnStride).rounded(.down))
+        let column = max(0, min(Self.stepsPerRow - 1, rawColumn))
+
+        let sectionStride = sectionHeight + Self.sectionSpacing
+        let rawRow = Int((value.location.y / sectionStride).rounded(.down))
+        guard (0 ..< Self.stepRowLabels.count).contains(rawRow) else { return }
+        let sectionY = value.location.y - CGFloat(rawRow) * sectionStride
+        let voiceAreaY = sectionY - Self.stepLabelHeight - Self.voiceRowSpacing
+        guard voiceAreaY >= 0 else { return }
+
+        let voiceStride = cellHeight + Self.voiceRowSpacing
+        let voice = Int((voiceAreaY / voiceStride).rounded(.down))
+        guard (0 ..< RiffPatternSlot.voiceCount).contains(voice),
+              voiceAreaY - CGFloat(voice) * voiceStride <= cellHeight
+        else { return }
+
+        let row = rawRow
+        let step = row * Self.stepsPerRow + column
+        guard slot.steps.indices.contains(voice),
+              slot.steps[voice].indices.contains(step)
+        else { return }
+
+        let targetValue = dragStepValue ?? !slot.steps[voice][step]
+        dragStepValue = targetValue
+        viewModel.setRiffStep(voice: voice, step: step, isOn: targetValue)
     }
 
     private func stepCell(
         isOn: Bool,
         isBeatHead: Bool,
-        width: CGFloat,
-        action: @escaping () -> Void
+        width: CGFloat
     ) -> some View {
-        Button(action: action) {
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                .fill(
-                    isOn
-                        ? AnyShapeStyle(JPadChromeTheme.buttonIdleFill)
-                        : AnyShapeStyle(Color.white.opacity(isBeatHead ? 0.1 : 0.05))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .strokeBorder(
-                            isOn ? JPadChromeTheme.buttonIdleBorder : Color.white.opacity(0.25),
-                            lineWidth: 1
-                        )
-                )
-                .frame(width: width, height: max(34, width * 1.5))
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+        RoundedRectangle(cornerRadius: 5, style: .continuous)
+            .fill(
+                isOn
+                    ? AnyShapeStyle(JPadChromeTheme.buttonIdleFill)
+                    : AnyShapeStyle(Color.white.opacity(isBeatHead ? 0.1 : 0.05))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    .strokeBorder(
+                        isOn ? JPadChromeTheme.buttonIdleBorder : Color.white.opacity(0.25),
+                        lineWidth: 1
+                    )
+            )
+            .frame(width: width, height: stepCellHeight(width: width))
+            .contentShape(Rectangle())
+    }
+
+    private func stepCellHeight(width: CGFloat) -> CGFloat {
+        max(30, min(38, width * 0.86))
     }
 
     private func keyRow(contentWidth: CGFloat) -> some View {
         HStack {
             Spacer(minLength: 0)
             HStack(spacing: 10) {
-                editorFieldLabel(L10n.string("main.arp.base_key"))
+                editorFieldLabel(L10n.string("main.riff.base_key"))
                 JChordValueWheelPicker(
-                    values: Array(PresetArpSettings.baseKeyRange.reversed()),
+                    values: Array(PresetRiffSettings.baseKeyRange.reversed()),
                     value: Binding(
-                        get: { Int(viewModel.arpSettings.baseKey) },
-                        set: { viewModel.updateArpBaseKey($0) }
+                        get: { Int(viewModel.riffSettings.baseKey) },
+                        set: { viewModel.updateRiffBaseKey($0) }
                     ),
                     width: 76,
                     height: 36,

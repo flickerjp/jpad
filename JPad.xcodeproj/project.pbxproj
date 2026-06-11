@@ -46,6 +46,7 @@
 		5B2B20B074F1BEE1CF2806A8 /* PadPerformanceAnimationConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011BB784A932943AD24C66DF /* PadPerformanceAnimationConfig.swift */; };
 		5D9236E8CBFF3F7BE0D97550 /* PresetBundles in Resources */ = {isa = PBXBuildFile; fileRef = 4C730F0812F9EFEE34279AE7 /* PresetBundles */; };
 		5EA4D1F222AF5CBF6CBC331D /* PadGridLayoutGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBE02FE0765906D70A26825A /* PadGridLayoutGeometry.swift */; };
+		65CC95D27076353842DF7171 /* MainRiffSeqControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4BFF164F8AEE9ADF1EB29C /* MainRiffSeqControls.swift */; };
 		6679F019169C66619607F2C0 /* PadVisualStyleSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1B524F86A813D6C5896DE4 /* PadVisualStyleSettings.swift */; };
 		68D57498D3B55127A32686C6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 74D4AACCAC0E554CFBD69B2C /* Assets.xcassets */; };
 		6AC917BAC99C142D347317CA /* JChordDeviceRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE4D378E8C4E26EC1F38393 /* JChordDeviceRow.swift */; };
@@ -99,7 +100,6 @@
 		D7D266DD40C1624D5FA74739 /* PreviewSoundPresetOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53CED3984E6807427D643481 /* PreviewSoundPresetOption.swift */; };
 		D85C23147FC4961009A72E16 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD38C8E81D7E9D3AA70697C /* Preset.swift */; };
 		DAC71F3A35D0954461877906 /* JChordTopActionStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED8F3870A2F3EBB5E12FD4B /* JChordTopActionStyle.swift */; };
-		DAF5611EAC056212BF7BBB98 /* MainArpSeqControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1B5A3BE02262AB2369670A /* MainArpSeqControls.swift */; };
 		DB24BEB0BD7CA93F1377E8E8 /* Preset+Editing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632EC16309D9FE89D8AC3A19 /* Preset+Editing.swift */; };
 		DBC5CC450A4AA4E674683082 /* ChordCandidateRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2650BCAFE095E0EB67B7A61 /* ChordCandidateRecognizer.swift */; };
 		DCA5CBFDB79A055A35CCDDD4 /* JChordPresetActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 579B5A44E212D00055C6F40A /* JChordPresetActionButton.swift */; };
@@ -202,7 +202,6 @@
 		B26BA201AB3F57569FF0D5EA /* BundledPresetDeletionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundledPresetDeletionStore.swift; sourceTree = "<group>"; };
 		B5841BB53D2FA060EA6160C2 /* ProSubscriptionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProSubscriptionStatus.swift; sourceTree = "<group>"; };
 		B854965F9B3AF84465E36AC9 /* PadSequencerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadSequencerSettings.swift; sourceTree = "<group>"; };
-		BB1B5A3BE02262AB2369670A /* MainArpSeqControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainArpSeqControls.swift; sourceTree = "<group>"; };
 		BECF3127005C00500596D426 /* MidiPacketTransmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiPacketTransmitter.swift; sourceTree = "<group>"; };
 		C0A112941AB47D73C366FCE9 /* PadEditorDisclosureSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadEditorDisclosureSection.swift; sourceTree = "<group>"; };
 		C3A4FCB8297E410FFC24205A /* PadKeyInputEditorSheetV11.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadKeyInputEditorSheetV11.swift; sourceTree = "<group>"; };
@@ -243,6 +242,7 @@
 		FAA311F444CF7EDAB2E82680 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		FAA8A3140FD41AFF39BF400D /* PresetLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetLoader.swift; sourceTree = "<group>"; };
 		FD124DC9AE8694C33A0B7574 /* PadSequencerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadSequencerEngine.swift; sourceTree = "<group>"; };
+		FD4BFF164F8AEE9ADF1EB29C /* MainRiffSeqControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainRiffSeqControls.swift; sourceTree = "<group>"; };
 		FD5DD7D2449105D09B9A4E3A /* MidiPerformanceSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiPerformanceSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -538,7 +538,7 @@
 			isa = PBXGroup;
 			children = (
 				DD20C5D8F477C4FF108F6728 /* JcstorePickerView.swift */,
-				BB1B5A3BE02262AB2369670A /* MainArpSeqControls.swift */,
+				FD4BFF164F8AEE9ADF1EB29C /* MainRiffSeqControls.swift */,
 				12695359AB2F07493C02CD47 /* MainView.swift */,
 				42D0D33A5D22373174363C7B /* MainViewModel.swift */,
 				5D10B96C1FA5CA86B57C4365 /* PresetPickerView.swift */,
@@ -696,7 +696,7 @@
 				057021AD0C510B6C28B8A48A /* JcstorePickerView.swift in Sources */,
 				F57D9E688D13EEAB0BD1388A /* JcstoreService.swift in Sources */,
 				46FF3C50C39C910A5D8C4CD9 /* L10n.swift in Sources */,
-				DAF5611EAC056212BF7BBB98 /* MainArpSeqControls.swift in Sources */,
+				65CC95D27076353842DF7171 /* MainRiffSeqControls.swift in Sources */,
 				83725A860D021AC17A2369B3 /* MainView.swift in Sources */,
 				C98A42C3E33D8085842E87EA /* MainViewModel.swift in Sources */,
 				7101AB4B571F5438714E7D72 /* MidiAudioSession.swift in Sources */,
@@ -779,7 +779,7 @@
 				CODE_SIGN_ENTITLEMENTS = JPad/JPad.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 132;
+				CURRENT_PROJECT_VERSION = 152;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
@@ -796,7 +796,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.5.01;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
 				PRODUCT_NAME = TinyTone;
 				SDKROOT = iphoneos;
@@ -812,7 +812,7 @@
 				CODE_SIGN_ENTITLEMENTS = JPad/JPad.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 132;
+				CURRENT_PROJECT_VERSION = 152;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
@@ -829,7 +829,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.5.01;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
 				PRODUCT_NAME = TinyTone;
 				SDKROOT = iphoneos;

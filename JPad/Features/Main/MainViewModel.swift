@@ -39,10 +39,10 @@ final class MainViewModel: ObservableObject {
     @AppStorage(PresetRotationSettings.slotIDsKey) private var rotationSlotIDsStorage = ""
     @AppStorage(MidiClockReceiver.tempoSourceStorageKey) private var isExternalClockStored = false
 
-    // ARP / SEQ の演奏中トグル（セットには保存しない）
-    @Published var isArpPerformanceOn = false
+    // RIFF / SEQ の演奏中トグル（セットには保存しない）
+    @Published var isRiffPerformanceOn = false
     @Published var isSeqRecording = false
-    @Published var isShowingArpEditor = false
+    @Published var isShowingRiffEditor = false
 
     private var holdLatchedPadID: Int?
     private var pendingTransposeSemitones: Int?
@@ -715,22 +715,23 @@ final class MainViewModel: ObservableObject {
 
     func updatePadControlMode(_ mode: PresetPadControlMode) {
         if mode != padControlMode {
-            sequencerEngine.stopAll()
-            isSeqRecording = false
-            isShowingArpEditor = false
+            if mode != .seq {
+                isSeqRecording = false
+            }
+            isShowingRiffEditor = false
         }
         let updated = preset.transposeSettings.selectingPadControlMode(mode)
         applyControlSettings(updated)
     }
 
-    // MARK: - ARP / SEQ
+    // MARK: - RIFF / SEQ
 
     var sequencerSettings: PresetSequencerSettings {
         preset.sequencerSettings
     }
 
-    var arpSettings: PresetArpSettings {
-        preset.sequencerSettings.arp
+    var riffSettings: PresetRiffSettings {
+        preset.sequencerSettings.riff
     }
 
     var seqSettings: PresetSeqSettings {
@@ -772,77 +773,112 @@ final class MainViewModel: ObservableObject {
 
     func updateSequencerBpm(_ bpm: Double) {
         var updated = preset.sequencerSettings
-        updated = PresetSequencerSettings(bpm: bpm, arp: updated.arp, seq: updated.seq)
+        updated = PresetSequencerSettings(bpm: bpm, riff: updated.riff, seq: updated.seq)
         applySequencerSettings(updated)
     }
 
-    func toggleArpPerformance() {
-        if isArpPerformanceOn {
-            isArpPerformanceOn = false
-            sequencerEngine.stopArp()
+    func toggleRiffPerformance() {
+        if isRiffPerformanceOn {
+            isRiffPerformanceOn = false
+            sequencerEngine.stopRiff()
         } else {
-            sendAllNotesOff()
-            isArpPerformanceOn = true
+            sequencerEngine.stopSeq()
+            isSeqRecording = false
+            isRiffPerformanceOn = true
         }
     }
 
-    func selectArpSlot(_ index: Int) {
-        applyArpSlotSelection(index)
-        guard sequencerEngine.arpActivePadID != nil else {
+    /// RIFF スロットがオン（RIFF 演奏が有効で、このスロットが選択中）。
+    func isRiffSlotActive(_ index: Int) -> Bool {
+        isRiffPerformanceOn && riffSettings.selectedSlotIndex == index
+    }
+
+    /// スロットを押すたびに RIFF の ON/OFF をトグルする。
+    /// 別スロットを押した場合はそのスロットへ切り替えて ON のままにする。
+    func toggleRiffSlot(_ index: Int) {
+        if isRiffPerformanceOn, riffSettings.selectedSlotIndex == index {
+            isRiffPerformanceOn = false
+            sequencerEngine.stopRiff()
             return
         }
-        sequencerEngine.queueArpPatternChange(preset.sequencerSettings.arp.selectedSlot)
+
+        // SEQ を止めてから RIFF を ON にする（同時駆動はしない）
+        if sequencerEngine.isSeqPlaying {
+            sequencerEngine.stopSeq()
+        }
+        isSeqRecording = false
+
+        applyRiffSlotSelection(index)
+        isRiffPerformanceOn = true
+        if sequencerEngine.riffActivePadID != nil {
+            sequencerEngine.queueRiffPatternChange(preset.sequencerSettings.riff.selectedSlot)
+        }
     }
 
-    private func applyArpSlotSelection(_ index: Int) {
+    func selectRiffSlot(_ index: Int) {
+        applyRiffSlotSelection(index)
+        guard sequencerEngine.riffActivePadID != nil else {
+            return
+        }
+        sequencerEngine.queueRiffPatternChange(preset.sequencerSettings.riff.selectedSlot)
+    }
+
+    private func applyRiffSlotSelection(_ index: Int) {
         var updated = preset.sequencerSettings
-        updated.arp = PresetArpSettings(
-            slots: updated.arp.slots,
+        updated.riff = PresetRiffSettings(
+            slots: updated.riff.slots,
             selectedSlotIndex: index,
-            baseKey: updated.arp.baseKey
+            baseKey: updated.riff.baseKey
         )
         applySequencerSettings(updated)
     }
 
-    func toggleArpStep(voice: Int, step: Int) {
+    func toggleRiffStep(voice: Int, step: Int) {
+        guard riffSettings.selectedSlot.steps.indices.contains(voice),
+              riffSettings.selectedSlot.steps[voice].indices.contains(step)
+        else { return }
+        setRiffStep(voice: voice, step: step, isOn: !riffSettings.selectedSlot.steps[voice][step])
+    }
+
+    func setRiffStep(voice: Int, step: Int, isOn: Bool) {
         var updated = preset.sequencerSettings
-        updated.arp = updated.arp.replacingSelectedSlot(
-            updated.arp.selectedSlot.toggling(voice: voice, step: step)
+        updated.riff = updated.riff.replacingSelectedSlot(
+            updated.riff.selectedSlot.setting(voice: voice, step: step, isOn: isOn)
         )
         applySequencerSettings(updated)
-        if sequencerEngine.arpActivePadID != nil {
-            sequencerEngine.updateArpPattern(updated.arp.selectedSlot)
+        if sequencerEngine.riffActivePadID != nil {
+            sequencerEngine.updateRiffPattern(updated.riff.selectedSlot)
         }
     }
 
-    func updateArpGate(_ gate: Double) {
+    func updateRiffGate(_ gate: Double) {
         var updated = preset.sequencerSettings
-        var slot = updated.arp.selectedSlot
-        slot = ArpPatternSlot(steps: slot.steps, gate: gate)
-        updated.arp = updated.arp.replacingSelectedSlot(slot)
+        var slot = updated.riff.selectedSlot
+        slot = RiffPatternSlot(steps: slot.steps, gate: gate)
+        updated.riff = updated.riff.replacingSelectedSlot(slot)
         applySequencerSettings(updated)
-        if sequencerEngine.arpActivePadID != nil {
-            sequencerEngine.updateArpPattern(updated.arp.selectedSlot)
+        if sequencerEngine.riffActivePadID != nil {
+            sequencerEngine.updateRiffPattern(updated.riff.selectedSlot)
         }
     }
 
-    func updateArpBaseKey(_ baseKey: Int) {
+    func updateRiffBaseKey(_ baseKey: Int) {
         var updated = preset.sequencerSettings
-        updated.arp = PresetArpSettings(
-            slots: updated.arp.slots,
-            selectedSlotIndex: updated.arp.selectedSlotIndex,
+        updated.riff = PresetRiffSettings(
+            slots: updated.riff.slots,
+            selectedSlotIndex: updated.riff.selectedSlotIndex,
             baseKey: UInt8(clamping: baseKey)
         )
         applySequencerSettings(updated)
     }
 
-    func presentArpEditor() {
+    func presentRiffEditor() {
         sendAllNotesOff()
-        isShowingArpEditor = true
+        isShowingRiffEditor = true
     }
 
-    func dismissArpEditor() {
-        isShowingArpEditor = false
+    func dismissRiffEditor() {
+        isShowingRiffEditor = false
     }
 
     func toggleSeqPlayback() {
@@ -851,8 +887,38 @@ final class MainViewModel: ObservableObject {
             return
         }
         isSeqRecording = false
-        sendAllNotesOff()
+        isRiffPerformanceOn = false
+        sequencerEngine.stopRiff()
         sequencerEngine.startSeq(events: resolvedSeqEvents())
+    }
+
+    /// SEQ スロットが再生（ラッチ）中で、このスロットが選択中。
+    func isSeqSlotPlaying(_ index: Int) -> Bool {
+        sequencerEngine.isSeqPlaying && seqSettings.selectedSlotIndex == index
+    }
+
+    /// スロットを押したら、そのパターンを直接ラッチ再生する。
+    /// 録音中はスロット選択（編集対象切り替え）のみ。
+    /// 再生中の同じスロットをもう一度押すと停止。別スロットなら切り替えて再生継続。
+    func toggleSeqSlot(_ index: Int) {
+        if isSeqRecording {
+            applySeqSlotSelection(index)
+            return
+        }
+
+        if sequencerEngine.isSeqPlaying, seqSettings.selectedSlotIndex == index {
+            sequencerEngine.stopSeq()
+            return
+        }
+
+        applySeqSlotSelection(index)
+        if sequencerEngine.isSeqPlaying {
+            sequencerEngine.queueSeqEvents(resolvedSeqEvents())
+        } else {
+            isRiffPerformanceOn = false
+            sequencerEngine.stopRiff()
+            sequencerEngine.startSeq(events: resolvedSeqEvents())
+        }
     }
 
     func selectSeqSlot(_ index: Int) {
@@ -942,50 +1008,50 @@ final class MainViewModel: ObservableObject {
         persistActiveSlotIfNeeded()
     }
 
-    /// ARP モードで ON のとき、パッド押下をアルペジオ再生に回す。
-    private var isArpPlaybackActive: Bool {
-        padControlMode == .arp && isArpPerformanceOn && !isPadEditMode
+    /// RIFF モードで ON のとき、パッド押下をアルペジオ再生に回す。
+    private var isRiffPlaybackActive: Bool {
+        padControlMode == .riff && isRiffPerformanceOn && !isPadEditMode
     }
 
-    private func startArp(for pad: PadDefinition) {
+    private func startRiff(for pad: PadDefinition) {
         let transposeSemitones = preset.transposeSettings.selectedMemory.totalSemitones
         let notes = SeqPatternResolver.playbackNotes(for: pad, transposeSemitones: transposeSemitones)
-        let voices = ArpVoiceGrouper.groupedVoices(
+        let voices = RiffVoiceGrouper.groupedVoices(
             chordNotes: notes,
-            baseKey: preset.sequencerSettings.arp.baseKey
+            baseKey: preset.sequencerSettings.riff.baseKey
         )
-        sequencerEngine.startArp(
+        sequencerEngine.startRiff(
             padID: pad.id,
             voices: voices,
-            pattern: preset.sequencerSettings.arp.selectedSlot
+            pattern: preset.sequencerSettings.riff.selectedSlot
         )
     }
 
     private func padOn(_ pad: PadDefinition) {
-        if isArpPlaybackActive {
-            startArp(for: pad)
+        if isRiffPlaybackActive {
+            startRiff(for: pad)
         } else {
             midiService.sendPadOn(pad)
         }
     }
 
     private func padOff(_ pad: PadDefinition) {
-        if sequencerEngine.arpActivePadID == pad.id {
-            sequencerEngine.stopArp()
+        if sequencerEngine.riffActivePadID == pad.id {
+            sequencerEngine.stopRiff()
         } else {
             midiService.sendPadOff(pad)
         }
     }
 
     private func padTransition(from oldPad: PadDefinition, to newPad: PadDefinition) {
-        let oldPadWasArpDriven = sequencerEngine.arpActivePadID == oldPad.id
-        if oldPadWasArpDriven {
-            sequencerEngine.stopArp()
-        } else if isArpPlaybackActive {
-            // ARP ON 直前に通常発音で押されたパッドからの遷移
+        let oldPadWasRiffDriven = sequencerEngine.riffActivePadID == oldPad.id
+        if oldPadWasRiffDriven {
+            sequencerEngine.stopRiff()
+        } else if isRiffPlaybackActive {
+            // RIFF ON 直前に通常発音で押されたパッドからの遷移
             midiService.sendPadOff(oldPad)
         }
-        if oldPadWasArpDriven || isArpPlaybackActive {
+        if oldPadWasRiffDriven || isRiffPlaybackActive {
             padOn(newPad)
         } else {
             midiService.transitionPad(from: oldPad, to: newPad)
@@ -996,14 +1062,14 @@ final class MainViewModel: ObservableObject {
         let updated = preset.transposeSettings.updatingSelectedMemory {
             PresetShiftMemory(keyShift: newValue, octaveShift: $0.octaveShift)
         }
-        applyControlSettings(updated)
+        applyPerformanceControlSettings(updated)
     }
 
     func updateOctaveTranspose(_ newValue: Int) {
         let updated = preset.transposeSettings.updatingSelectedMemory {
             PresetShiftMemory(keyShift: $0.keyShift, octaveShift: newValue)
         }
-        applyControlSettings(updated)
+        applyPerformanceControlSettings(updated)
     }
 
     func closeNotesEditor() {
@@ -1186,7 +1252,7 @@ final class MainViewModel: ObservableObject {
     private func applyLoadedPreset(_ loadedPreset: Preset) {
         sequencerEngine.stopAll()
         isSeqRecording = false
-        isShowingArpEditor = false
+        isShowingRiffEditor = false
         preset = loadedPreset
         velocity = Double(loadedPreset.defaultVelocity)
         expression = Double(loadedPreset.defaultExpression)
@@ -1205,9 +1271,9 @@ final class MainViewModel: ObservableObject {
     private func applyControlSettings(_ settings: PresetControlSettings) {
         guard settings != preset.transposeSettings else { return }
         clearPendingTranspose()
-        sendAllNotesOffWithoutPendingArm()
         preset = preset.replacingControlSettings(settings)
         midiService.updatePadTranspose(semitones: settings.selectedMemory.totalSemitones)
+        updateSequencerPlaybackForCurrentControlSettings()
         persistActiveSlotIfNeeded()
     }
 
@@ -1216,7 +1282,36 @@ final class MainViewModel: ObservableObject {
         pendingTransposeSemitones = settings.selectedMemory.totalSemitones
         isPendingTransposeArmed = false
         preset = preset.replacingControlSettings(settings)
+        updateSequencerPlaybackForCurrentControlSettings()
         persistActiveSlotIfNeeded()
+    }
+
+    private func applyPerformanceControlSettings(_ settings: PresetControlSettings) {
+        if hasSoundingPadNotes {
+            applyControlSettingsPreservingSound(settings)
+        } else {
+            applyControlSettings(settings)
+        }
+    }
+
+    private func updateSequencerPlaybackForCurrentControlSettings() {
+        if let activePadID = sequencerEngine.riffActivePadID,
+           let activePad = preset.pads.first(where: { $0.id == activePadID }) {
+            let notes = SeqPatternResolver.playbackNotes(
+                for: activePad,
+                transposeSemitones: preset.transposeSettings.selectedMemory.totalSemitones
+            )
+            sequencerEngine.updateRiffVoices(
+                RiffVoiceGrouper.groupedVoices(
+                    chordNotes: notes,
+                    baseKey: preset.sequencerSettings.riff.baseKey
+                )
+            )
+        }
+
+        if sequencerEngine.isSeqPlaying {
+            sequencerEngine.updateSeqEvents(resolvedSeqEvents())
+        }
     }
 
     private func clearPendingTranspose() {
@@ -1233,15 +1328,6 @@ final class MainViewModel: ObservableObject {
         guard isPendingTransposeArmed, let semitones = pendingTransposeSemitones else { return }
         clearPendingTranspose()
         midiService.updatePadTranspose(semitones: semitones)
-    }
-
-    private func sendAllNotesOffWithoutPendingArm() {
-        isHoldEnabled = false
-        playingPadID = nil
-        holdLatchedPadID = nil
-        sequencerEngine.stopAll()
-        midiService.sendAllNotesOff()
-        midiService.preparePreviewAudioIfNeeded()
     }
 
     private func persistActiveSlotIfNeeded() {

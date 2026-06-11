@@ -20,9 +20,9 @@ struct MidiRoutingSettingsContent: View {
     var compactPanelMaxWidth: CGFloat? = nil
     /// ScrollView の実効コンテンツ幅。iPhone 幅で固定列がはみ出さないように使う。
     var availableContentWidth: CGFloat? = nil
-    /// ARP / SEQ のテンポ源（内部 BPM / MIDI Clock 追従）切替の通知先。
+    /// RIFF / SEQ のテンポ源（内部 BPM / MIDI Clock 追従）切替の通知先。
     var onClockSourceChanged: ((Bool) -> Void)? = nil
-    /// ARP / SEQ 共通の内部テンポ。MIDI Clock 選択中は保持値として表示する。
+    /// RIFF / SEQ 共通の内部テンポ。MIDI Clock 選択中は保持値として表示する。
     var internalClockBpm: Binding<Int>? = nil
 
     private var showsDeviceRouting: Bool { presentation == .settings }
@@ -392,7 +392,7 @@ struct MidiRoutingSettingsContent: View {
         .accessibilityElement(children: .contain)
     }
 
-    /// ARP / SEQ のテンポ源。内部 BPM か MIDI Clock (24 ppqn) 追従か。
+    /// RIFF / SEQ のテンポ源。内部 BPM か MIDI Clock (24 ppqn) 追従か。
     private var clockSourceRadioRow: some View {
         VStack(alignment: .leading, spacing: 8) {
             fieldTitle(L10n.string("settings.clock_source"))

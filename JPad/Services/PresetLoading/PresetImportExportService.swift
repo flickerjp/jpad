@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 
 /// 共有（Pro）向けのプリセット JSON エンベロープ。
 struct PresetExportEnvelope: Codable {
-  static let currentFormatVersion = 2
+  static let currentFormatVersion = 3
   static let kind = "preset"
 
   let formatVersion: Int
@@ -11,6 +11,8 @@ struct PresetExportEnvelope: Codable {
   let exportedAt: Date
   let slotName: String
   let origin: PresetSlotOrigin
+  /// RIFF / SEQ 情報を共有 envelope 上にも明示して、IMPORT / EXPORT / AirDrop の往復で保持する。
+  let sequencerSettings: PresetSequencerSettings?
   let preset: Preset
 
   init(slotName: String, origin: PresetSlotOrigin, preset: Preset, exportedAt: Date = Date()) {
@@ -19,6 +21,7 @@ struct PresetExportEnvelope: Codable {
     self.exportedAt = exportedAt
     self.slotName = slotName
     self.origin = origin
+    sequencerSettings = preset.sequencerSettings
     self.preset = preset
   }
 }
@@ -161,7 +164,10 @@ enum PresetImportExportService {
     guard envelope.kind == PresetExportEnvelope.kind else {
       throw PresetShareError.unsupportedDocumentKind
     }
-    return envelope.preset
+    guard let sequencerSettings = envelope.sequencerSettings else {
+      return envelope.preset
+    }
+    return envelope.preset.replacingSequencerSettings(sequencerSettings)
   }
 }
 

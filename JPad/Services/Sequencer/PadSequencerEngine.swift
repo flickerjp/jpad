@@ -1,7 +1,7 @@
 import Foundation
 
 /// コード構成音を基準キー以上に絞り、U / M / L の 3 声部へグルーピングする。
-enum ArpVoiceGrouper {
+enum RiffVoiceGrouper {
     /// 戻り値は `[upper, middle, lower]`。基準キーより下の構成音は鳴らさない。
     static func groupedVoices(chordNotes: [UInt8], baseKey: UInt8) -> [[UInt8]] {
         let candidates = Set(chordNotes.filter { $0 >= baseKey }).sorted()
@@ -51,8 +51,8 @@ struct SeqPlaybackEvent: Equatable {
     let stepLength: Int
 }
 
-private struct PendingArpPatternChange {
-    let pattern: ArpPatternSlot
+private struct PendingRiffPatternChange {
+    let pattern: RiffPatternSlot
 }
 
 private struct PendingSeqEventChange {
@@ -107,12 +107,14 @@ enum SeqPatternResolver {
     }
 }
 
-/// ARP / SEQ の共用ステップクロックエンジン。
+/// RIFF / SEQ の共用ステップクロックエンジン。
 /// 発音は noteOn / noteOff クロージャ経由（MidiOutputService の preview note API を想定。
 /// 同 API は ref count 管理なので、ゲートの重なりがあってもノートが消えすぎない）。
 @MainActor
 final class PadSequencerEngine: ObservableObject {
-    @Published private(set) var arpActivePadID: Int?
+    @Published private(set) var riffActivePadID: Int?
+    /// 再生中の RIFF ステップ位置（16 分音符単位、UI 表示用）。
+    @Published private(set) var riffCurrentRawStep: Int?
     @Published private(set) var isSeqPlaying = false
     /// 再生中の SEQ ステップ位置（16 分音符単位、UI 表示用）。
     @Published private(set) var seqCurrentRawStep: Int?
@@ -126,85 +128,92 @@ final class PadSequencerEngine: ObservableObject {
     /// SEQ のゲート長。短いほど連打時に音が詰まりにくい。
     var seqGate: () -> Double = { 0.5 }
 
-    // MARK: - ARP
+    // MARK: - RIFF
 
-    private var arpPattern: ArpPatternSlot = .default
-    private var arpVoices: [[UInt8]] = [[], [], []]
-    private var arpStepIndex = 0
-    private var arpGeneration = 0
-    private var pendingArpPatternChange: PendingArpPatternChange?
+    private var riffPattern: RiffPatternSlot = .default
+    private var riffVoices: [[UInt8]] = [[], [], []]
+    private var riffStepIndex = 0
+    private var riffGeneration = 0
+    private var pendingRiffPatternChange: PendingRiffPatternChange?
 
-    func startArp(padID: Int, voices: [[UInt8]], pattern: ArpPatternSlot) {
-        stopArpNotes()
-        arpActivePadID = padID
-        arpVoices = voices
-        arpPattern = pattern
-        arpStepIndex = 0
-        arpGeneration += 1
-        let generation = arpGeneration
-        fireArpStep()
-        scheduleNextArpStep(after: ContinuousClock.now, generation: generation)
+    func startRiff(padID: Int, voices: [[UInt8]], pattern: RiffPatternSlot) {
+        stopRiffNotes()
+        riffActivePadID = padID
+        riffVoices = voices
+        riffPattern = pattern
+        riffStepIndex = 0
+        riffGeneration += 1
+        pendingRiffPatternChange = nil
+        riffCurrentRawStep = 0
+        let generation = riffGeneration
+        fireRiffStep()
+        scheduleNextRiffStep(after: ContinuousClock.now, generation: generation)
     }
 
     /// 演奏中のパターン/スロット差し替え（次のステップから反映）。
-    func updateArpPattern(_ pattern: ArpPatternSlot) {
-        arpPattern = pattern
+    func updateRiffPattern(_ pattern: RiffPatternSlot) {
+        riffPattern = pattern
     }
 
-    /// 演奏中のスロット差し替え（次の 4 拍子境界で反映）。
-    func queueArpPatternChange(_ pattern: ArpPatternSlot) {
-        pendingArpPatternChange = PendingArpPatternChange(pattern: pattern)
+    /// 演奏中の発音対象ボイス差し替え（次のステップから反映）。
+    func updateRiffVoices(_ voices: [[UInt8]]) {
+        riffVoices = voices
     }
 
-    func stopArp() {
-        arpGeneration += 1
-        arpActivePadID = nil
-        pendingArpPatternChange = nil
-        stopArpNotes()
+    /// 演奏中のスロット差し替え（次の 16 分頭で反映）。
+    func queueRiffPatternChange(_ pattern: RiffPatternSlot) {
+        pendingRiffPatternChange = PendingRiffPatternChange(pattern: pattern)
     }
 
-    private func scheduleNextArpStep(after reference: ContinuousClock.Instant, generation: Int) {
+    func stopRiff() {
+        riffGeneration += 1
+        riffActivePadID = nil
+        riffCurrentRawStep = nil
+        pendingRiffPatternChange = nil
+        stopRiffNotes()
+    }
+
+    private func scheduleNextRiffStep(after reference: ContinuousClock.Instant, generation: Int) {
         let deadline = reference.advanced(by: .seconds(stepInterval()))
         Task.detached(priority: .userInitiated) { [weak self] in
             try? await Task.sleep(until: deadline, clock: .continuous)
             await MainActor.run {
-                guard let self, generation == self.arpGeneration else { return }
-                self.arpStepIndex = (self.arpStepIndex + 1) % ArpPatternSlot.stepCount
-                if self.arpStepIndex == 0 {
-                    self.applyPendingArpPatternChangeIfNeeded()
-                }
-                self.fireArpStep()
-                self.scheduleNextArpStep(after: deadline, generation: generation)
+                guard let self, generation == self.riffGeneration else { return }
+                self.riffStepIndex = (self.riffStepIndex + 1) % RiffPatternSlot.stepCount
+                self.applyPendingRiffPatternChangeIfNeeded()
+                self.fireRiffStep()
+                self.scheduleNextRiffStep(after: deadline, generation: generation)
             }
         }
     }
 
-    private func applyPendingArpPatternChangeIfNeeded() {
-        guard let pending = pendingArpPatternChange else { return }
-        pendingArpPatternChange = nil
-        stopArpNotes()
-        arpPattern = pending.pattern
+    private func applyPendingRiffPatternChangeIfNeeded() {
+        guard let pending = pendingRiffPatternChange else { return }
+        pendingRiffPatternChange = nil
+        stopRiffNotes()
+        riffPattern = pending.pattern
     }
 
-    private func fireArpStep() {
-        let step = arpStepIndex
+    private func fireRiffStep() {
+        let step = riffStepIndex
+        riffCurrentRawStep = step
         let interval = stepInterval()
-        let gateDuration = max(0.01, interval * arpPattern.gate)
-        let generation = arpGeneration
+        let gateDuration = max(0.01, interval * riffPattern.gate)
+        let generation = riffGeneration
 
-        for voice in 0 ..< ArpPatternSlot.voiceCount {
-            guard arpPattern.steps.indices.contains(voice),
-                  arpPattern.steps[voice].indices.contains(step),
-                  arpPattern.steps[voice][step] else { continue }
-            let notes = voice < arpVoices.count ? arpVoices[voice] : []
+        for voice in 0 ..< RiffPatternSlot.voiceCount {
+            guard riffPattern.steps.indices.contains(voice),
+                  riffPattern.steps[voice].indices.contains(step),
+                  riffPattern.steps[voice][step] else { continue }
+            let notes = voice < riffVoices.count ? riffVoices[voice] : []
             guard !notes.isEmpty else { continue }
-            playGatedNotes(notes, duration: gateDuration, generation: generation, isArp: true)
+            playGatedNotes(notes, duration: gateDuration, generation: generation, isRiff: true)
         }
     }
 
-    private func stopArpNotes() {
-        for note in Array(soundingArpNotes.keys) {
-            releaseAll(note: note, counts: &soundingArpNotes)
+    private func stopRiffNotes() {
+        for note in Array(soundingRiffNotes.keys) {
+            releaseAll(note: note, counts: &soundingRiffNotes)
         }
     }
 
@@ -240,6 +249,19 @@ final class PadSequencerEngine: ObservableObject {
         startSeq(events: events)
     }
 
+    /// 再生位置は維持したまま、次のイベントから鳴らす内容を差し替える。
+    func updateSeqEvents(_ events: [SeqPlaybackEvent]) {
+        guard isSeqPlaying else { return }
+        let rawCount = events.reduce(0) { $0 + $1.stepLength }
+        guard rawCount > 0 else {
+            stopSeq()
+            return
+        }
+        seqEvents = events
+        seqRawStepCount = rawCount
+        seqEventIndex = min(seqEventIndex, events.count - 1)
+    }
+
     /// 再生中のスロット差し替え（次の 4 拍子境界で反映）。
     func queueSeqEvents(_ events: [SeqPlaybackEvent]) {
         guard isSeqPlaying else { return }
@@ -258,6 +280,12 @@ final class PadSequencerEngine: ObservableObject {
     private func scheduleNextSeqEvent(after reference: ContinuousClock.Instant, generation: Int) {
         guard seqEvents.indices.contains(seqEventIndex) else { return }
         let currentLength = seqEvents[seqEventIndex].stepLength
+        scheduleSeqRawStepTicks(
+            after: reference,
+            startRawStep: seqBarRawStep,
+            stepLength: currentLength,
+            generation: generation
+        )
         let deadline = reference.advanced(by: .seconds(stepInterval() * Double(currentLength)))
         Task.detached(priority: .userInitiated) { [weak self] in
             try? await Task.sleep(until: deadline, clock: .continuous)
@@ -267,6 +295,29 @@ final class PadSequencerEngine: ObservableObject {
                 guard self.isSeqPlaying else { return }
                 self.fireSeqEvent()
                 self.scheduleNextSeqEvent(after: deadline, generation: generation)
+            }
+        }
+    }
+
+    private func scheduleSeqRawStepTicks(
+        after reference: ContinuousClock.Instant,
+        startRawStep: Int,
+        stepLength: Int,
+        generation: Int
+    ) {
+        guard stepLength > 1 else { return }
+        let interval = stepInterval()
+        for offset in 1 ..< stepLength {
+            let deadline = reference.advanced(by: .seconds(interval * Double(offset)))
+            Task.detached(priority: .userInitiated) { [weak self] in
+                try? await Task.sleep(until: deadline, clock: .continuous)
+                await MainActor.run {
+                    guard let self,
+                          generation == self.seqGeneration,
+                          self.isSeqPlaying
+                    else { return }
+                    self.seqCurrentRawStep = (startRawStep + offset) % SeqPatternSlot.maxStepCount
+                }
             }
         }
     }
@@ -311,7 +362,7 @@ final class PadSequencerEngine: ObservableObject {
 
         let interval = stepInterval()
         let duration = max(0.01, interval * (Double(event.stepLength - 1) + seqGate()))
-        playGatedNotes(event.notes, duration: duration, generation: seqGeneration, isArp: false)
+        playGatedNotes(event.notes, duration: duration, generation: seqGeneration, isRiff: false)
     }
 
     private func stopSeqNotes() {
@@ -323,11 +374,11 @@ final class PadSequencerEngine: ObservableObject {
     // MARK: - 共通発音
 
     /// 同じノートのゲートが重なったときに早すぎる Note Off を出さないための計数。
-    private var soundingArpNotes: [UInt8: Int] = [:]
+    private var soundingRiffNotes: [UInt8: Int] = [:]
     private var soundingSeqNotes: [UInt8: Int] = [:]
 
     func stopAll() {
-        stopArp()
+        stopRiff()
         stopSeq()
     }
 
@@ -335,7 +386,7 @@ final class PadSequencerEngine: ObservableObject {
         _ notes: [UInt8],
         duration: TimeInterval,
         generation: Int,
-        isArp: Bool
+        isRiff: Bool
     ) {
         var seenNotes = Set<UInt8>()
         let uniqueNotes = notes.filter { seenNotes.insert($0).inserted }
@@ -343,32 +394,32 @@ final class PadSequencerEngine: ObservableObject {
 
         notesOn(uniqueNotes)
         for note in uniqueNotes {
-            if isArp {
-                soundingArpNotes[note, default: 0] += 1
+            if isRiff {
+                soundingRiffNotes[note, default: 0] += 1
             } else {
                 soundingSeqNotes[note, default: 0] += 1
             }
         }
 
-        Task.detached(priority: .userInitiated) { [weak self, notes = uniqueNotes, duration, generation, isArp] in
+        Task.detached(priority: .userInitiated) { [weak self, notes = uniqueNotes, duration, generation, isRiff] in
             try? await Task.sleep(for: .seconds(duration))
             await MainActor.run {
                 guard let self else { return }
-                let stillRunning = isArp ? generation == self.arpGeneration : generation == self.seqGeneration
+                let stillRunning = isRiff ? generation == self.riffGeneration : generation == self.seqGeneration
                 guard stillRunning else { return }
-                self.releaseNotes(notes, isArp: isArp)
+                self.releaseNotes(notes, isRiff: isRiff)
             }
         }
     }
 
-    private func releaseNotes(_ notes: [UInt8], isArp: Bool) {
+    private func releaseNotes(_ notes: [UInt8], isRiff: Bool) {
         var notesToRelease: [UInt8] = []
         notesToRelease.reserveCapacity(notes.count)
 
         for note in notes {
-            if isArp {
-                guard let count = soundingArpNotes[note], count > 0 else { continue }
-                soundingArpNotes[note] = count == 1 ? nil : count - 1
+            if isRiff {
+                guard let count = soundingRiffNotes[note], count > 0 else { continue }
+                soundingRiffNotes[note] = count == 1 ? nil : count - 1
             } else {
                 guard let count = soundingSeqNotes[note], count > 0 else { continue }
                 soundingSeqNotes[note] = count == 1 ? nil : count - 1
