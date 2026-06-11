@@ -870,3 +870,13 @@
 
 **参照:** `git show 498c105` / `git log -1 498c105`
 
+
+<!-- handover:auto:ab3bf8a3e4a86bf98ca28c644aa5ce79ec0e3262 -->
+### 2026-06-11 09:53:36 +0900 — `ab3bf8a` — main
+
+**件名:** Align ARP layout to SEQ
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show ab3bf8a` / `git log -1 ab3bf8a`
+
