@@ -12,12 +12,21 @@ struct JChordValueWheelPicker: View {
         max(12, height * 1.05)
     }
 
+    private var valueTextWidth: CGFloat {
+        max(28, width - min(8, width * 0.12))
+    }
+
     var body: some View {
         ZStack {
             Picker("", selection: $value) {
                 ForEach(values, id: \.self) { item in
                     Text(displayText(item))
-                        .font(.system(size: min(18, height * 0.44), weight: .heavy))
+                        .font(.system(size: min(17, height * 0.4), weight: .heavy))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                        .allowsTightening(true)
+                        .frame(width: valueTextWidth, alignment: .center)
                         .scaleEffect(x: 1, y: -1)
                         .tag(item)
                 }

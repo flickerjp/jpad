@@ -787,6 +787,14 @@ final class MainViewModel: ObservableObject {
     }
 
     func selectArpSlot(_ index: Int) {
+        applyArpSlotSelection(index)
+        guard sequencerEngine.arpActivePadID != nil else {
+            return
+        }
+        sequencerEngine.queueArpPatternChange(preset.sequencerSettings.arp.selectedSlot)
+    }
+
+    private func applyArpSlotSelection(_ index: Int) {
         var updated = preset.sequencerSettings
         updated.arp = PresetArpSettings(
             slots: updated.arp.slots,
@@ -794,9 +802,6 @@ final class MainViewModel: ObservableObject {
             baseKey: updated.arp.baseKey
         )
         applySequencerSettings(updated)
-        if sequencerEngine.arpActivePadID != nil {
-            sequencerEngine.updateArpPattern(updated.arp.selectedSlot)
-        }
     }
 
     func toggleArpStep(voice: Int, step: Int) {
@@ -851,6 +856,14 @@ final class MainViewModel: ObservableObject {
     }
 
     func selectSeqSlot(_ index: Int) {
+        applySeqSlotSelection(index)
+        guard sequencerEngine.isSeqPlaying else {
+            return
+        }
+        sequencerEngine.queueSeqEvents(resolvedSeqEvents())
+    }
+
+    private func applySeqSlotSelection(_ index: Int) {
         var updated = preset.sequencerSettings
         updated.seq = PresetSeqSettings(
             slots: updated.seq.slots,
@@ -858,9 +871,6 @@ final class MainViewModel: ObservableObject {
             gate: updated.seq.gate
         )
         applySequencerSettings(updated)
-        if sequencerEngine.isSeqPlaying {
-            sequencerEngine.replaceSeqEvents(resolvedSeqEvents())
-        }
     }
 
     func toggleSeqRecording() {
@@ -915,8 +925,12 @@ final class MainViewModel: ObservableObject {
     }
 
     private func resolvedSeqEvents() -> [SeqPlaybackEvent] {
+        resolvedSeqEvents(slot: preset.sequencerSettings.seq.selectedSlot)
+    }
+
+    private func resolvedSeqEvents(slot: SeqPatternSlot) -> [SeqPlaybackEvent] {
         SeqPatternResolver.resolve(
-            slot: preset.sequencerSettings.seq.selectedSlot,
+            slot: slot,
             pads: preset.pads,
             transposeSemitones: preset.transposeSettings.selectedMemory.totalSemitones
         )

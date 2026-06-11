@@ -51,6 +51,14 @@ struct SeqPlaybackEvent: Equatable {
     let stepLength: Int
 }
 
+private struct PendingArpPatternChange {
+    let pattern: ArpPatternSlot
+}
+
+private struct PendingSeqEventChange {
+    let events: [SeqPlaybackEvent]
+}
+
 enum SeqPatternResolver {
     /// SH-101 式の入力列（pad / tie / rest）を再生イベントへ変換する。
     /// 先頭の tie は休符として扱う。長さの合計は入力ステップ数と一致する。
@@ -124,6 +132,7 @@ final class PadSequencerEngine: ObservableObject {
     private var arpVoices: [[UInt8]] = [[], [], []]
     private var arpStepIndex = 0
     private var arpGeneration = 0
+    private var pendingArpPatternChange: PendingArpPatternChange?
 
     func startArp(padID: Int, voices: [[UInt8]], pattern: ArpPatternSlot) {
         stopArpNotes()
@@ -142,9 +151,15 @@ final class PadSequencerEngine: ObservableObject {
         arpPattern = pattern
     }
 
+    /// 演奏中のスロット差し替え（次の 4 拍子境界で反映）。
+    func queueArpPatternChange(_ pattern: ArpPatternSlot) {
+        pendingArpPatternChange = PendingArpPatternChange(pattern: pattern)
+    }
+
     func stopArp() {
         arpGeneration += 1
         arpActivePadID = nil
+        pendingArpPatternChange = nil
         stopArpNotes()
     }
 
@@ -155,10 +170,20 @@ final class PadSequencerEngine: ObservableObject {
             await MainActor.run {
                 guard let self, generation == self.arpGeneration else { return }
                 self.arpStepIndex = (self.arpStepIndex + 1) % ArpPatternSlot.stepCount
+                if self.arpStepIndex == 0 {
+                    self.applyPendingArpPatternChangeIfNeeded()
+                }
                 self.fireArpStep()
                 self.scheduleNextArpStep(after: deadline, generation: generation)
             }
         }
+    }
+
+    private func applyPendingArpPatternChangeIfNeeded() {
+        guard let pending = pendingArpPatternChange else { return }
+        pendingArpPatternChange = nil
+        stopArpNotes()
+        arpPattern = pending.pattern
     }
 
     private func fireArpStep() {
@@ -188,7 +213,9 @@ final class PadSequencerEngine: ObservableObject {
     private var seqEvents: [SeqPlaybackEvent] = []
     private var seqRawStepCount = 0
     private var seqEventIndex = 0
+    private var seqBarRawStep = 0
     private var seqGeneration = 0
+    private var pendingSeqEventChange: PendingSeqEventChange?
 
     func startSeq(events: [SeqPlaybackEvent]) {
         stopSeq()
@@ -197,7 +224,9 @@ final class PadSequencerEngine: ObservableObject {
         seqEvents = events
         seqRawStepCount = rawCount
         seqEventIndex = 0
+        seqBarRawStep = 0
         seqGeneration += 1
+        pendingSeqEventChange = nil
         isSeqPlaying = true
         seqCurrentRawStep = 0
         let generation = seqGeneration
@@ -211,13 +240,19 @@ final class PadSequencerEngine: ObservableObject {
         startSeq(events: events)
     }
 
+    /// 再生中のスロット差し替え（次の 4 拍子境界で反映）。
+    func queueSeqEvents(_ events: [SeqPlaybackEvent]) {
+        guard isSeqPlaying else { return }
+        pendingSeqEventChange = PendingSeqEventChange(events: events)
+    }
+
     func stopSeq() {
         seqGeneration += 1
         isSeqPlaying = false
         seqCurrentRawStep = nil
-        for note in Array(soundingSeqNotes.keys) {
-            releaseAll(note: note, counts: &soundingSeqNotes)
-        }
+        seqBarRawStep = 0
+        pendingSeqEventChange = nil
+        stopSeqNotes()
     }
 
     private func scheduleNextSeqEvent(after reference: ContinuousClock.Instant, generation: Int) {
@@ -228,18 +263,42 @@ final class PadSequencerEngine: ObservableObject {
             try? await Task.sleep(until: deadline, clock: .continuous)
             await MainActor.run {
                 guard let self, generation == self.seqGeneration else { return }
-                self.advanceSeq()
+                self.advanceSeq(by: currentLength)
+                guard self.isSeqPlaying else { return }
                 self.fireSeqEvent()
                 self.scheduleNextSeqEvent(after: deadline, generation: generation)
             }
         }
     }
 
-    private func advanceSeq() {
+    private func advanceSeq(by rawSteps: Int) {
         guard !seqEvents.isEmpty else { return }
+        seqBarRawStep = (seqBarRawStep + rawSteps) % SeqPatternSlot.maxStepCount
+        if seqBarRawStep == 0, applyPendingSeqEventChangeIfNeeded() {
+            return
+        }
         seqEventIndex = (seqEventIndex + 1) % seqEvents.count
         let rawPosition = seqEvents.prefix(seqEventIndex).reduce(0) { $0 + $1.stepLength }
         seqCurrentRawStep = rawPosition
+    }
+
+    @discardableResult
+    private func applyPendingSeqEventChangeIfNeeded() -> Bool {
+        guard let pending = pendingSeqEventChange else { return false }
+        pendingSeqEventChange = nil
+        stopSeqNotes()
+
+        let rawCount = pending.events.reduce(0) { $0 + $1.stepLength }
+        guard rawCount > 0 else {
+            stopSeq()
+            return true
+        }
+
+        seqEvents = pending.events
+        seqRawStepCount = rawCount
+        seqEventIndex = 0
+        seqCurrentRawStep = 0
+        return true
     }
 
     private func fireSeqEvent() {
@@ -253,6 +312,12 @@ final class PadSequencerEngine: ObservableObject {
         let interval = stepInterval()
         let duration = max(0.01, interval * (Double(event.stepLength - 1) + seqGate()))
         playGatedNotes(event.notes, duration: duration, generation: seqGeneration, isArp: false)
+    }
+
+    private func stopSeqNotes() {
+        for note in Array(soundingSeqNotes.keys) {
+            releaseAll(note: note, counts: &soundingSeqNotes)
+        }
     }
 
     // MARK: - 共通発音
