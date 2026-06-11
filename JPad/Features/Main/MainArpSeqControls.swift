@@ -85,8 +85,14 @@ struct ArpControlRows: View {
                     )
                 }
 
-                SequencerBpmLabel(text: viewModel.displayBpmText, isExternal: viewModel.isExternalClockEnabled)
-                    .frame(width: topCellWidth, alignment: .center)
+                SequencerGateWheel(
+                    gate: Binding(
+                        get: { Int((viewModel.arpSettings.selectedSlot.gate * 100).rounded()) },
+                        set: { viewModel.updateArpGate(Double($0) / 100) }
+                    ),
+                    width: topCellWidth,
+                    height: slotHeight
+                )
             }
             .frame(width: layout.gridWidth)
 
@@ -156,9 +162,7 @@ struct SeqControlRows: View {
                     )
                 }
 
-                SequencerBpmGateControl(
-                    bpmText: viewModel.displayBpmText,
-                    isExternal: viewModel.isExternalClockEnabled,
+                SequencerGateWheel(
                     gate: Binding(
                         get: { Int((viewModel.seqSettings.gate * 100).rounded()) },
                         set: { viewModel.updateSeqGate(Double($0) / 100) }
@@ -352,57 +356,24 @@ struct SeqStepDisplay: View {
     }
 }
 
-// MARK: - BPM 表示
+// MARK: - GATE ホイール
 
-struct SequencerBpmLabel: View {
-    let text: String
-    let isExternal: Bool
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Text(text)
-                .font(.system(size: 17, weight: .heavy))
-                .monospacedDigit()
-                .foregroundStyle(JChordTheme.text)
-            Text(isExternal ? "MIDI CLK" : "BPM")
-                .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(JChordTheme.muted)
-        }
-        .accessibilityElement(children: .combine)
-    }
-}
-
-struct SequencerBpmGateControl: View {
-    let bpmText: String
-    let isExternal: Bool
+struct SequencerGateWheel: View {
     @Binding var gate: Int
     let width: CGFloat
     let height: CGFloat
 
     var body: some View {
-        HStack(spacing: 3) {
-            SequencerBpmLabel(text: bpmText, isExternal: isExternal)
-                .frame(maxWidth: .infinity)
-
-            VStack(spacing: 0) {
-                Text(L10n.string("main.seq.gate"))
-                    .font(.system(size: 7, weight: .bold))
-                    .foregroundStyle(JChordTheme.muted)
-                    .lineLimit(1)
-
-                JChordValueWheelPicker(
-                    values: Array(stride(from: 100, through: 5, by: -5)),
-                    value: $gate,
-                    width: max(34, min(44, width * 0.44)),
-                    height: max(20, min(26, height * 0.7)),
-                    displayText: { "\($0)" }
-                )
-            }
-            .frame(width: max(36, min(46, width * 0.46)))
-        }
+        JChordValueWheelPicker(
+            values: Array(stride(from: 100, through: 5, by: -5)),
+            value: $gate,
+            width: width,
+            height: height,
+            displayText: { "\($0)" }
+        )
         .frame(width: width, height: height)
         .clipped()
-        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.string("main.seq.gate"))
     }
 }
 
@@ -437,7 +408,14 @@ struct ArpLandscapePanel: View {
             )
             .jChordGentlePulse(viewModel.isArpPerformanceOn)
 
-            SequencerBpmLabel(text: viewModel.displayBpmText, isExternal: viewModel.isExternalClockEnabled)
+            SequencerGateWheel(
+                gate: Binding(
+                    get: { Int((viewModel.arpSettings.selectedSlot.gate * 100).rounded()) },
+                    set: { viewModel.updateArpGate(Double($0) / 100) }
+                ),
+                width: layout.landscapeControlPanelWidth,
+                height: 34
+            )
         }
         .frame(maxHeight: .infinity, alignment: .top)
     }
@@ -474,7 +452,14 @@ struct SeqLandscapePanel: View {
             )
             .jChordGentlePulse(viewModel.sequencerEngine.isSeqPlaying)
 
-            SequencerBpmLabel(text: viewModel.displayBpmText, isExternal: viewModel.isExternalClockEnabled)
+            SequencerGateWheel(
+                gate: Binding(
+                    get: { Int((viewModel.seqSettings.gate * 100).rounded()) },
+                    set: { viewModel.updateSeqGate(Double($0) / 100) }
+                ),
+                width: layout.landscapeControlPanelWidth,
+                height: 34
+            )
         }
         .frame(maxHeight: .infinity, alignment: .top)
     }
@@ -500,8 +485,7 @@ struct ArpPatternEditorOverlay: View {
                     header(contentWidth: contentWidth)
                     slotRow(contentWidth: contentWidth)
                     stepGrid(contentWidth: contentWidth)
-                    tempoAndKeyRow(contentWidth: contentWidth)
-                    gateRow(contentWidth: contentWidth)
+                    keyRow(contentWidth: contentWidth)
                     Spacer(minLength: 0)
                 }
                 .frame(width: contentWidth)
@@ -606,31 +590,9 @@ struct ArpPatternEditorOverlay: View {
         .buttonStyle(.plain)
     }
 
-    private func tempoAndKeyRow(contentWidth: CGFloat) -> some View {
-        HStack(spacing: 20) {
-            HStack(spacing: 10) {
-                editorFieldLabel(L10n.string("main.arp.bpm"))
-                if viewModel.isExternalClockEnabled {
-                    Text(viewModel.displayBpmText)
-                        .font(.system(size: 16, weight: .heavy))
-                        .monospacedDigit()
-                        .foregroundStyle(JChordTheme.text)
-                        .frame(width: 76)
-                } else {
-                    JChordValueWheelPicker(
-                        values: Array(stride(from: 240, through: 40, by: -1)),
-                        value: Binding(
-                            get: { Int(viewModel.sequencerSettings.bpm.rounded()) },
-                            set: { viewModel.updateSequencerBpm(Double($0)) }
-                        ),
-                        width: 76,
-                        height: 36,
-                        displayText: { "\($0)" }
-                    )
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
+    private func keyRow(contentWidth: CGFloat) -> some View {
+        HStack {
+            Spacer(minLength: 0)
             HStack(spacing: 10) {
                 editorFieldLabel(L10n.string("main.arp.base_key"))
                 JChordValueWheelPicker(
@@ -644,23 +606,8 @@ struct ArpPatternEditorOverlay: View {
                     displayText: { MidiNoteFormatter.format(UInt8(clamping: $0)) }
                 )
             }
-            .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .frame(width: contentWidth)
-    }
-
-    private func gateRow(contentWidth: CGFloat) -> some View {
-        HStack(spacing: 12) {
-            editorFieldLabel(L10n.string("main.arp.gate"))
-            JChordMidiSlider(
-                value: Binding(
-                    get: { viewModel.arpSettings.selectedSlot.gate * 100 },
-                    set: { viewModel.updateArpGate($0 / 100) }
-                ),
-                range: 5 ... 100
-            )
-        }
-        .frame(width: contentWidth, height: 40)
     }
 
     private func editorFieldLabel(_ text: String) -> some View {
