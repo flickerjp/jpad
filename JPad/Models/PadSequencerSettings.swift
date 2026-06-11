@@ -7,13 +7,13 @@ enum PadClockTempoSource: String, Codable {
     case midiClock = "midiClock"
 }
 
-/// RIFF 1 スロットぶんのパターン。16 ステップ × 3 声部 (U/M/L) と発音ゲート長。
+/// RIFF 1 スロットぶんのパターン。16 ステップ × 4 声部 (U/M1/M2/L) と発音ゲート長。
 struct RiffPatternSlot: Codable, Equatable {
     static let stepCount = 16
-    static let voiceCount = 3
+    static let voiceCount = 4
     static let gateRange = 0.05 ... 1.0
 
-    /// `steps[voice][step]`。voice 0 = Upper, 1 = Middle, 2 = Lower。
+    /// `steps[voice][step]`。voice 0 = Upper, 1 = Middle 1, 2 = Middle 2, 3 = Lower。
     var steps: [[Bool]]
     /// 1 ステップ長に対する発音長の割合。
     var gate: Double
@@ -56,13 +56,26 @@ struct RiffPatternSlot: Codable, Equatable {
     }
 
     private static func normalizedSteps(_ raw: [[Bool]]) -> [[Bool]] {
-        (0 ..< voiceCount).map { voice in
-            var row = voice < raw.count ? Array(raw[voice].prefix(stepCount)) : []
-            while row.count < stepCount {
-                row.append(false)
-            }
-            return row
+        if raw.count == 3 {
+            return [
+                normalizedRow(raw[0]),
+                normalizedRow(raw[1]),
+                normalizedRow([]),
+                normalizedRow(raw[2]),
+            ]
         }
+
+        return (0 ..< voiceCount).map { voice in
+            normalizedRow(voice < raw.count ? raw[voice] : [])
+        }
+    }
+
+    private static func normalizedRow(_ raw: [Bool]) -> [Bool] {
+        var row = Array(raw.prefix(stepCount))
+        while row.count < stepCount {
+            row.append(false)
+        }
+        return row
     }
 }
 

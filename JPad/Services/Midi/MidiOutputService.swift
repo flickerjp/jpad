@@ -819,11 +819,7 @@ final class MidiOutputService: ObservableObject {
             )
         }
 
-        var lastStatus: OSStatus = noErr
-        for message in messages {
-            lastStatus = transmit(message)
-            guard lastStatus == noErr else { break }
-        }
+        let lastStatus = transmit(messages)
         let routeLabel = outputRoute == .garageBand ? "GB" : currentOutputName
         if lastStatus == noErr, let last = messages.last {
             lastMidiEventDescription = "\(describe(last)) → \(routeLabel)"
@@ -1504,9 +1500,14 @@ final class MidiOutputService: ObservableObject {
     }
 
     private func dispatch(_ messages: [[UInt8]]) {
-        for message in messages {
-            let status = transmit(message)
-            lastMidiEventDescription = status == noErr ? describe(message) : midiErrorDescription(status)
+        let messages = messages.filter { !$0.isEmpty }
+        guard !messages.isEmpty else { return }
+
+        let status = transmit(messages)
+        if status == noErr, let last = messages.last {
+            lastMidiEventDescription = describe(last)
+        } else {
+            lastMidiEventDescription = midiErrorDescription(status)
         }
     }
 
@@ -1514,14 +1515,8 @@ final class MidiOutputService: ObservableObject {
         guard !messages.isEmpty else { return }
 
         let routeLabel = outputRoute == .garageBand ? "GB" : currentOutputName
-        var lastStatus: OSStatus = noErr
-        var lastMessage: [UInt8] = []
-
-        for message in messages {
-            lastStatus = transmit(message)
-            lastMessage = message
-            guard lastStatus == noErr else { break }
-        }
+        let lastStatus = transmit(messages)
+        let lastMessage = messages.last ?? []
 
         if lastStatus == noErr {
             lastMidiEventDescription = "\(describe(lastMessage)) → \(routeLabel)"
@@ -1623,18 +1618,25 @@ final class MidiOutputService: ObservableObject {
     }
 
     private func transmit(_ message: [UInt8]) -> OSStatus {
+        transmit([message])
+    }
+
+    private func transmit(_ messages: [[UInt8]]) -> OSStatus {
+        let messages = messages.filter { !$0.isEmpty }
+        guard !messages.isEmpty else { return errSecParam }
+
         switch outputRoute {
         case .tinyPiano:
             return errSecParam
         case .garageBand:
             guard ensureVirtualSourceReady() else { return lastVirtualSourceError }
             let report = MidiPacketTransmitter.receivedReport(
-                message,
+                messages,
                 on: virtualSource,
                 preferEventList: virtualSourceUsesEventList
             )
             updateGarageBandDiagnosticDescription(
-                lastMessageDescription: describe(message),
+                lastMessageDescription: messages.last.map(describe),
                 report: report
             )
             return report.status
@@ -1644,7 +1646,7 @@ final class MidiOutputService: ObservableObject {
             guard let destination = selectedPadOutput?.endpointRef, destination != 0, outputPort != 0 else {
                 return errSecParam
             }
-            return MidiPacketTransmitter.send(message, to: destination, via: outputPort)
+            return MidiPacketTransmitter.send(messages, to: destination, via: outputPort)
         }
     }
 

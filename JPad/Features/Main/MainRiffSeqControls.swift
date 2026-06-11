@@ -459,7 +459,7 @@ struct RiffPatternEditorOverlay: View {
     private static let sectionSpacing: CGFloat = 12
     private static let stepLabelHeight: CGFloat = 14
     private static let stepsPerRow = 8
-    private static let voiceLabels = ["H", "M", "L"]
+    private static let voiceLabels = ["U", "M1", "M2", "L"]
     private static let stepRowLabels = ["01-08", "09-16"]
 
     var body: some View {
@@ -521,7 +521,7 @@ struct RiffPatternEditorOverlay: View {
     }
 
     private func stepGrid(contentWidth: CGFloat) -> some View {
-        let labelWidth: CGFloat = 18
+        let labelWidth: CGFloat = 24
         let gridWidth = contentWidth - labelWidth - 8
         let cellWidth = floor(
             (gridWidth - Self.stepSpacing * CGFloat(Self.stepsPerRow - 1)) / CGFloat(Self.stepsPerRow)

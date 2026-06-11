@@ -1014,16 +1014,27 @@ final class MainViewModel: ObservableObject {
     }
 
     private func startRiff(for pad: PadDefinition) {
-        let transposeSemitones = preset.transposeSettings.selectedMemory.totalSemitones
-        let notes = SeqPatternResolver.playbackNotes(for: pad, transposeSemitones: transposeSemitones)
-        let voices = RiffVoiceGrouper.groupedVoices(
-            chordNotes: notes,
-            baseKey: preset.sequencerSettings.riff.baseKey
-        )
+        let voices = riffVoices(for: pad)
         sequencerEngine.startRiff(
             padID: pad.id,
             voices: voices,
             pattern: preset.sequencerSettings.riff.selectedSlot
+        )
+    }
+
+    private func updateRunningRiff(to pad: PadDefinition) {
+        sequencerEngine.updateRiffPad(
+            padID: pad.id,
+            voices: riffVoices(for: pad)
+        )
+    }
+
+    private func riffVoices(for pad: PadDefinition) -> [[UInt8]] {
+        let transposeSemitones = preset.transposeSettings.selectedMemory.totalSemitones
+        let notes = SeqPatternResolver.playbackNotes(for: pad, transposeSemitones: transposeSemitones)
+        return RiffVoiceGrouper.groupedVoices(
+            chordNotes: notes,
+            baseKey: preset.sequencerSettings.riff.baseKey
         )
     }
 
@@ -1046,12 +1057,13 @@ final class MainViewModel: ObservableObject {
     private func padTransition(from oldPad: PadDefinition, to newPad: PadDefinition) {
         let oldPadWasRiffDriven = sequencerEngine.riffActivePadID == oldPad.id
         if oldPadWasRiffDriven {
-            sequencerEngine.stopRiff()
+            updateRunningRiff(to: newPad)
+            return
         } else if isRiffPlaybackActive {
             // RIFF ON 直前に通常発音で押されたパッドからの遷移
             midiService.sendPadOff(oldPad)
         }
-        if oldPadWasRiffDriven || isRiffPlaybackActive {
+        if isRiffPlaybackActive {
             padOn(newPad)
         } else {
             midiService.transitionPad(from: oldPad, to: newPad)

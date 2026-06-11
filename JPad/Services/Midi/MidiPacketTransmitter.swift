@@ -9,8 +9,8 @@ enum MidiPacketTransmitter {
         let usedEventList: Bool?
     }
 
-    private static let packetListSize = 256
-    private static let eventListSize = 256
+    private static let packetListSize = 2048
+    private static let eventListSize = 2048
 
     @discardableResult
     static func received(
@@ -26,7 +26,16 @@ enum MidiPacketTransmitter {
         on source: MIDIEndpointRef,
         preferEventList: Bool
     ) -> ReceivedReport {
-        guard source != 0, !message.isEmpty else {
+        receivedReport([message], on: source, preferEventList: preferEventList)
+    }
+
+    static func receivedReport(
+        _ messages: [[UInt8]],
+        on source: MIDIEndpointRef,
+        preferEventList: Bool
+    ) -> ReceivedReport {
+        let messages = messages.filter { !$0.isEmpty }
+        guard source != 0, !messages.isEmpty else {
             return ReceivedReport(status: errSecParam, packetStatus: nil, eventStatus: nil, usedEventList: nil)
         }
 
@@ -35,14 +44,14 @@ enum MidiPacketTransmitter {
         var eventStatus: OSStatus?
 
         if preferEventList {
-            if let status = sendViaEventList(message, on: source) {
+            if let status = sendViaEventList(messages, on: source) {
                 eventStatus = status
                 if status == noErr {
                     return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: true)
                 }
                 lastStatus = status
             }
-            if let status = sendViaPacketList(message, on: source) {
+            if let status = sendViaPacketList(messages, on: source) {
                 packetStatus = status
                 if status == noErr {
                     return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: false)
@@ -50,14 +59,14 @@ enum MidiPacketTransmitter {
                 lastStatus = status
             }
         } else {
-            if let status = sendViaPacketList(message, on: source) {
+            if let status = sendViaPacketList(messages, on: source) {
                 packetStatus = status
                 if status == noErr {
                     return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: false)
                 }
                 lastStatus = status
             }
-            if let status = sendViaEventList(message, on: source) {
+            if let status = sendViaEventList(messages, on: source) {
                 eventStatus = status
                 if status == noErr {
                     return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: true)
@@ -75,24 +84,52 @@ enum MidiPacketTransmitter {
         to destination: MIDIEndpointRef,
         via outputPort: MIDIPortRef
     ) -> OSStatus {
-        guard destination != 0, outputPort != 0, !message.isEmpty else { return errSecParam }
-        return withPacketList(for: message) { packetList in
+        send([message], to: destination, via: outputPort)
+    }
+
+    @discardableResult
+    static func send(
+        _ messages: [[UInt8]],
+        to destination: MIDIEndpointRef,
+        via outputPort: MIDIPortRef
+    ) -> OSStatus {
+        let messages = messages.filter { !$0.isEmpty }
+        guard destination != 0, outputPort != 0, !messages.isEmpty else { return errSecParam }
+        return withPacketList(for: messages) { packetList in
             MIDISend(outputPort, destination, packetList)
         } ?? errSecParam
     }
 
     private static func sendViaPacketList(_ message: [UInt8], on source: MIDIEndpointRef) -> OSStatus? {
-        withPacketList(for: message) { MIDIReceived(source, $0) }
+        sendViaPacketList([message], on: source)
+    }
+
+    private static func sendViaPacketList(_ messages: [[UInt8]], on source: MIDIEndpointRef) -> OSStatus? {
+        withPacketList(for: messages) { MIDIReceived(source, $0) }
     }
 
     private static func sendViaEventList(_ message: [UInt8], on source: MIDIEndpointRef) -> OSStatus? {
-        withEventList(for: message) { MIDIReceivedEventList(source, $0) }
+        sendViaEventList([message], on: source)
+    }
+
+    private static func sendViaEventList(_ messages: [[UInt8]], on source: MIDIEndpointRef) -> OSStatus? {
+        withEventList(for: messages) { MIDIReceivedEventList(source, $0) }
     }
 
     private static func withPacketList(
         for message: [UInt8],
         action: (UnsafeMutablePointer<MIDIPacketList>) -> OSStatus
     ) -> OSStatus? {
+        withPacketList(for: [message], action: action)
+    }
+
+    private static func withPacketList(
+        for messages: [[UInt8]],
+        action: (UnsafeMutablePointer<MIDIPacketList>) -> OSStatus
+    ) -> OSStatus? {
+        let messages = messages.filter { !$0.isEmpty }
+        guard !messages.isEmpty else { return nil }
+
         let rawPointer = UnsafeMutableRawPointer.allocate(
             byteCount: packetListSize,
             alignment: MemoryLayout<MIDIPacketList>.alignment
@@ -104,18 +141,21 @@ enum MidiPacketTransmitter {
         var packet = MIDIPacketListInit(packetList)
 
         var didAdd = false
-        message.withUnsafeBufferPointer { bytes in
-            guard let baseAddress = bytes.baseAddress else { return }
-            let nextPacket = MIDIPacketListAdd(
-                packetList,
-                packetListSize,
-                packet,
-                timestamp,
-                bytes.count,
-                baseAddress
-            )
-            guard nextPacket != nil else { return }
-            packet = nextPacket
+        for message in messages {
+            let added = message.withUnsafeBufferPointer { bytes -> Bool in
+                guard let baseAddress = bytes.baseAddress else { return false }
+                let nextPacket = MIDIPacketListAdd(
+                    packetList,
+                    packetListSize,
+                    packet,
+                    timestamp,
+                    bytes.count,
+                    baseAddress
+                )
+                packet = nextPacket
+                return true
+            }
+            guard added else { return nil }
             didAdd = true
         }
 
@@ -127,7 +167,15 @@ enum MidiPacketTransmitter {
         for message: [UInt8],
         action: (UnsafeMutablePointer<MIDIEventList>) -> OSStatus
     ) -> OSStatus? {
-        guard let umpWord = makeMIDI1UPWord(from: message) else { return nil }
+        withEventList(for: [message], action: action)
+    }
+
+    private static func withEventList(
+        for messages: [[UInt8]],
+        action: (UnsafeMutablePointer<MIDIEventList>) -> OSStatus
+    ) -> OSStatus? {
+        let words = messages.compactMap(makeMIDI1UPWord)
+        guard words.count == messages.filter({ !$0.isEmpty }).count, !words.isEmpty else { return nil }
 
         let rawPointer = UnsafeMutableRawPointer.allocate(
             byteCount: eventListSize,
@@ -136,25 +184,28 @@ enum MidiPacketTransmitter {
         defer { rawPointer.deallocate() }
 
         let eventList = rawPointer.assumingMemoryBound(to: MIDIEventList.self)
-        let packet = MIDIEventListInit(eventList, MIDIProtocolID(rawValue: 1)!)
+        var packet = MIDIEventListInit(eventList, MIDIProtocolID(rawValue: 1)!)
+        let timestamp = mach_absolute_time()
 
-        var word = umpWord
-        let status = withUnsafePointer(to: &word) { pointer -> OSStatus? in
-            pointer.withMemoryRebound(to: UInt32.self, capacity: 1) { rebound in
-                let nextPacket = MIDIEventListAdd(
-                    eventList,
-                    eventListSize,
-                    packet,
-                    mach_absolute_time(),
+        for var word in words {
+            let added = withUnsafePointer(to: &word) { pointer -> Bool in
+                pointer.withMemoryRebound(to: UInt32.self, capacity: 1) { rebound in
+                    let nextPacket = MIDIEventListAdd(
+                        eventList,
+                        eventListSize,
+                        packet,
+                        timestamp,
                     1,
                     rebound
                 )
-                guard nextPacket != nil else { return nil }
-                return action(eventList)
+                    packet = nextPacket
+                    return true
+                }
             }
+            guard added else { return nil }
         }
 
-        return status
+        return action(eventList)
     }
 
     private static func makeMIDI1UPWord(from message: [UInt8]) -> MIDIMessage_32? {

@@ -1,45 +1,63 @@
 import Foundation
 
-/// コード構成音を基準キー以上に絞り、U / M / L の 3 声部へグルーピングする。
+/// コード構成音を基準キー以上に絞り、U / M1 / M2 / L の 4 声部へグルーピングする。
 enum RiffVoiceGrouper {
-    /// 戻り値は `[upper, middle, lower]`。基準キーより下の構成音は鳴らさない。
+    /// 戻り値は `[upper, middle1, middle2, lower]`。基準キーより下の構成音は鳴らさない。
     static func groupedVoices(chordNotes: [UInt8], baseKey: UInt8) -> [[UInt8]] {
         let candidates = Set(chordNotes.filter { $0 >= baseKey }).sorted()
-        guard !candidates.isEmpty else { return [[], [], []] }
+        guard !candidates.isEmpty else { return emptyVoices() }
 
-        // 3 音以下は高い順に U / M / L へ 1 音ずつ。
-        if candidates.count <= 3 {
-            let highToLow = candidates.reversed()
-            var voices: [[UInt8]] = [[], [], []]
-            for (slot, note) in highToLow.enumerated() {
-                voices[slot] = [note]
+        switch candidates.count {
+        case 1:
+            return [[], [candidates[0]], [], []]
+        case 2:
+            return [[candidates[1]], [], [], [candidates[0]]]
+        case 3:
+            return [[candidates[2]], [candidates[1]], [], [candidates[0]]]
+        case 4:
+            return [[candidates[3]], [candidates[2]], [candidates[1]], [candidates[0]]]
+        default:
+            let lower = candidates[0]
+            let upper = candidates[candidates.count - 1]
+            let middle = Array(candidates.dropFirst().dropLast())
+            let split = bestMiddleSplitIndex(for: middle)
+            let lowerMiddle = Array(middle[..<split])
+            let upperMiddle = Array(middle[split...])
+            return [[upper], upperMiddle, lowerMiddle, [lower]]
+        }
+    }
+
+    private static func emptyVoices() -> [[UInt8]] {
+        Array(repeating: [], count: RiffPatternSlot.voiceCount)
+    }
+
+    /// 低い順の中間音を M2 / M1 に分割する。各グループ内の音域幅が小さいほど「近い音どうし」になる。
+    private static func bestMiddleSplitIndex(for notes: [UInt8]) -> Int {
+        guard notes.count > 1 else { return 1 }
+
+        let candidates = 1 ..< notes.count
+        return candidates.min { lhs, rhs in
+            let lhsScore = splitScore(notes, at: lhs)
+            let rhsScore = splitScore(notes, at: rhs)
+            if lhsScore.totalRange != rhsScore.totalRange {
+                return lhsScore.totalRange < rhsScore.totalRange
             }
-            return voices
-        }
-
-        // 4 音以上は音程差の大きい 2 箇所で区切り、近い音域どうしを同じ声部にする。
-        var gaps: [(index: Int, size: Int)] = []
-        for index in 1 ..< candidates.count {
-            gaps.append((index, Int(candidates[index]) - Int(candidates[index - 1])))
-        }
-        let splitIndices = gaps
-            .sorted { lhs, rhs in
-                lhs.size != rhs.size ? lhs.size > rhs.size : lhs.index < rhs.index
+            if lhsScore.balance != rhsScore.balance {
+                return lhsScore.balance < rhsScore.balance
             }
-            .prefix(2)
-            .map(\.index)
-            .sorted()
+            return lhs > rhs
+        } ?? max(1, notes.count / 2)
+    }
 
-        var clusters: [[UInt8]] = []
-        var start = 0
-        for split in splitIndices {
-            clusters.append(Array(candidates[start ..< split]))
-            start = split
-        }
-        clusters.append(Array(candidates[start...]))
-
-        // clusters は低い順 → L, M, U に対応するため反転して [U, M, L] にする。
-        return clusters.reversed()
+    private static func splitScore(_ notes: [UInt8], at index: Int) -> (totalRange: Int, balance: Int) {
+        let lower = Array(notes[..<index])
+        let upper = Array(notes[index...])
+        let lowerRange = Int(lower.last ?? 0) - Int(lower.first ?? 0)
+        let upperRange = Int(upper.last ?? 0) - Int(upper.first ?? 0)
+        return (
+            totalRange: lowerRange + upperRange,
+            balance: abs(lower.count - upper.count)
+        )
     }
 }
 
@@ -49,6 +67,9 @@ struct SeqPlaybackEvent: Equatable {
     let notes: [UInt8]
     /// 16 分音符単位の長さ（TIE で延長された合計）。
     let stepLength: Int
+
+    static let rest = SeqPlaybackEvent(notes: [], stepLength: 1)
+    static let silentLoop = Array(repeating: SeqPlaybackEvent.rest, count: SeqPatternSlot.maxStepCount)
 }
 
 private struct PendingRiffPatternChange {
@@ -90,7 +111,7 @@ enum SeqPatternResolver {
                 events.append(SeqPlaybackEvent(notes: [], stepLength: 1))
             }
         }
-        return events
+        return events.isEmpty ? SeqPlaybackEvent.silentLoop : events
     }
 
     static func playbackNotes(for pad: PadDefinition, transposeSemitones: Int) -> [UInt8] {
@@ -131,7 +152,7 @@ final class PadSequencerEngine: ObservableObject {
     // MARK: - RIFF
 
     private var riffPattern: RiffPatternSlot = .default
-    private var riffVoices: [[UInt8]] = [[], [], []]
+    private var riffVoices: [[UInt8]] = Array(repeating: [], count: RiffPatternSlot.voiceCount)
     private var riffStepIndex = 0
     private var riffGeneration = 0
     private var pendingRiffPatternChange: PendingRiffPatternChange?
@@ -158,6 +179,13 @@ final class PadSequencerEngine: ObservableObject {
     /// 演奏中の発音対象ボイス差し替え（次のステップから反映）。
     func updateRiffVoices(_ voices: [[UInt8]]) {
         riffVoices = voices
+    }
+
+    /// 演奏位置を保ったまま、RIFF の発音対象パッドとボイスだけ差し替える。
+    func updateRiffPad(padID: Int, voices: [[UInt8]]) {
+        riffActivePadID = padID
+        riffVoices = voices
+        stopRiffNotes()
     }
 
     /// 演奏中のスロット差し替え（次の 16 分頭で反映）。
@@ -228,9 +256,9 @@ final class PadSequencerEngine: ObservableObject {
 
     func startSeq(events: [SeqPlaybackEvent]) {
         stopSeq()
-        let rawCount = events.reduce(0) { $0 + $1.stepLength }
-        guard rawCount > 0 else { return }
+        let events = normalizedSeqEvents(events)
         seqEvents = events
+        let rawCount = events.reduce(0) { $0 + $1.stepLength }
         seqRawStepCount = rawCount
         seqEventIndex = 0
         seqBarRawStep = 0
@@ -252,11 +280,8 @@ final class PadSequencerEngine: ObservableObject {
     /// 再生位置は維持したまま、次のイベントから鳴らす内容を差し替える。
     func updateSeqEvents(_ events: [SeqPlaybackEvent]) {
         guard isSeqPlaying else { return }
+        let events = normalizedSeqEvents(events)
         let rawCount = events.reduce(0) { $0 + $1.stepLength }
-        guard rawCount > 0 else {
-            stopSeq()
-            return
-        }
         seqEvents = events
         seqRawStepCount = rawCount
         seqEventIndex = min(seqEventIndex, events.count - 1)
@@ -339,17 +364,18 @@ final class PadSequencerEngine: ObservableObject {
         pendingSeqEventChange = nil
         stopSeqNotes()
 
-        let rawCount = pending.events.reduce(0) { $0 + $1.stepLength }
-        guard rawCount > 0 else {
-            stopSeq()
-            return true
-        }
+        let events = normalizedSeqEvents(pending.events)
+        let rawCount = events.reduce(0) { $0 + $1.stepLength }
 
-        seqEvents = pending.events
+        seqEvents = events
         seqRawStepCount = rawCount
         seqEventIndex = 0
         seqCurrentRawStep = 0
         return true
+    }
+
+    private func normalizedSeqEvents(_ events: [SeqPlaybackEvent]) -> [SeqPlaybackEvent] {
+        events.isEmpty ? SeqPlaybackEvent.silentLoop : events
     }
 
     private func fireSeqEvent() {
