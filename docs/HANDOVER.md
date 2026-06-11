@@ -880,3 +880,13 @@
 
 **参照:** `git show ab3bf8a` / `git log -1 ab3bf8a`
 
+
+<!-- handover:auto:5481c97d947a6b22db1fcb29ed3a9f921015b204 -->
+### 2026-06-11 10:06:11 +0900 — `5481c97` — main
+
+**件名:** Hide BPM and simplify gate controls
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 5481c97` / `git log -1 5481c97`
+
