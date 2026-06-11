@@ -3,6 +3,7 @@ import SwiftUI
 struct MidiSettingsView: View {
     @ObservedObject var midiService: MidiOutputService
     var onClockSourceChanged: ((Bool) -> Void)? = nil
+    var internalClockBpm: Binding<Int>? = nil
     @Environment(\.dismiss) private var dismiss
     @StateObject private var proPurchaseService = ProPurchaseService()
     @AppStorage(ProPurchaseService.purchasedAppStorageKey) private var hasPresetSavePurchased = false
@@ -20,7 +21,6 @@ struct MidiSettingsView: View {
             let isLandscape = geometry.size.width > geometry.size.height
             let outerHorizontalPadding: CGFloat = 24
             let contentWidth = geometry.size.width - (outerHorizontalPadding * 2)
-            let compactPanelMaxWidth = isLandscape ? contentWidth * 0.5 : nil
 
             ZStack(alignment: .topTrailing) {
                 ScrollView {
@@ -30,18 +30,14 @@ struct MidiSettingsView: View {
                         onHelpTapped: { isShowingHelpGuide = true },
                         proMembershipStatus: proMembershipStatus,
                         onProPurchaseTap: proMembershipStatus.isActive ? nil : { isShowingProUpgrade = true },
-                        compactPanelMaxWidth: compactPanelMaxWidth,
+                        compactPanelMaxWidth: nil,
                         availableContentWidth: contentWidth,
-                        onClockSourceChanged: onClockSourceChanged
+                        onClockSourceChanged: onClockSourceChanged,
+                        internalClockBpm: internalClockBpm
                     )
                     .padding(.horizontal, outerHorizontalPadding)
                     .padding(.top, 52)
                     .padding(.bottom, isLandscape ? 8 : 12)
-                }
-                .safeAreaInset(edge: .bottom, spacing: 8) {
-                    SettingsCreditFooter(text: AppBuildIdentity.settingsCreditMarqueeText)
-                        .padding(.horizontal, outerHorizontalPadding)
-                        .padding(.vertical, 10)
                 }
 
                 Button {
@@ -60,8 +56,7 @@ struct MidiSettingsView: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
-        .jChordPopupSheetBackground()
-        .jChordSheetOuterBorder()
+        .jChordScreenBackground()
         .fullScreenCover(isPresented: $isShowingHelpGuide) {
             GarageBandHelpView {
                 isShowingHelpGuide = false
@@ -111,22 +106,5 @@ struct MidiSettingsView: View {
                 isShowingProUpgrade = false
             }
         }
-    }
-}
-
-// MARK: - Settings credit footer
-
-private struct SettingsCreditFooter: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(.caption2.weight(.semibold))
-            .foregroundStyle(JChordTheme.muted)
-            .multilineTextAlignment(.center)
-            .lineLimit(2)
-            .minimumScaleFactor(0.75)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .accessibilityLabel(text)
     }
 }

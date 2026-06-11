@@ -169,8 +169,8 @@
 "settings.device.connected" = "選択中";
 "settings.device.offline" = "Offline";
 "settings.clock_source" = "ARP / SEQ CLOCK";
-"settings.clock_source.internal" = "INTERNAL";
-"settings.clock_source.midi_clock" = "MIDI CLOCK";
+"settings.clock_source.internal" = "INT";
+"settings.clock_source.midi_clock" = "MIDI";
 "settings.pad_style" = "STYLE";
 "settings.pad_style.dark" = "DARK";
 "settings.pad_style.performance" = "FLASH";

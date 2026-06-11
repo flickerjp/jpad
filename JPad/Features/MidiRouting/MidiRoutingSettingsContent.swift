@@ -22,6 +22,8 @@ struct MidiRoutingSettingsContent: View {
     var availableContentWidth: CGFloat? = nil
     /// ARP / SEQ のテンポ源（内部 BPM / MIDI Clock 追従）切替の通知先。
     var onClockSourceChanged: ((Bool) -> Void)? = nil
+    /// ARP / SEQ 共通の内部テンポ。MIDI Clock 選択中は保持値として表示する。
+    var internalClockBpm: Binding<Int>? = nil
 
     private var showsDeviceRouting: Bool { presentation == .settings }
 
@@ -394,16 +396,7 @@ struct MidiRoutingSettingsContent: View {
     private var clockSourceRadioRow: some View {
         VStack(alignment: .leading, spacing: 8) {
             fieldTitle(L10n.string("settings.clock_source"))
-            HStack(spacing: 14) {
-                primaryPadOutputModeRadioButton(
-                    title: L10n.string("settings.clock_source.internal"),
-                    isSelected: !isExternalClockOn
-                ) {
-                    guard isExternalClockOn else { return }
-                    isExternalClockOn = false
-                    onClockSourceChanged?(false)
-                }
-
+            HStack(spacing: 12) {
                 primaryPadOutputModeRadioButton(
                     title: L10n.string("settings.clock_source.midi_clock"),
                     isSelected: isExternalClockOn
@@ -411,6 +404,29 @@ struct MidiRoutingSettingsContent: View {
                     guard !isExternalClockOn else { return }
                     isExternalClockOn = true
                     onClockSourceChanged?(true)
+                }
+
+                HStack(spacing: 6) {
+                    primaryPadOutputModeRadioButton(
+                        title: L10n.string("settings.clock_source.internal"),
+                        isSelected: !isExternalClockOn
+                    ) {
+                        guard isExternalClockOn else { return }
+                        isExternalClockOn = false
+                        onClockSourceChanged?(false)
+                    }
+
+                    if let internalClockBpm {
+                        JChordValueWheelPicker(
+                            values: Array(stride(from: Int(PresetSequencerSettings.bpmRange.upperBound), through: Int(PresetSequencerSettings.bpmRange.lowerBound), by: -1)),
+                            value: internalClockBpm,
+                            width: min(78, max(64, settingsControlColumnWidth - 112)),
+                            height: settingsActionButtonHeight,
+                            displayText: { "\($0)" }
+                        )
+                        .opacity(isExternalClockOn ? 0.45 : 1)
+                        .disabled(isExternalClockOn)
+                    }
                 }
 
                 Spacer(minLength: 0)

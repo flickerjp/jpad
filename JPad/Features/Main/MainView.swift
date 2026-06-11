@@ -147,12 +147,15 @@ struct MainView: View {
                 resetPerformanceTimeline()
             }
             .toolbar(.hidden, for: .navigationBar)
-            .sheet(isPresented: $viewModel.isShowingSettings) {
+            .fullScreenCover(isPresented: $viewModel.isShowingSettings) {
                 MidiSettingsView(
                     midiService: viewModel.midiService,
-                    onClockSourceChanged: { viewModel.setExternalClockEnabled($0) }
+                    onClockSourceChanged: { viewModel.setExternalClockEnabled($0) },
+                    internalClockBpm: Binding(
+                        get: { Int(viewModel.sequencerSettings.bpm.rounded()) },
+                        set: { viewModel.updateSequencerBpm(Double($0)) }
+                    )
                 )
-                .presentationCornerRadius(18)
             }
             .sheet(isPresented: $viewModel.isShowingPresetRename) {
                 PresetRenameSheet(
