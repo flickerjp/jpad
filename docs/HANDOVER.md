@@ -920,3 +920,13 @@
 
 **参照:** `git show 8eb7130` / `git log -1 8eb7130`
 
+
+<!-- handover:auto:e0f3134196f31a9d6c66d3354b5fcd750b75351c -->
+### 2026-06-11 13:32:32 +0900 — `e0f3134` — main
+
+**件名:** Rename ARP to RIFF, bump build to 152
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show e0f3134` / `git log -1 e0f3134`
+
