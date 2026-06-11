@@ -96,6 +96,12 @@ final class MainViewModel: ObservableObject {
         sequencerEngine.noteOff = { [weak self] note in
             self?.midiService.sendPreviewNoteOff(note)
         }
+        sequencerEngine.notesOn = { [weak self] notes in
+            self?.midiService.sendPreviewNotesOn(notes)
+        }
+        sequencerEngine.notesOff = { [weak self] notes in
+            self?.midiService.sendPreviewNotesOff(notes)
+        }
         sequencerEngine.stepInterval = { [weak self] in
             self?.currentStepInterval ?? 0.125
         }

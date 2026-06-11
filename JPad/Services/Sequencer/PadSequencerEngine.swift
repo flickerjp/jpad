@@ -111,6 +111,8 @@ final class PadSequencerEngine: ObservableObject {
 
     var noteOn: (UInt8) -> Void = { _ in }
     var noteOff: (UInt8) -> Void = { _ in }
+    var notesOn: ([UInt8]) -> Void = { _ in }
+    var notesOff: ([UInt8]) -> Void = { _ in }
     /// 16 分音符 1 個ぶんの秒数。内部 BPM / MIDI Clock 追従の解決は呼び出し側が行う。
     var stepInterval: () -> TimeInterval = { 0.125 }
     /// SEQ のゲート長。短いほど連打時に音が詰まりにくい。
@@ -270,8 +272,12 @@ final class PadSequencerEngine: ObservableObject {
         generation: Int,
         isArp: Bool
     ) {
-        for note in notes {
-            noteOn(note)
+        var seenNotes = Set<UInt8>()
+        let uniqueNotes = notes.filter { seenNotes.insert($0).inserted }
+        guard !uniqueNotes.isEmpty else { return }
+
+        notesOn(uniqueNotes)
+        for note in uniqueNotes {
             if isArp {
                 soundingArpNotes[note, default: 0] += 1
             } else {
@@ -279,35 +285,39 @@ final class PadSequencerEngine: ObservableObject {
             }
         }
 
-        Task.detached(priority: .userInitiated) { [weak self, notes, duration, generation, isArp] in
+        Task.detached(priority: .userInitiated) { [weak self, notes = uniqueNotes, duration, generation, isArp] in
             try? await Task.sleep(for: .seconds(duration))
             await MainActor.run {
                 guard let self else { return }
                 let stillRunning = isArp ? generation == self.arpGeneration : generation == self.seqGeneration
                 guard stillRunning else { return }
-                for note in notes {
-                    self.releaseOne(note: note, isArp: isArp)
-                }
+                self.releaseNotes(notes, isArp: isArp)
             }
         }
     }
 
-    private func releaseOne(note: UInt8, isArp: Bool) {
-        if isArp {
-            guard let count = soundingArpNotes[note], count > 0 else { return }
-            soundingArpNotes[note] = count == 1 ? nil : count - 1
-        } else {
-            guard let count = soundingSeqNotes[note], count > 0 else { return }
-            soundingSeqNotes[note] = count == 1 ? nil : count - 1
+    private func releaseNotes(_ notes: [UInt8], isArp: Bool) {
+        var notesToRelease: [UInt8] = []
+        notesToRelease.reserveCapacity(notes.count)
+
+        for note in notes {
+            if isArp {
+                guard let count = soundingArpNotes[note], count > 0 else { continue }
+                soundingArpNotes[note] = count == 1 ? nil : count - 1
+            } else {
+                guard let count = soundingSeqNotes[note], count > 0 else { continue }
+                soundingSeqNotes[note] = count == 1 ? nil : count - 1
+            }
+            notesToRelease.append(note)
         }
-        noteOff(note)
+
+        guard !notesToRelease.isEmpty else { return }
+        notesOff(notesToRelease)
     }
 
     private func releaseAll(note: UInt8, counts: inout [UInt8: Int]) {
         guard let count = counts[note], count > 0 else { return }
         counts[note] = nil
-        for _ in 0 ..< count {
-            noteOff(note)
-        }
+        notesOff(Array(repeating: note, count: count))
     }
 }

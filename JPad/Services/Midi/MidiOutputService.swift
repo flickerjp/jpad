@@ -930,6 +930,32 @@ final class MidiOutputService: ObservableObject {
         dispatch(messages)
     }
 
+    /// SEQ / ARP 用の短い発音。内蔵音源では和音を一括投入してステップ遅延を抑える。
+    func sendPreviewNotesOn(_ notes: [UInt8]) {
+        var seenNotes = Set<UInt8>()
+        let orderedNotes = notes.filter { $0 <= 127 && seenNotes.insert($0).inserted }
+        guard !orderedNotes.isEmpty else { return }
+
+        if outputRoute == .tinyPiano {
+            guard ensureTinyPianoReady() else { return }
+            previewEngine.chordOn(
+                noteNumbers: orderedNotes.map { Int($0) },
+                velocity: velocity
+            )
+            return
+        }
+
+        guard ensureMidiOutputReady() else { return }
+
+        var messages: [[UInt8]] = [
+            MidiMessageBuilder.expression(expression, channel: outputChannelIndex),
+        ]
+        for note in orderedNotes {
+            acquireNote(note, into: &messages)
+        }
+        dispatch(messages)
+    }
+
     func sendPreviewNoteOff(_ note: UInt8) {
         if outputRoute == .tinyPiano {
             previewEngine.noteOff(noteNumber: Int(note))
@@ -940,6 +966,25 @@ final class MidiOutputService: ObservableObject {
 
         var messages: [[UInt8]] = []
         releaseNote(note, into: &messages)
+        guard !messages.isEmpty else { return }
+        dispatch(messages)
+    }
+
+    func sendPreviewNotesOff(_ notes: [UInt8]) {
+        let orderedNotes = notes.filter { $0 <= 127 }
+        guard !orderedNotes.isEmpty else { return }
+
+        if outputRoute == .tinyPiano {
+            previewEngine.chordOff(noteNumbers: orderedNotes.map { Int($0) })
+            return
+        }
+
+        guard ensureMidiOutputReady() else { return }
+
+        var messages: [[UInt8]] = []
+        for note in orderedNotes {
+            releaseNote(note, into: &messages)
+        }
         guard !messages.isEmpty else { return }
         dispatch(messages)
     }
