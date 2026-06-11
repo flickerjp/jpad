@@ -900,3 +900,13 @@
 
 **参照:** `git show ee05d1b` / `git log -1 ee05d1b`
 
+
+<!-- handover:auto:bb1e172927b934afd8139005f1537627720c4aae -->
+### 2026-06-11 10:34:09 +0900 — `bb1e172` — main
+
+**件名:** Batch sequencer preview note events
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show bb1e172` / `git log -1 bb1e172`
+
