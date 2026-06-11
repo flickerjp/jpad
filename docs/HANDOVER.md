@@ -890,3 +890,13 @@
 
 **参照:** `git show 5481c97` / `git log -1 5481c97`
 
+
+<!-- handover:auto:ee05d1b658617a98b3be12fc2843292c9ba70646 -->
+### 2026-06-11 10:25:54 +0900 — `ee05d1b` — main
+
+**件名:** Move shared clock tempo to settings
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show ee05d1b` / `git log -1 ee05d1b`
+
