@@ -930,3 +930,13 @@
 
 **参照:** `git show e0f3134` / `git log -1 e0f3134`
 
+
+<!-- handover:auto:2dbc4a89a05720b7e56ef8a02f3797700d6dd965 -->
+### 2026-06-11 21:54:12 +0900 — `2dbc4a8` — main
+
+**件名:** Update riff voices and MIDI timing
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 2dbc4a8` / `git log -1 2dbc4a8`
+
