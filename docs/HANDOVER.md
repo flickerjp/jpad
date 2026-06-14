@@ -950,3 +950,13 @@
 
 **参照:** `git show 406d3e8` / `git log -1 406d3e8`
 
+
+<!-- handover:auto:bd766a7ef3f1f7efdd5e7ec80899327425179821 -->
+### 2026-06-14 16:07:12 +0900 — `bd766a7` — main
+
+**件名:** Improve virtual MIDI routing for AUM
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show bd766a7` / `git log -1 bd766a7`
+
