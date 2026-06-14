@@ -43,8 +43,8 @@ final class MainViewModel: ObservableObject {
     @AppStorage(PresetRotationSettings.useAllSlotsKey) var rotationUseAllSlots = true
     @AppStorage(PresetRotationSettings.slotIDsKey) private var rotationSlotIDsStorage = ""
     @AppStorage(MidiClockReceiver.tempoSourceStorageKey) private var isExternalClockStored = false
-    @AppStorage(MidiClockReceiver.clockDelayMillisecondsStorageKey) private var externalClockDelayMilliseconds = 0
     @AppStorage(MidiClockReceiver.clockRiffStepOffsetStorageKey) private var externalClockRiffStepOffset = 0
+    @AppStorage(MidiClockReceiver.clockRiffFineOffsetPercentStorageKey) private var externalClockRiffFineOffsetPercent = 0
 
     // RIFF / SEQ の演奏中トグル（セットには保存しない）
     @Published var isRiffPerformanceOn = false
@@ -794,20 +794,20 @@ final class MainViewModel: ObservableObject {
         isExternalClockStored && clockReceiver.estimatedBpm != nil
     }
 
-    var clockDelayMilliseconds: Int {
-        externalClockDelayMilliseconds
-    }
-
     var clockRiffStepOffset: Int {
         externalClockRiffStepOffset
     }
 
-    func updateClockDelayMilliseconds(_ value: Int) {
-        externalClockDelayMilliseconds = min(max(value, 0), 80)
+    var clockRiffFineOffsetPercent: Int {
+        externalClockRiffFineOffsetPercent
     }
 
     func updateClockRiffStepOffset(_ value: Int) {
         externalClockRiffStepOffset = min(max(value, -8), 8)
+    }
+
+    func updateClockRiffFineOffsetPercent(_ value: Int) {
+        externalClockRiffFineOffsetPercent = min(max(value, -50), 50)
     }
 
     func setExternalClockEnabled(_ enabled: Bool) {
@@ -1174,10 +1174,11 @@ final class MainViewModel: ObservableObject {
     }
 
     private func startRiffFromExternalClock(for pad: PadDefinition) {
-        let stepOffset = externalClockRiffStepOffset
-        let initialStepIndex = stepOffset < 0 ? abs(stepOffset) : 0
-        let stepOffsetDelay = stepOffset > 0 ? currentStepInterval * Double(stepOffset) : 0
-        let delay = Double(externalClockDelayMilliseconds) / 1000.0 + stepOffsetDelay
+        let stepOffset = Double(externalClockRiffStepOffset)
+            + Double(externalClockRiffFineOffsetPercent) / 100.0
+        let initialStepIndex = stepOffset < 0 ? Int(ceil(abs(stepOffset))) : 0
+        let delaySteps = stepOffset >= 0 ? stepOffset : Double(initialStepIndex) + stepOffset
+        let delay = currentStepInterval * delaySteps
         guard delay > 0 else {
             startRiff(for: pad, initialStepIndex: initialStepIndex)
             return

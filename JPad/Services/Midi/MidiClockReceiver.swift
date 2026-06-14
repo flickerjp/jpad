@@ -14,8 +14,8 @@ enum MidiClockTransportEvent {
 @MainActor
 final class MidiClockReceiver: ObservableObject {
     static let tempoSourceStorageKey = "padClockTempoSourceExternal"
-    static let clockDelayMillisecondsStorageKey = "padClockDelayMilliseconds"
     static let clockRiffStepOffsetStorageKey = "padClockRiffStepOffset"
+    static let clockRiffFineOffsetPercentStorageKey = "padClockRiffFineOffsetPercent"
 
     /// 直近の推定 BPM。クロックが 2 秒途切れたら nil に戻る。
     @Published private(set) var estimatedBpm: Double?

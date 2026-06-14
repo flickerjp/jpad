@@ -24,8 +24,6 @@ struct MidiRoutingSettingsContent: View {
     var onClockSourceChanged: ((Bool) -> Void)? = nil
     /// RIFF / SEQ 共通の内部テンポ。MIDI Clock 選択中は保持値として表示する。
     var internalClockBpm: Binding<Int>? = nil
-    /// 外部 MIDI Clock 拍頭から発音開始までの遅延補正（ms）。
-    var clockDelayMilliseconds: Binding<Int>? = nil
 
     private var showsDeviceRouting: Bool { presentation == .settings }
 
@@ -432,22 +430,6 @@ struct MidiRoutingSettingsContent: View {
                 }
 
                 Spacer(minLength: 0)
-
-                if let clockDelayMilliseconds {
-                    HStack(spacing: 8) {
-                        JChordValueWheelPicker(
-                            values: Array(stride(from: 80, through: 0, by: -1)),
-                            value: clockDelayMilliseconds,
-                            width: 64,
-                            height: settingsActionButtonHeight,
-                            displayText: { "\($0)" }
-                        )
-
-                        Text("ms")
-                            .font(.caption.weight(.heavy))
-                            .foregroundStyle(JChordTheme.muted)
-                    }
-                }
             }
         }
         .frame(width: settingsGridWidth, alignment: .leading)

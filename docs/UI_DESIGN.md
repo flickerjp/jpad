@@ -77,8 +77,8 @@ JPad 1.0.02 (108) · sheet-chrome-v1
 
 | 項目 | 管理場所 |
 |------|----------|
-| Marketing | `project.yml` → `MARKETING_VERSION`（現行 `1.5.2`） |
-| Build | `CURRENT_PROJECT_VERSION`（TestFlight 毎に +1、現行 **155**） |
+| Marketing | `project.yml` → `MARKETING_VERSION`（現行 `1.6.01`） |
+| Build | `CURRENT_PROJECT_VERSION`（TestFlight 毎に +1、現行 **156**） |
 | `layoutRevision` | `AppBuildIdentity.swift`（UI 世代の目視確認用） |
 
 ## 関連コード

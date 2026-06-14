@@ -154,10 +154,6 @@ struct MainView: View {
                     internalClockBpm: Binding(
                         get: { Int(viewModel.sequencerSettings.bpm.rounded()) },
                         set: { viewModel.updateSequencerBpm(Double($0)) }
-                    ),
-                    clockDelayMilliseconds: Binding(
-                        get: { viewModel.clockDelayMilliseconds },
-                        set: { viewModel.updateClockDelayMilliseconds($0) }
                     )
                 )
             }
