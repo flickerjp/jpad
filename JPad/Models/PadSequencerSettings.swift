@@ -15,25 +15,29 @@ struct RiffPatternSlot: Codable, Equatable {
 
     /// `steps[voice][step]`。voice 0 = Upper, 1 = Middle 1, 2 = Middle 2, 3 = Lower。
     var steps: [[Bool]]
+    /// `ties[voice][step]`。true のステップは直前ステップから音を伸ばし、再発音しない。
+    var ties: [[Bool]]
     /// 1 ステップ長に対する発音長の割合。
     var gate: Double
 
     static let `default` = RiffPatternSlot()
 
-    init(steps: [[Bool]] = [], gate: Double = 0.6) {
+    init(steps: [[Bool]] = [], ties: [[Bool]] = [], gate: Double = 0.6) {
         self.steps = Self.normalizedSteps(steps)
+        self.ties = Self.normalizedTies(ties, steps: self.steps)
         self.gate = Self.gateRange.clampValue(gate)
     }
 
     enum CodingKeys: String, CodingKey {
-        case steps, gate
+        case steps, ties, gate
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let rawSteps = try container.decodeIfPresent([[Bool]].self, forKey: .steps) ?? []
+        let rawTies = try container.decodeIfPresent([[Bool]].self, forKey: .ties) ?? []
         let rawGate = try container.decodeIfPresent(Double.self, forKey: .gate) ?? 0.6
-        self.init(steps: rawSteps, gate: rawGate)
+        self.init(steps: rawSteps, ties: rawTies, gate: rawGate)
     }
 
     var isEmpty: Bool {
@@ -44,7 +48,7 @@ struct RiffPatternSlot: Codable, Equatable {
         guard steps.indices.contains(voice), steps[voice].indices.contains(step) else { return self }
         var updated = steps
         updated[voice][step].toggle()
-        return RiffPatternSlot(steps: updated, gate: gate)
+        return RiffPatternSlot(steps: updated, ties: ties, gate: gate)
     }
 
     func setting(voice: Int, step: Int, isOn: Bool) -> RiffPatternSlot {
@@ -52,7 +56,73 @@ struct RiffPatternSlot: Codable, Equatable {
         guard steps[voice][step] != isOn else { return self }
         var updated = steps
         updated[voice][step] = isOn
-        return RiffPatternSlot(steps: updated, gate: gate)
+        return RiffPatternSlot(steps: updated, ties: ties, gate: gate)
+    }
+
+    func settingTie(voice: Int, step: Int, isOn: Bool) -> RiffPatternSlot {
+        guard ties.indices.contains(voice), ties[voice].indices.contains(step) else { return self }
+        var updated = ties
+        updated[voice][step] = isOn
+        return RiffPatternSlot(steps: steps, ties: updated, gate: gate)
+    }
+
+    func canTie(voice: Int, step: Int) -> Bool {
+        guard steps.indices.contains(voice),
+              steps[voice].indices.contains(step),
+              steps[voice][step]
+        else { return false }
+        let previousStep = Self.previousStepIndex(for: step)
+        return steps[voice][previousStep]
+    }
+
+    func isTie(voice: Int, step: Int) -> Bool {
+        guard canTie(voice: voice, step: step),
+              ties.indices.contains(voice),
+              ties[voice].indices.contains(step)
+        else { return false }
+        return ties[voice][step]
+    }
+
+    func tiedStepLength(voice: Int, from step: Int) -> Int {
+        guard steps.indices.contains(voice),
+              steps[voice].indices.contains(step),
+              steps[voice][step]
+        else { return 1 }
+
+        var length = 1
+        var next = Self.nextStepIndex(for: step)
+        while next != step,
+              length < Self.stepCount,
+              steps[voice][next],
+              isTie(voice: voice, step: next) {
+            length += 1
+            next = Self.nextStepIndex(for: next)
+        }
+        return length
+    }
+
+    func maskedRepeatingFirstHalf() -> RiffPatternSlot {
+        let halfCount = Self.stepCount / 2
+        var updatedSteps = steps
+        var updatedTies = ties
+
+        for voice in 0 ..< Self.voiceCount {
+            guard updatedSteps.indices.contains(voice),
+                  updatedTies.indices.contains(voice)
+            else { continue }
+            for step in 0 ..< halfCount {
+                let repeatedStep = step + halfCount
+                guard updatedSteps[voice].indices.contains(step),
+                      updatedSteps[voice].indices.contains(repeatedStep),
+                      updatedTies[voice].indices.contains(step),
+                      updatedTies[voice].indices.contains(repeatedStep)
+                else { continue }
+                updatedSteps[voice][repeatedStep] = updatedSteps[voice][step]
+                updatedTies[voice][repeatedStep] = updatedTies[voice][step]
+            }
+        }
+
+        return RiffPatternSlot(steps: updatedSteps, ties: updatedTies, gate: gate)
     }
 
     private static func normalizedSteps(_ raw: [[Bool]]) -> [[Bool]] {
@@ -76,6 +146,54 @@ struct RiffPatternSlot: Codable, Equatable {
             row.append(false)
         }
         return row
+    }
+
+    private static func normalizedTies(_ raw: [[Bool]], steps: [[Bool]]) -> [[Bool]] {
+        let normalized: [[Bool]]
+        if raw.count == 3 {
+            normalized = [
+                normalizedRow(raw[0]),
+                normalizedRow(raw[1]),
+                normalizedRow([]),
+                normalizedRow(raw[2]),
+            ]
+        } else {
+            normalized = (0 ..< voiceCount).map { voice in
+                normalizedRow(voice < raw.count ? raw[voice] : [])
+            }
+        }
+
+        return normalized.enumerated().map { voice, row in
+            var normalizedRow = row.enumerated().map { step, isTie in
+                let previousStep = previousStepIndex(for: step)
+                guard isTie,
+                      steps.indices.contains(voice),
+                      steps[voice].indices.contains(step),
+                      steps[voice][step],
+                      steps[voice][previousStep]
+                else { return false }
+                return true
+            }
+
+            let onSteps = steps.indices.contains(voice)
+                ? steps[voice].indices.filter { steps[voice][$0] }
+                : []
+            if !onSteps.isEmpty,
+               onSteps.allSatisfy({ normalizedRow[$0] }),
+               let firstOnStep = onSteps.first {
+                normalizedRow[firstOnStep] = false
+            }
+
+            return normalizedRow
+        }
+    }
+
+    private static func previousStepIndex(for step: Int) -> Int {
+        (step - 1 + stepCount) % stepCount
+    }
+
+    private static func nextStepIndex(for step: Int) -> Int {
+        (step + 1) % stepCount
     }
 }
 

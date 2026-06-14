@@ -929,7 +929,7 @@ final class MidiOutputService: ObservableObject {
     /// SEQ / ARP 用の短い発音。内蔵音源では和音を一括投入してステップ遅延を抑える。
     func sendPreviewNotesOn(_ notes: [UInt8]) {
         var seenNotes = Set<UInt8>()
-        let orderedNotes = notes.filter { $0 <= 127 && seenNotes.insert($0).inserted }
+        let orderedNotes = notes.sorted().filter { $0 <= 127 && seenNotes.insert($0).inserted }
         guard !orderedNotes.isEmpty else { return }
 
         if outputRoute == .tinyPiano {

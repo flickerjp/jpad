@@ -23,8 +23,11 @@
 "main.riff.edit" = "EDIT";
 "main.riff.editor_title" = "RIFF EDIT";
 "main.riff.bpm" = "BPM";
-"main.riff.base_key" = "KEY";
+"main.riff.base_key" = "FROM";
 "main.riff.gate" = "GATE";
+"main.riff.tie" = "TIE";
+"main.riff.undo" = "UNDO";
+"main.riff.x2" = "X2";
 "main.seq.play" = "PLAY";
 "main.seq.stop" = "STOP";
 "main.seq.rec" = "REC";

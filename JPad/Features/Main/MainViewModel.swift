@@ -2,6 +2,11 @@ import Combine
 import Foundation
 import SwiftUI
 
+private struct RiffEditUndoSnapshot: Equatable {
+    let settings: PresetSequencerSettings
+    let isDoubleEditEnabled: Bool
+}
+
 @MainActor
 final class MainViewModel: ObservableObject {
     @Published var preset: Preset
@@ -43,6 +48,9 @@ final class MainViewModel: ObservableObject {
     @Published var isRiffPerformanceOn = false
     @Published var isSeqRecording = false
     @Published var isShowingRiffEditor = false
+    @Published var isRiffTieEditing = false
+    @Published private(set) var canUndoRiffEdit = false
+    @Published var isRiffDoubleEditEnabled = false
 
     private var holdLatchedPadID: Int?
     private var pendingTransposeSemitones: Int?
@@ -51,6 +59,9 @@ final class MainViewModel: ObservableObject {
     private var pendingStorePreset: Preset?
     private var pendingPresetImportURL: URL?
     private var jcstoreManifest: JcstoreManifest?
+    private var riffEditUndoStack: [RiffEditUndoSnapshot] = []
+    private var isRiffEditUndoGroupOpen = false
+    private let riffEditUndoLimit = 40
 
     let midiService: MidiOutputService
     let sequencerEngine = PadSequencerEngine()
@@ -718,6 +729,11 @@ final class MainViewModel: ObservableObject {
             if mode != .seq {
                 isSeqRecording = false
             }
+            if mode != .riff {
+                isRiffTieEditing = false
+                isRiffDoubleEditEnabled = false
+                updateActiveRiffPattern()
+            }
             isShowingRiffEditor = false
         }
         let updated = preset.transposeSettings.selectingPadControlMode(mode)
@@ -811,16 +827,17 @@ final class MainViewModel: ObservableObject {
         applyRiffSlotSelection(index)
         isRiffPerformanceOn = true
         if sequencerEngine.riffActivePadID != nil {
-            sequencerEngine.queueRiffPatternChange(preset.sequencerSettings.riff.selectedSlot)
+            sequencerEngine.queueRiffPatternChange(riffPlaybackSlot(preset.sequencerSettings.riff.selectedSlot))
         }
     }
 
     func selectRiffSlot(_ index: Int) {
+        pushRiffEditUndoSnapshot()
         applyRiffSlotSelection(index)
         guard sequencerEngine.riffActivePadID != nil else {
             return
         }
-        sequencerEngine.queueRiffPatternChange(preset.sequencerSettings.riff.selectedSlot)
+        sequencerEngine.queueRiffPatternChange(riffPlaybackSlot(preset.sequencerSettings.riff.selectedSlot))
     }
 
     private func applyRiffSlotSelection(_ index: Int) {
@@ -840,29 +857,34 @@ final class MainViewModel: ObservableObject {
         setRiffStep(voice: voice, step: step, isOn: !riffSettings.selectedSlot.steps[voice][step])
     }
 
-    func setRiffStep(voice: Int, step: Int, isOn: Bool) {
+    func setRiffStep(voice: Int, step: Int, isOn: Bool, recordsUndo: Bool = true) {
+        guard !isRiffDoubleEditEnabled || step < RiffPatternSlot.stepCount / 2 else { return }
+        if recordsUndo {
+            pushRiffEditUndoSnapshot()
+        }
         var updated = preset.sequencerSettings
-        updated.riff = updated.riff.replacingSelectedSlot(
-            updated.riff.selectedSlot.setting(voice: voice, step: step, isOn: isOn)
-        )
+        let slot = updated.riff.selectedSlot.setting(voice: voice, step: step, isOn: isOn)
+        updated.riff = updated.riff.replacingSelectedSlot(slot)
         applySequencerSettings(updated)
         if sequencerEngine.riffActivePadID != nil {
-            sequencerEngine.updateRiffPattern(updated.riff.selectedSlot)
+            sequencerEngine.updateRiffPattern(riffPlaybackSlot(updated.riff.selectedSlot))
         }
     }
 
     func updateRiffGate(_ gate: Double) {
+        pushRiffEditUndoSnapshot()
         var updated = preset.sequencerSettings
         var slot = updated.riff.selectedSlot
-        slot = RiffPatternSlot(steps: slot.steps, gate: gate)
+        slot = RiffPatternSlot(steps: slot.steps, ties: slot.ties, gate: gate)
         updated.riff = updated.riff.replacingSelectedSlot(slot)
         applySequencerSettings(updated)
         if sequencerEngine.riffActivePadID != nil {
-            sequencerEngine.updateRiffPattern(updated.riff.selectedSlot)
+            sequencerEngine.updateRiffPattern(riffPlaybackSlot(updated.riff.selectedSlot))
         }
     }
 
     func updateRiffBaseKey(_ baseKey: Int) {
+        pushRiffEditUndoSnapshot()
         var updated = preset.sequencerSettings
         updated.riff = PresetRiffSettings(
             slots: updated.riff.slots,
@@ -874,11 +896,90 @@ final class MainViewModel: ObservableObject {
 
     func presentRiffEditor() {
         sendAllNotesOff()
+        isRiffTieEditing = false
+        isRiffDoubleEditEnabled = false
+        resetRiffEditUndoHistory()
         isShowingRiffEditor = true
     }
 
     func dismissRiffEditor() {
+        isRiffTieEditing = false
+        isRiffDoubleEditEnabled = false
+        isRiffEditUndoGroupOpen = false
         isShowingRiffEditor = false
+        updateActiveRiffPattern()
+    }
+
+    func toggleRiffTieEditing() {
+        isRiffTieEditing.toggle()
+    }
+
+    func setRiffTie(voice: Int, step: Int, isOn: Bool, recordsUndo: Bool = true) {
+        guard !isRiffDoubleEditEnabled || step < RiffPatternSlot.stepCount / 2 else { return }
+        if recordsUndo {
+            pushRiffEditUndoSnapshot()
+        }
+        var updated = preset.sequencerSettings
+        let slot = updated.riff.selectedSlot.settingTie(voice: voice, step: step, isOn: isOn)
+        updated.riff = updated.riff.replacingSelectedSlot(slot)
+        applySequencerSettings(updated)
+        if sequencerEngine.riffActivePadID != nil {
+            sequencerEngine.updateRiffPattern(riffPlaybackSlot(updated.riff.selectedSlot))
+        }
+    }
+
+    func toggleRiffDoubleEdit() {
+        pushRiffEditUndoSnapshot()
+        isRiffDoubleEditEnabled.toggle()
+        updateActiveRiffPattern()
+    }
+
+    func beginRiffEditUndoGroup() {
+        guard !isRiffEditUndoGroupOpen else { return }
+        pushRiffEditUndoSnapshot()
+        isRiffEditUndoGroupOpen = true
+    }
+
+    func endRiffEditUndoGroup() {
+        isRiffEditUndoGroupOpen = false
+    }
+
+    func undoRiffEdit() {
+        guard let previous = riffEditUndoStack.popLast() else { return }
+        canUndoRiffEdit = !riffEditUndoStack.isEmpty
+        isRiffEditUndoGroupOpen = false
+        isRiffDoubleEditEnabled = previous.isDoubleEditEnabled
+        applySequencerSettings(previous.settings)
+        updateActiveRiffPattern()
+    }
+
+    private func pushRiffEditUndoSnapshot() {
+        let snapshot = RiffEditUndoSnapshot(
+            settings: preset.sequencerSettings,
+            isDoubleEditEnabled: isRiffDoubleEditEnabled
+        )
+        guard riffEditUndoStack.last != snapshot else { return }
+        riffEditUndoStack.append(snapshot)
+        if riffEditUndoStack.count > riffEditUndoLimit {
+            riffEditUndoStack.removeFirst(riffEditUndoStack.count - riffEditUndoLimit)
+        }
+        canUndoRiffEdit = !riffEditUndoStack.isEmpty
+    }
+
+    private func resetRiffEditUndoHistory() {
+        riffEditUndoStack.removeAll()
+        isRiffEditUndoGroupOpen = false
+        canUndoRiffEdit = false
+    }
+
+    private func riffPlaybackSlot(_ slot: RiffPatternSlot) -> RiffPatternSlot {
+        isRiffDoubleEditEnabled ? slot.maskedRepeatingFirstHalf() : slot
+    }
+
+    private func updateActiveRiffPattern() {
+        if sequencerEngine.riffActivePadID != nil {
+            sequencerEngine.updateRiffPattern(riffPlaybackSlot(preset.sequencerSettings.riff.selectedSlot))
+        }
     }
 
     func toggleSeqPlayback() {

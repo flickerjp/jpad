@@ -226,16 +226,18 @@ final class PadSequencerEngine: ObservableObject {
         let step = riffStepIndex
         riffCurrentRawStep = step
         let interval = stepInterval()
-        let gateDuration = max(0.01, interval * riffPattern.gate)
         let generation = riffGeneration
 
         for voice in 0 ..< RiffPatternSlot.voiceCount {
             guard riffPattern.steps.indices.contains(voice),
                   riffPattern.steps[voice].indices.contains(step),
-                  riffPattern.steps[voice][step] else { continue }
+                  riffPattern.steps[voice][step],
+                  !riffPattern.isTie(voice: voice, step: step) else { continue }
             let notes = voice < riffVoices.count ? riffVoices[voice] : []
             guard !notes.isEmpty else { continue }
-            playGatedNotes(notes, duration: gateDuration, generation: generation, isRiff: true)
+            let tiedStepLength = riffPattern.tiedStepLength(voice: voice, from: step)
+            let duration = max(0.01, interval * (Double(tiedStepLength - 1) + riffPattern.gate))
+            playGatedNotes(notes, duration: duration, generation: generation, isRiff: true)
         }
     }
 
@@ -415,7 +417,9 @@ final class PadSequencerEngine: ObservableObject {
         isRiff: Bool
     ) {
         var seenNotes = Set<UInt8>()
-        let uniqueNotes = notes.filter { seenNotes.insert($0).inserted }
+        let uniqueNotes = notes
+            .sorted()
+            .filter { seenNotes.insert($0).inserted }
         guard !uniqueNotes.isEmpty else { return }
 
         notesOn(uniqueNotes)

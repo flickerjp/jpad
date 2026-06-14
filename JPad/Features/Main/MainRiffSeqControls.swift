@@ -243,6 +243,8 @@ struct RiffStepDisplay: View {
     let width: CGFloat
 
     private static let cellSpacing: CGFloat = 3
+    private static let inputStepColor = Color.white.opacity(0.58)
+    private static let tieStepColor = Color.white.opacity(0.34)
 
     var body: some View {
         let cellWidth = floor((width - Self.cellSpacing * CGFloat(RiffPatternSlot.stepCount - 1)) / CGFloat(RiffPatternSlot.stepCount))
@@ -264,13 +266,15 @@ struct RiffStepDisplay: View {
 
         return VStack(spacing: 2) {
             ForEach(0 ..< RiffPatternSlot.voiceCount, id: \.self) { voice in
-                Capsule()
-                    .fill(
-                        activeVoices.contains(voice)
-                            ? JPadChromeTheme.accentLight
-                            : Color.white.opacity(0.12)
-                    )
-                    .frame(width: max(5, cellWidth * 0.48), height: 3)
+                ZStack {
+                    Capsule()
+                        .fill(
+                            slot.isTie(voice: voice, step: step)
+                                ? Self.tieStepColor
+                                : (activeVoices.contains(voice) ? Self.inputStepColor : Color.white.opacity(0.12))
+                        )
+                        .frame(width: max(5, cellWidth * 0.48), height: 3)
+                }
             }
         }
         .frame(width: cellWidth, height: max(22, cellWidth * 1.05))
@@ -453,6 +457,8 @@ struct SeqLandscapePanel: View {
 struct RiffPatternEditorOverlay: View {
     @ObservedObject var viewModel: MainViewModel
     @State private var dragStepValue: Bool?
+    @State private var dragTieValue: Bool?
+    @State private var dragTieStart: (voice: Int, step: Int)?
 
     private static let stepSpacing: CGFloat = 3
     private static let voiceRowSpacing: CGFloat = 6
@@ -461,6 +467,25 @@ struct RiffPatternEditorOverlay: View {
     private static let stepsPerRow = 8
     private static let voiceLabels = ["U", "M1", "M2", "L"]
     private static let stepRowLabels = ["01-08", "09-16"]
+    private static let editButtonWidth: CGFloat = 67
+    private static let editButtonHeight: CGFloat = 36
+    private static let editButtonFontSize: CGFloat = 11
+    private static let inputStepGradient = LinearGradient(
+        colors: [
+            Color.white.opacity(0.66),
+            Color.white.opacity(0.42),
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    private static let tieStepGradient = LinearGradient(
+        colors: [
+            Color.white.opacity(0.44),
+            Color.white.opacity(0.24),
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
 
     var body: some View {
         GeometryReader { geometry in
@@ -582,6 +607,9 @@ struct RiffPatternEditorOverlay: View {
                         }
                         .onEnded { _ in
                             dragStepValue = nil
+                            dragTieValue = nil
+                            dragTieStart = nil
+                            viewModel.endRiffEditUndoGroup()
                         }
                 )
         }
@@ -595,11 +623,18 @@ struct RiffPatternEditorOverlay: View {
         cellWidth: CGFloat,
         gridWidth: CGFloat
     ) -> some View {
-        HStack(spacing: Self.stepSpacing) {
+        let displaySlot = viewModel.isRiffDoubleEditEnabled
+            ? slot.maskedRepeatingFirstHalf()
+            : slot
+
+        return HStack(spacing: Self.stepSpacing) {
             ForEach(0 ..< Self.stepsPerRow, id: \.self) { column in
                 let step = row * Self.stepsPerRow + column
                 stepCell(
-                    isOn: slot.steps[voice][step],
+                    isOn: displaySlot.steps[voice][step],
+                    isTie: displaySlot.isTie(voice: voice, step: step),
+                    isTieGroup: isTieGroupCell(slot: displaySlot, voice: voice, step: step),
+                    isLocked: viewModel.isRiffDoubleEditEnabled && step >= RiffPatternSlot.stepCount / 2,
                     isBeatHead: step % 4 == 0,
                     width: cellWidth
                 )
@@ -640,32 +675,114 @@ struct RiffPatternEditorOverlay: View {
         guard slot.steps.indices.contains(voice),
               slot.steps[voice].indices.contains(step)
         else { return }
+        guard !viewModel.isRiffDoubleEditEnabled || step < RiffPatternSlot.stepCount / 2 else { return }
 
-        let targetValue = dragStepValue ?? !slot.steps[voice][step]
-        dragStepValue = targetValue
-        viewModel.setRiffStep(voice: voice, step: step, isOn: targetValue)
+        if viewModel.isRiffTieEditing {
+            if dragTieValue == nil {
+                viewModel.beginRiffEditUndoGroup()
+                dragTieStart = (voice, step)
+            }
+            let targetValue = dragTieValue ?? !slot.isTie(voice: voice, step: step)
+            dragTieValue = targetValue
+            applyRiffTieDrag(
+                slot: slot,
+                voice: voice,
+                step: step,
+                isOn: targetValue
+            )
+        } else {
+            if dragStepValue == nil {
+                viewModel.beginRiffEditUndoGroup()
+            }
+            let targetValue = dragStepValue ?? !slot.steps[voice][step]
+            dragStepValue = targetValue
+            viewModel.setRiffStep(voice: voice, step: step, isOn: targetValue, recordsUndo: false)
+        }
+    }
+
+    private func applyRiffTieDrag(
+        slot: RiffPatternSlot,
+        voice: Int,
+        step: Int,
+        isOn: Bool
+    ) {
+        guard let start = dragTieStart,
+              start.voice == voice,
+              slot.steps.indices.contains(voice),
+              slot.steps[voice].indices.contains(step),
+              slot.steps[voice][step]
+        else { return }
+
+        let sameRow = start.step / Self.stepsPerRow == step / Self.stepsPerRow
+        let isLeftSwipe = isOn && sameRow && step < start.step
+        if isLeftSwipe {
+            for targetStep in step ... start.step {
+                guard slot.steps[voice].indices.contains(targetStep),
+                      slot.steps[voice][targetStep]
+                else { continue }
+                viewModel.setRiffTie(
+                    voice: voice,
+                    step: targetStep,
+                    isOn: targetStep != step,
+                    recordsUndo: false
+                )
+            }
+            return
+        }
+
+        guard slot.canTie(voice: voice, step: step) else { return }
+        viewModel.setRiffTie(voice: voice, step: step, isOn: isOn, recordsUndo: false)
     }
 
     private func stepCell(
         isOn: Bool,
+        isTie: Bool,
+        isTieGroup: Bool,
+        isLocked: Bool,
         isBeatHead: Bool,
         width: CGFloat
     ) -> some View {
         RoundedRectangle(cornerRadius: 5, style: .continuous)
-            .fill(
-                isOn
-                    ? AnyShapeStyle(JPadChromeTheme.buttonIdleFill)
-                    : AnyShapeStyle(Color.white.opacity(isBeatHead ? 0.1 : 0.05))
-            )
+            .fill(stepCellFill(isOn: isOn, isTie: isTie, isBeatHead: isBeatHead))
             .overlay(
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
                     .strokeBorder(
-                        isOn ? JPadChromeTheme.buttonIdleBorder : Color.white.opacity(0.25),
+                        isOn ? Color.white.opacity(0.42) : Color.white.opacity(0.25),
                         lineWidth: 1
                     )
             )
+            .overlay(alignment: .bottom) {
+                if isTieGroup {
+                    Rectangle()
+                        .fill(Color.white.opacity(0.72))
+                        .frame(height: 2)
+                        .padding(.horizontal, 5)
+                        .padding(.bottom, 5)
+                }
+            }
             .frame(width: width, height: stepCellHeight(width: width))
+            .opacity(isLocked ? 0.58 : 1)
             .contentShape(Rectangle())
+    }
+
+    private func stepCellFill(isOn: Bool, isTie: Bool, isBeatHead: Bool) -> AnyShapeStyle {
+        if isTie {
+            return AnyShapeStyle(Self.tieStepGradient)
+        }
+        if isOn {
+            return AnyShapeStyle(Self.inputStepGradient)
+        }
+        return AnyShapeStyle(Color.white.opacity(isBeatHead ? 0.1 : 0.05))
+    }
+
+    private func isTieGroupCell(slot: RiffPatternSlot, voice: Int, step: Int) -> Bool {
+        guard slot.steps.indices.contains(voice),
+              slot.steps[voice].indices.contains(step),
+              slot.steps[voice][step]
+        else { return false }
+        let nextStep = (step + 1) % RiffPatternSlot.stepCount
+        return slot.isTie(voice: voice, step: step)
+            || slot.isTie(voice: voice, step: nextStep)
     }
 
     private func stepCellHeight(width: CGFloat) -> CGFloat {
@@ -673,9 +790,42 @@ struct RiffPatternEditorOverlay: View {
     }
 
     private func keyRow(contentWidth: CGFloat) -> some View {
-        HStack {
+        HStack(alignment: .bottom) {
+            HStack(spacing: 8) {
+                JPadChromeDockButton(
+                    title: L10n.string("main.riff.tie"),
+                    style: .accentToggle,
+                    isOn: viewModel.isRiffTieEditing,
+                    fontSize: Self.editButtonFontSize,
+                    width: Self.editButtonWidth,
+                    height: Self.editButtonHeight,
+                    action: { viewModel.toggleRiffTieEditing() }
+                )
+
+                JPadChromeDockButton(
+                    title: L10n.string("main.riff.undo"),
+                    style: .outline,
+                    fontSize: Self.editButtonFontSize,
+                    width: Self.editButtonWidth,
+                    height: Self.editButtonHeight,
+                    action: { viewModel.undoRiffEdit() }
+                )
+                .disabled(!viewModel.canUndoRiffEdit)
+                .opacity(viewModel.canUndoRiffEdit ? 1 : 0.35)
+
+                JPadChromeDockButton(
+                    title: L10n.string("main.riff.x2"),
+                    style: .accentToggle,
+                    isOn: viewModel.isRiffDoubleEditEnabled,
+                    fontSize: Self.editButtonFontSize,
+                    width: Self.editButtonWidth,
+                    height: Self.editButtonHeight,
+                    action: { viewModel.toggleRiffDoubleEdit() }
+                )
+            }
+
             Spacer(minLength: 0)
-            HStack(spacing: 10) {
+            VStack(spacing: 2) {
                 editorFieldLabel(L10n.string("main.riff.base_key"))
                 JChordValueWheelPicker(
                     values: Array(PresetRiffSettings.baseKeyRange.reversed()),
@@ -690,11 +840,13 @@ struct RiffPatternEditorOverlay: View {
             }
         }
         .frame(width: contentWidth)
+        .padding(.top, 4)
     }
 
     private func editorFieldLabel(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 13, weight: .heavy))
+            .font(.system(size: 11, weight: .regular))
             .foregroundStyle(JChordTheme.muted)
+            .frame(width: 76)
     }
 }
