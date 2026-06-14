@@ -980,3 +980,13 @@
 
 **参照:** `git show 28bbcbd` / `git log -1 28bbcbd`
 
+
+<!-- handover:auto:f5b97a61d141e5d37ad5c632c2acda300f12bf8b -->
+### 2026-06-14 18:57:47 +0900 — `f5b97a6` — main
+
+**件名:** Refine riff clock offset controls
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show f5b97a6` / `git log -1 f5b97a6`
+
