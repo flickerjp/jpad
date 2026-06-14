@@ -970,3 +970,13 @@
 
 **参照:** `git show c9b060a` / `git log -1 c9b060a`
 
+
+<!-- handover:auto:28bbcbd2af91905a1e9de7b57d4894e1a74a14ae -->
+### 2026-06-14 17:48:56 +0900 — `28bbcbd` — main
+
+**件名:** Update TinyRiff project metadata
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 28bbcbd` / `git log -1 28bbcbd`
+
