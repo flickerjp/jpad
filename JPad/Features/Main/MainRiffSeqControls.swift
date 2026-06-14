@@ -111,7 +111,9 @@ struct RiffControlRows: View {
             .frame(width: layout.gridWidth)
 
             RiffStepDisplay(
-                slot: viewModel.riffSettings.selectedSlot,
+                slot: viewModel.isRiffDoubleEditEnabled
+                    ? viewModel.riffSettings.selectedSlot.maskedRepeatingFirstHalf()
+                    : viewModel.riffSettings.selectedSlot,
                 currentRawStep: viewModel.sequencerEngine.riffCurrentRawStep,
                 width: layout.gridWidth
             )
@@ -469,7 +471,9 @@ struct RiffPatternEditorOverlay: View {
     private static let stepRowLabels = ["01-08", "09-16"]
     private static let editButtonWidth: CGFloat = 67
     private static let editButtonHeight: CGFloat = 36
-    private static let editButtonFontSize: CGFloat = 11
+    private static let editButtonFontSize: CGFloat = 12
+    private static let doubleButtonWidth: CGFloat = 60
+    private static let keyControlWidth: CGFloat = 76
     private static let inputStepGradient = LinearGradient(
         colors: [
             Color.white.opacity(0.66),
@@ -714,16 +718,31 @@ struct RiffPatternEditorOverlay: View {
         else { return }
 
         let sameRow = start.step / Self.stepsPerRow == step / Self.stepsPerRow
-        let isLeftSwipe = isOn && sameRow && step < start.step
-        if isLeftSwipe {
-            for targetStep in step ... start.step {
+        if sameRow, step > start.step {
+            for targetStep in start.step ... step {
                 guard slot.steps[voice].indices.contains(targetStep),
                       slot.steps[voice][targetStep]
                 else { continue }
                 viewModel.setRiffTie(
                     voice: voice,
                     step: targetStep,
-                    isOn: targetStep != step,
+                    isOn: targetStep != start.step,
+                    recordsUndo: false
+                )
+            }
+            return
+        }
+
+        if sameRow, step < start.step {
+            for targetStep in step ... start.step {
+                guard slot.steps[voice].indices.contains(targetStep),
+                      slot.steps[voice][targetStep],
+                      slot.canTie(voice: voice, step: targetStep)
+                else { continue }
+                viewModel.setRiffTie(
+                    voice: voice,
+                    step: targetStep,
+                    isOn: true,
                     recordsUndo: false
                 )
             }
@@ -813,30 +832,34 @@ struct RiffPatternEditorOverlay: View {
                 .disabled(!viewModel.canUndoRiffEdit)
                 .opacity(viewModel.canUndoRiffEdit ? 1 : 0.35)
 
+            }
+
+            Spacer(minLength: 0)
+
+            HStack(alignment: .bottom, spacing: 8) {
                 JPadChromeDockButton(
                     title: L10n.string("main.riff.x2"),
                     style: .accentToggle,
                     isOn: viewModel.isRiffDoubleEditEnabled,
                     fontSize: Self.editButtonFontSize,
-                    width: Self.editButtonWidth,
+                    width: Self.doubleButtonWidth,
                     height: Self.editButtonHeight,
                     action: { viewModel.toggleRiffDoubleEdit() }
                 )
-            }
 
-            Spacer(minLength: 0)
-            VStack(spacing: 2) {
-                editorFieldLabel(L10n.string("main.riff.base_key"))
-                JChordValueWheelPicker(
-                    values: Array(PresetRiffSettings.baseKeyRange.reversed()),
-                    value: Binding(
-                        get: { Int(viewModel.riffSettings.baseKey) },
-                        set: { viewModel.updateRiffBaseKey($0) }
-                    ),
-                    width: 76,
-                    height: 36,
-                    displayText: { MidiNoteFormatter.format(UInt8(clamping: $0)) }
-                )
+                VStack(spacing: 2) {
+                    editorFieldLabel(L10n.string("main.riff.base_key"))
+                    JChordValueWheelPicker(
+                        values: Array(PresetRiffSettings.baseKeyRange.reversed()),
+                        value: Binding(
+                            get: { Int(viewModel.riffSettings.baseKey) },
+                            set: { viewModel.updateRiffBaseKey($0) }
+                        ),
+                        width: Self.keyControlWidth,
+                        height: 36,
+                        displayText: { MidiNoteFormatter.format(UInt8(clamping: $0)) }
+                    )
+                }
             }
         }
         .frame(width: contentWidth)
@@ -847,6 +870,6 @@ struct RiffPatternEditorOverlay: View {
         Text(text)
             .font(.system(size: 11, weight: .regular))
             .foregroundStyle(JChordTheme.muted)
-            .frame(width: 76)
+            .frame(width: Self.keyControlWidth)
     }
 }

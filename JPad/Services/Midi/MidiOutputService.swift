@@ -60,7 +60,7 @@ private final class MidiInputPortFactory: @unchecked Sendable {
         bridge: MidiNoteCaptureBridge,
         port: inout MIDIPortRef
     ) -> OSStatus {
-        MIDIInputPortCreateWithBlock(client, "TinyTone MIDI Input" as CFString, &port) { packetList, _ in
+        MIDIInputPortCreateWithBlock(client, "TinyRiff MIDI Input" as CFString, &port) { packetList, _ in
             bridge.ingest(packetList: packetList)
         }
     }
@@ -79,7 +79,7 @@ final class MidiOutputService: ObservableObject {
     @Published private(set) var outputRoute: MidiOutputRoute = .tinyPiano
     /// 内蔵プレビュー音源が実際に動作中（設定 UI の Active 表示用）。
     @Published private(set) var isInternalPreviewReady = false
-    /// GarageBand ルートで TinyTone 仮想 MIDI ソースが利用可能（PAD OUT の Active 表示用）。
+    /// GarageBand ルートで TinyRiff 仮想 MIDI ソースが利用可能（PAD OUT の Active 表示用）。
     @Published private(set) var isGarageBandRouteReady = false
     @Published private(set) var garageBandDiagnosticDescription = "GB source not checked"
     @Published private(set) var lastMidiEventDescription = "—"
@@ -114,12 +114,12 @@ final class MidiOutputService: ObservableObject {
     private var shouldResumePreviewEngineAfterBackground = false
     private let previewEngine: any InternalPreviewSynth = TinyToneEngine()
 
-    private static let virtualSourceName = "TinyTone"
+    private static let virtualSourceName = "TinyRiff"
     /// CoreMIDI 端末 ID と衝突しない内蔵 PAD OUT 用の固定 ID。
     static let tinyPianoUniqueID: MIDIUniqueID = 2_130_741_505
     /// CoreMIDI 端末 ID と衝突しない GarageBand ルート用の固定 ID。
     static let garageBandUniqueID: MIDIUniqueID = 2_130_741_506
-    /// TinyTone 仮想ソースの固定 unique ID。GarageBand 側が接続を永続化できるようにする
+    /// TinyRiff 仮想ソースの固定 unique ID。GarageBand 側が接続を永続化できるようにする
     /// （ID が起動ごとに変わると iOS 26 系の GarageBand がソースを見失う）。
     static let virtualSourceUniqueID: MIDIUniqueID = 2_130_741_507
     private static let selectedRouteKey = "selectedMidiOutputRoute"
@@ -621,6 +621,12 @@ final class MidiOutputService: ObservableObject {
         guard !Self.isGarageBandDestination(destination.displayName) else { return }
 
         selectedPadOutput = destination
+        MidiDiagnostics.padOutputSelected(
+            name: destination.displayName,
+            uniqueID: destination.uniqueID,
+            endpoint: UInt32(destination.endpointRef),
+            route: MidiOutputRoute.device.rawValue
+        )
         UserDefaults.standard.set(destination.uniqueID, forKey: Self.selectedPadOutputKey)
         outputRoute = .device
         UserDefaults.standard.set(MidiOutputRoute.device.rawValue, forKey: Self.selectedRouteKey)
@@ -655,6 +661,15 @@ final class MidiOutputService: ObservableObject {
         case .device:
             createMidiClientIfNeeded()
             createOutputPortIfNeeded()
+            if let selectedPadOutput {
+                MidiDiagnostics.padOutputReady(
+                    name: selectedPadOutput.displayName,
+                    endpoint: UInt32(selectedPadOutput.endpointRef),
+                    outputPort: UInt32(outputPort),
+                    protocolLabel: endpointProtocolLabel(selectedPadOutput.endpointRef),
+                    isOnline: selectedPadOutput.isOnline
+                )
+            }
         }
     }
 
@@ -1458,6 +1473,12 @@ final class MidiOutputService: ObservableObject {
         destinations = refreshed.sorted {
             $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
         }
+        MidiDiagnostics.endpointsRefreshed(
+            kind: "destination",
+            endpoints: destinations.map { destination in
+                "\(destination.displayName) id=\(destination.uniqueID) endpoint=\(destination.endpointRef) online=\(destination.isOnline ? "yes" : "no") protocol=\(endpointProtocolLabel(destination.endpointRef))"
+            }
+        )
 
         if let selectedPadOutput,
            let updated = destinations.first(where: { $0.uniqueID == selectedPadOutput.uniqueID }) {
@@ -1489,6 +1510,12 @@ final class MidiOutputService: ObservableObject {
         sources = refreshed.sorted {
             $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
         }
+        MidiDiagnostics.endpointsRefreshed(
+            kind: "source",
+            endpoints: sources.map { source in
+                "\(source.displayName) id=\(source.uniqueID) endpoint=\(source.endpointRef) online=\(source.isOnline ? "yes" : "no") protocol=\(endpointProtocolLabel(source.endpointRef))"
+            }
+        )
 
         if let selectedKeyboardInput,
            let updated = sources.first(where: { $0.uniqueID == selectedKeyboardInput.uniqueID }),
@@ -1639,14 +1666,41 @@ final class MidiOutputService: ObservableObject {
                 lastMessageDescription: messages.last.map(describe),
                 report: report
             )
+            logMidiSend(
+                route: MidiOutputRoute.garageBand.rawValue,
+                destinationName: endpointName(virtualSource, fallback: Self.virtualSourceName),
+                messages: messages,
+                preferEventList: virtualSourceUsesEventList,
+                report: report
+            )
             return report.status
         case .device:
             createMidiClientIfNeeded()
             createOutputPortIfNeeded()
-            guard let destination = selectedPadOutput?.endpointRef, destination != 0, outputPort != 0 else {
+            guard let selectedPadOutput,
+                  selectedPadOutput.endpointRef != 0,
+                  outputPort != 0 else {
+                MidiDiagnostics.midiSendUnavailable(
+                    route: MidiOutputRoute.device.rawValue,
+                    reason: "missing selected output or output port"
+                )
                 return errSecParam
             }
-            return MidiPacketTransmitter.send(messages, to: destination, via: outputPort)
+            let preferEventList = endpointUsesUMP(selectedPadOutput.endpointRef)
+            let report = MidiPacketTransmitter.sendReport(
+                messages,
+                to: selectedPadOutput.endpointRef,
+                via: outputPort,
+                preferEventList: preferEventList
+            )
+            logMidiSend(
+                route: MidiOutputRoute.device.rawValue,
+                destinationName: selectedPadOutput.displayName,
+                messages: messages,
+                preferEventList: preferEventList,
+                report: report
+            )
+            return report.status
         }
     }
 
@@ -1691,12 +1745,12 @@ final class MidiOutputService: ObservableObject {
 
     private func unavailableSourceDescription() -> String {
         if lastVirtualSourceError == kMIDINotPermitted {
-            return "MIDI not permitted — open TinyTone once, then GarageBand"
+            return "MIDI not permitted — open TinyRiff once, then GarageBand"
         }
         if midiClient == 0 {
             return "MIDI client unavailable (\(lastVirtualSourceError))"
         }
-        return "TinyTone MIDI source unavailable (\(lastVirtualSourceError))"
+        return "TinyRiff MIDI source unavailable (\(lastVirtualSourceError))"
     }
 
     private func midiErrorDescription(_ status: OSStatus) -> String {
@@ -1733,6 +1787,42 @@ final class MidiOutputService: ObservableObject {
             return protocolValue == 1
         }
         return false
+    }
+
+    private func endpointProtocolLabel(_ endpoint: MIDIEndpointRef) -> String {
+        guard endpoint != 0 else { return "none" }
+
+        var protocolValue: Int32 = 0
+        let status = MIDIObjectGetIntegerProperty(endpoint, kMIDIPropertyProtocolID, &protocolValue)
+        guard status == noErr else { return "unknown(\(status))" }
+
+        switch protocolValue {
+        case 1:
+            return "midi1-ump"
+        case 2:
+            return "midi2-ump"
+        default:
+            return "packet(\(protocolValue))"
+        }
+    }
+
+    private func logMidiSend(
+        route: String,
+        destinationName: String,
+        messages: [[UInt8]],
+        preferEventList: Bool,
+        report: MidiPacketTransmitter.ReceivedReport
+    ) {
+        MidiDiagnostics.midiSend(
+            route: route,
+            destination: destinationName,
+            message: messages.map(describe).joined(separator: ", "),
+            preferred: preferEventList ? "event" : "packet",
+            used: report.usedEventList.map { $0 ? "event" : "packet" } ?? "-",
+            status: Self.statusLabel(report.status),
+            packetStatus: report.packetStatus.map(Self.statusLabel) ?? "-",
+            eventStatus: report.eventStatus.map(Self.statusLabel) ?? "-"
+        )
     }
 
     private func updateGarageBandDiagnosticDescription(
@@ -1849,7 +1939,7 @@ final class MidiOutputService: ObservableObject {
 
     private func createMidiClientIfNeeded() {
         guard midiClient == 0 else { return }
-        let status = MIDIClientCreateWithBlock("TinyTone MIDI Client" as CFString, &midiClient) { [weak self] notification in
+        let status = MIDIClientCreateWithBlock("TinyRiff MIDI Client" as CFString, &midiClient) { [weak self] notification in
             switch notification.pointee.messageID {
             case .msgSetupChanged, .msgObjectAdded, .msgObjectRemoved:
                 Task { @MainActor [weak self] in
@@ -1867,7 +1957,7 @@ final class MidiOutputService: ObservableObject {
 
     private func createOutputPortIfNeeded() {
         guard outputPort == 0 else { return }
-        MIDIOutputPortCreate(midiClient, "TinyTone Output Port" as CFString, &outputPort)
+        MIDIOutputPortCreate(midiClient, "TinyRiff Output Port" as CFString, &outputPort)
     }
 
     private func createInputPortIfNeeded() {
@@ -2046,7 +2136,8 @@ final class MidiOutputService: ObservableObject {
     private static func isExcludedPadOutput(_ displayName: String) -> Bool {
         if isCKSeriesHardwareEndpoint(displayName) { return false }
         if isAkaiMPCEndpoint(displayName) { return false }
-        return isAuxiliaryControllerInputPort(displayName)
+        return isNetworkMidiEndpoint(displayName)
+            || isAuxiliaryControllerInputPort(displayName)
     }
 
     private static func isPreferredControllerInput(_ displayName: String) -> Bool {

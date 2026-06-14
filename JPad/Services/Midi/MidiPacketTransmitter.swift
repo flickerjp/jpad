@@ -93,11 +93,57 @@ enum MidiPacketTransmitter {
         to destination: MIDIEndpointRef,
         via outputPort: MIDIPortRef
     ) -> OSStatus {
+        sendReport(messages, to: destination, via: outputPort, preferEventList: false).status
+    }
+
+    static func sendReport(
+        _ messages: [[UInt8]],
+        to destination: MIDIEndpointRef,
+        via outputPort: MIDIPortRef,
+        preferEventList: Bool
+    ) -> ReceivedReport {
         let messages = messages.filter { !$0.isEmpty }
-        guard destination != 0, outputPort != 0, !messages.isEmpty else { return errSecParam }
-        return withPacketList(for: messages) { packetList in
-            MIDISend(outputPort, destination, packetList)
-        } ?? errSecParam
+        guard destination != 0, outputPort != 0, !messages.isEmpty else {
+            return ReceivedReport(status: errSecParam, packetStatus: nil, eventStatus: nil, usedEventList: nil)
+        }
+
+        var lastStatus: OSStatus = errSecParam
+        var packetStatus: OSStatus?
+        var eventStatus: OSStatus?
+
+        if preferEventList {
+            if let status = sendViaEventList(messages, to: destination, via: outputPort) {
+                eventStatus = status
+                if status == noErr {
+                    return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: true)
+                }
+                lastStatus = status
+            }
+            if let status = sendViaPacketList(messages, to: destination, via: outputPort) {
+                packetStatus = status
+                if status == noErr {
+                    return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: false)
+                }
+                lastStatus = status
+            }
+        } else {
+            if let status = sendViaPacketList(messages, to: destination, via: outputPort) {
+                packetStatus = status
+                if status == noErr {
+                    return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: false)
+                }
+                lastStatus = status
+            }
+            if let status = sendViaEventList(messages, to: destination, via: outputPort) {
+                eventStatus = status
+                if status == noErr {
+                    return ReceivedReport(status: noErr, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: true)
+                }
+                lastStatus = status
+            }
+        }
+
+        return ReceivedReport(status: lastStatus, packetStatus: packetStatus, eventStatus: eventStatus, usedEventList: nil)
     }
 
     private static func sendViaPacketList(_ message: [UInt8], on source: MIDIEndpointRef) -> OSStatus? {
@@ -114,6 +160,26 @@ enum MidiPacketTransmitter {
 
     private static func sendViaEventList(_ messages: [[UInt8]], on source: MIDIEndpointRef) -> OSStatus? {
         withEventList(for: messages) { MIDIReceivedEventList(source, $0) }
+    }
+
+    private static func sendViaPacketList(
+        _ messages: [[UInt8]],
+        to destination: MIDIEndpointRef,
+        via outputPort: MIDIPortRef
+    ) -> OSStatus? {
+        withPacketList(for: messages) { packetList in
+            MIDISend(outputPort, destination, packetList)
+        }
+    }
+
+    private static func sendViaEventList(
+        _ messages: [[UInt8]],
+        to destination: MIDIEndpointRef,
+        via outputPort: MIDIPortRef
+    ) -> OSStatus? {
+        withEventList(for: messages) { eventList in
+            MIDISendEventList(outputPort, destination, eventList)
+        }
     }
 
     private static func withPacketList(

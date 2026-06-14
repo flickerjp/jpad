@@ -51,7 +51,7 @@ final class MidiClockReceiver: ObservableObject {
     private func createClientAndPortIfNeeded() {
         if client == 0 {
             let bridgeRef = bridge
-            MIDIClientCreateWithBlock("TinyTone Clock Client" as CFString, &client) { [weak self] notification in
+            MIDIClientCreateWithBlock("TinyRiff Clock Client" as CFString, &client) { [weak self] notification in
                 guard notification.pointee.messageID == .msgSetupChanged else { return }
                 Task { @MainActor [weak self] in
                     self?.reconnectSourcesIfEnabled()
@@ -99,13 +99,13 @@ final class MidiClockReceiver: ObservableObject {
     }
 
     /// SEQ/ARP の外部クロック入力では、自分が GarageBand 向けに公開している
-    /// TinyTone 仮想 MIDI source へ接続しない。自分の出力 source を入力側にも
+    /// TinyRiff 仮想 MIDI source へ接続しない。自分の出力 source を入力側にも
     /// 購読すると、iOS の MIDI graph 更新時に source 認識が不安定になることがある。
     private func shouldConnect(_ source: MIDIEndpointRef) -> Bool {
         if intProperty(kMIDIPropertyUniqueID, endpoint: source) == MidiOutputService.virtualSourceUniqueID {
             return false
         }
-        if endpointName(source).localizedCaseInsensitiveCompare("TinyTone") == .orderedSame {
+        if endpointName(source).localizedCaseInsensitiveCompare("TinyRiff") == .orderedSame {
             return false
         }
         return true
@@ -256,7 +256,7 @@ private final class MidiClockInputPortFactory: @unchecked Sendable {
         bridge: MidiClockTickBridge,
         port: inout MIDIPortRef
     ) {
-        MIDIInputPortCreateWithBlock(client, "TinyTone Clock Input" as CFString, &port) { packetList, _ in
+        MIDIInputPortCreateWithBlock(client, "TinyRiff Clock Input" as CFString, &port) { packetList, _ in
             bridge.ingest(packetList: packetList)
         }
     }

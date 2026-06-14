@@ -726,13 +726,14 @@ final class MainViewModel: ObservableObject {
 
     func updatePadControlMode(_ mode: PresetPadControlMode) {
         if mode != padControlMode {
+            if mode == .riff {
+                midiService.stopNoteCapture()
+            }
             if mode != .seq {
                 isSeqRecording = false
             }
             if mode != .riff {
                 isRiffTieEditing = false
-                isRiffDoubleEditEnabled = false
-                updateActiveRiffPattern()
             }
             isShowingRiffEditor = false
         }
@@ -785,6 +786,11 @@ final class MainViewModel: ObservableObject {
     func setExternalClockEnabled(_ enabled: Bool) {
         isExternalClockStored = enabled
         clockReceiver.setEnabled(enabled)
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(250))
+            guard let self else { return }
+            self.midiService.refreshEndpointsIfStale()
+        }
     }
 
     func updateSequencerBpm(_ bpm: Double) {
@@ -897,14 +903,12 @@ final class MainViewModel: ObservableObject {
     func presentRiffEditor() {
         sendAllNotesOff()
         isRiffTieEditing = false
-        isRiffDoubleEditEnabled = false
         resetRiffEditUndoHistory()
         isShowingRiffEditor = true
     }
 
     func dismissRiffEditor() {
         isRiffTieEditing = false
-        isRiffDoubleEditEnabled = false
         isRiffEditUndoGroupOpen = false
         isShowingRiffEditor = false
         updateActiveRiffPattern()
@@ -1119,7 +1123,7 @@ final class MainViewModel: ObservableObject {
         sequencerEngine.startRiff(
             padID: pad.id,
             voices: voices,
-            pattern: preset.sequencerSettings.riff.selectedSlot
+            pattern: riffPlaybackSlot(preset.sequencerSettings.riff.selectedSlot)
         )
     }
 
