@@ -57,6 +57,7 @@ struct PadInputNotesEditorSheet: View {
         .task {
             midiService.startNoteCapture { [weak viewModel] batch in
                 guard let viewModel else { return }
+                midiService.sendPreviewNotesPulse(batch)
                 viewModel.appendEditingNotes(batch)
             }
             defer {

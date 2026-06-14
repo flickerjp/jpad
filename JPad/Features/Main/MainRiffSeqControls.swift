@@ -474,6 +474,7 @@ struct RiffPatternEditorOverlay: View {
     private static let editButtonFontSize: CGFloat = 12
     private static let doubleButtonWidth: CGFloat = 60
     private static let keyControlWidth: CGFloat = 76
+    private static let offsetControlWidth: CGFloat = 60
     private static let inputStepGradient = LinearGradient(
         colors: [
             Color.white.opacity(0.66),
@@ -860,16 +861,30 @@ struct RiffPatternEditorOverlay: View {
                         displayText: { MidiNoteFormatter.format(UInt8(clamping: $0)) }
                     )
                 }
+
+                VStack(spacing: 2) {
+                    editorFieldLabel(L10n.string("main.riff.offset"), width: Self.offsetControlWidth)
+                    JChordValueWheelPicker(
+                        values: Array(stride(from: 8, through: -8, by: -1)),
+                        value: Binding(
+                            get: { viewModel.clockRiffStepOffset },
+                            set: { viewModel.updateClockRiffStepOffset($0) }
+                        ),
+                        width: Self.offsetControlWidth,
+                        height: 36,
+                        displayText: { $0 > 0 ? "+\($0)" : "\($0)" }
+                    )
+                }
             }
         }
         .frame(width: contentWidth)
         .padding(.top, 4)
     }
 
-    private func editorFieldLabel(_ text: String) -> some View {
+    private func editorFieldLabel(_ text: String, width: CGFloat = Self.keyControlWidth) -> some View {
         Text(text)
             .font(.system(size: 11, weight: .regular))
             .foregroundStyle(JChordTheme.muted)
-            .frame(width: Self.keyControlWidth)
+            .frame(width: width)
     }
 }

@@ -28,6 +28,7 @@
 "main.riff.tie" = "TIE";
 "main.riff.undo" = "UNDO";
 "main.riff.x2" = "X2";
+"main.riff.offset" = "OFFSET";
 "main.seq.play" = "PLAY";
 "main.seq.stop" = "STOP";
 "main.seq.rec" = "REC";
@@ -174,6 +175,7 @@
 "settings.clock_source" = "RIFF / SEQ CLOCK";
 "settings.clock_source.internal" = "INT";
 "settings.clock_source.midi_clock" = "MIDI";
+"settings.clock_delay" = "CLOCK DELAY";
 "settings.pad_style" = "STYLE";
 "settings.pad_style.dark" = "DARK";
 "settings.pad_style.performance" = "FLASH";

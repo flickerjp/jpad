@@ -2,12 +2,20 @@ import CoreMIDI
 import Foundation
 import QuartzCore
 
+enum MidiClockTransportEvent {
+    case start
+    case stop
+    case beat
+}
+
 /// MIDI Clock (0xF8, 24 ppqn) を受信して BPM を推定する。
 /// MidiOutputService とは独立した専用クライアント・入力ポートを持ち、
 /// 有効化中は全ソースへ接続する（クロック送信元の指定は不要にする）。
 @MainActor
 final class MidiClockReceiver: ObservableObject {
     static let tempoSourceStorageKey = "padClockTempoSourceExternal"
+    static let clockDelayMillisecondsStorageKey = "padClockDelayMilliseconds"
+    static let clockRiffStepOffsetStorageKey = "padClockRiffStepOffset"
 
     /// 直近の推定 BPM。クロックが 2 秒途切れたら nil に戻る。
     @Published private(set) var estimatedBpm: Double?
@@ -18,6 +26,12 @@ final class MidiClockReceiver: ObservableObject {
     private var isEnabled = false
     private var staleCheckTask: Task<Void, Never>?
     private let bridge = MidiClockTickBridge()
+
+    func setTransportHandler(_ handler: (@MainActor (MidiClockTransportEvent) -> Void)?) {
+        bridge.setTransportHandler { event in
+            Task { @MainActor in handler?(event) }
+        }
+    }
 
     func setEnabled(_ enabled: Bool) {
         guard enabled != isEnabled else { return }
@@ -159,9 +173,11 @@ final class MidiClockReceiver: ObservableObject {
 private final class MidiClockTickBridge: @unchecked Sendable {
     private let lock = NSLock()
     private var handler: (@Sendable (Double) -> Void)?
+    private var transportHandler: (@Sendable (MidiClockTransportEvent) -> Void)?
     private var tickTimes: [TimeInterval] = []
     private var lastTickTime: TimeInterval = 0
     private var ticksSinceNotify = 0
+    private var transportTickPosition = 0
 
     /// BPM 推定に使う直近 tick 数（2 拍ぶん）。
     private static let windowSize = 48
@@ -176,6 +192,12 @@ private final class MidiClockTickBridge: @unchecked Sendable {
         lock.unlock()
     }
 
+    func setTransportHandler(_ handler: (@Sendable (MidiClockTransportEvent) -> Void)?) {
+        lock.lock()
+        transportHandler = handler
+        lock.unlock()
+    }
+
     func secondsSinceLastTick() -> TimeInterval {
         lock.lock()
         defer { lock.unlock() }
@@ -185,48 +207,79 @@ private final class MidiClockTickBridge: @unchecked Sendable {
 
     func ingest(packetList: UnsafePointer<MIDIPacketList>) {
         let now = CACurrentMediaTime()
-        let tickCount = MidiClockTickBridge.clockTickCount(in: packetList)
-        guard tickCount > 0 else { return }
+        let message = MidiClockTickBridge.clockMessage(in: packetList)
+        guard message.tickCount > 0 || message.hasStart || message.hasContinue || message.hasStop else { return }
 
         lock.lock()
-        guard let handler else {
-            lock.unlock()
-            return
-        }
-        // 同一パケット内の連続 tick はタイムスタンプを按分できないため 1 tick として扱う。
-        if lastTickTime > 0, now - lastTickTime > 2 {
+        let bpmHandler = handler
+        let transportHandler = transportHandler
+        var transportEvents: [MidiClockTransportEvent] = []
+
+        if message.hasStart || message.hasContinue {
             tickTimes.removeAll(keepingCapacity: true)
+            ticksSinceNotify = 0
+            transportTickPosition = 0
+            transportEvents.append(.start)
         }
-        lastTickTime = now
-        tickTimes.append(now)
-        if tickTimes.count > Self.windowSize {
-            tickTimes.removeFirst(tickTimes.count - Self.windowSize)
+        if message.hasStop {
+            transportTickPosition = 0
+            transportEvents.append(.stop)
         }
-        ticksSinceNotify += 1
 
         var bpmToNotify: Double?
-        if ticksSinceNotify >= Self.notifyInterval, tickTimes.count >= 25 {
-            let elapsed = tickTimes.last! - tickTimes.first!
-            let intervals = Double(tickTimes.count - 1)
-            if elapsed > 0 {
-                let bpm = 60.0 / (elapsed / intervals * 24.0)
-                if (20 ... 400).contains(bpm) {
-                    bpmToNotify = bpm
-                }
+        if message.tickCount > 0 {
+            // 同一パケット内の連続 tick はタイムスタンプを按分できないため 1 tick として扱う。
+            if lastTickTime > 0, now - lastTickTime > 2 {
+                tickTimes.removeAll(keepingCapacity: true)
+                transportTickPosition = 0
             }
-            ticksSinceNotify = 0
+            lastTickTime = now
+            tickTimes.append(now)
+            if tickTimes.count > Self.windowSize {
+                tickTimes.removeFirst(tickTimes.count - Self.windowSize)
+            }
+            ticksSinceNotify += 1
+
+            let previousPosition = transportTickPosition
+            transportTickPosition = (transportTickPosition + message.tickCount) % Self.notifyInterval
+            if previousPosition + message.tickCount >= Self.notifyInterval {
+                transportEvents.append(.beat)
+            }
+
+            if ticksSinceNotify >= Self.notifyInterval, tickTimes.count >= 25 {
+                let elapsed = tickTimes.last! - tickTimes.first!
+                let intervals = Double(tickTimes.count - 1)
+                if elapsed > 0 {
+                    let bpm = 60.0 / (elapsed / intervals * 24.0)
+                    if (20 ... 400).contains(bpm) {
+                        bpmToNotify = bpm
+                    }
+                }
+                ticksSinceNotify = 0
+            }
         }
         lock.unlock()
 
+        for event in transportEvents {
+            transportHandler?(event)
+        }
         if let bpm = bpmToNotify {
-            handler(bpm)
+            bpmHandler?(bpm)
         }
     }
 
-    private static func clockTickCount(in packetList: UnsafePointer<MIDIPacketList>) -> Int {
+    private static func clockMessage(in packetList: UnsafePointer<MIDIPacketList>) -> (
+        tickCount: Int,
+        hasStart: Bool,
+        hasContinue: Bool,
+        hasStop: Bool
+    ) {
         var count = 0
+        var hasStart = false
+        var hasContinue = false
+        var hasStop = false
         let packetCount = min(max(0, Int(packetList.pointee.numPackets)), 64)
-        guard packetCount > 0 else { return 0 }
+        guard packetCount > 0 else { return (0, false, false, false) }
 
         withUnsafePointer(to: packetList.pointee.packet) { firstPacket in
             var current = firstPacket
@@ -235,8 +288,19 @@ private final class MidiClockTickBridge: @unchecked Sendable {
                 let length = min(max(0, Int(packet.length)), 256)
                 if length > 0 {
                     withUnsafeBytes(of: packet.data) { raw in
-                        for byte in raw.prefix(length) where byte == 0xF8 {
-                            count += 1
+                        for byte in raw.prefix(length) {
+                            switch byte {
+                            case 0xF8:
+                                count += 1
+                            case 0xFA:
+                                hasStart = true
+                            case 0xFB:
+                                hasContinue = true
+                            case 0xFC:
+                                hasStop = true
+                            default:
+                                break
+                            }
                         }
                     }
                 }
@@ -245,7 +309,7 @@ private final class MidiClockTickBridge: @unchecked Sendable {
                 }
             }
         }
-        return count
+        return (count, hasStart, hasContinue, hasStop)
     }
 }
 

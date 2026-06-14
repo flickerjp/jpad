@@ -46,6 +46,7 @@ struct PadKeyInputEditorSheetV11: View {
             guard viewModel.v11PopupScreen == .notes else { return }
             midiService.startNoteCapture { [weak viewModel] batch in
                 guard let viewModel else { return }
+                midiService.sendPreviewNotesPulse(batch)
                 viewModel.appendMidiNotesToChordKeys(batch)
             }
             defer {

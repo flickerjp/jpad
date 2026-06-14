@@ -43,6 +43,8 @@ final class MainViewModel: ObservableObject {
     @AppStorage(PresetRotationSettings.useAllSlotsKey) var rotationUseAllSlots = true
     @AppStorage(PresetRotationSettings.slotIDsKey) private var rotationSlotIDsStorage = ""
     @AppStorage(MidiClockReceiver.tempoSourceStorageKey) private var isExternalClockStored = false
+    @AppStorage(MidiClockReceiver.clockDelayMillisecondsStorageKey) private var externalClockDelayMilliseconds = 0
+    @AppStorage(MidiClockReceiver.clockRiffStepOffsetStorageKey) private var externalClockRiffStepOffset = 0
 
     // RIFF / SEQ の演奏中トグル（セットには保存しない）
     @Published var isRiffPerformanceOn = false
@@ -62,6 +64,8 @@ final class MainViewModel: ObservableObject {
     private var riffEditUndoStack: [RiffEditUndoSnapshot] = []
     private var isRiffEditUndoGroupOpen = false
     private let riffEditUndoLimit = 40
+    private var pendingExternalClockRiffPadID: Int?
+    private var externalClockRiffStartGeneration = 0
 
     let midiService: MidiOutputService
     let sequencerEngine = PadSequencerEngine()
@@ -118,6 +122,9 @@ final class MainViewModel: ObservableObject {
         }
         sequencerEngine.seqGate = { [weak self] in
             self?.seqSettings.gate ?? 0.5
+        }
+        clockReceiver.setTransportHandler { [weak self] event in
+            self?.handleExternalClockTransport(event)
         }
         clockReceiver.setEnabled(isExternalClockStored)
     }
@@ -783,6 +790,26 @@ final class MainViewModel: ObservableObject {
         return 60.0 / clamped / 4.0
     }
 
+    private var shouldQuantizeRiffToExternalClock: Bool {
+        isExternalClockStored && clockReceiver.estimatedBpm != nil
+    }
+
+    var clockDelayMilliseconds: Int {
+        externalClockDelayMilliseconds
+    }
+
+    var clockRiffStepOffset: Int {
+        externalClockRiffStepOffset
+    }
+
+    func updateClockDelayMilliseconds(_ value: Int) {
+        externalClockDelayMilliseconds = min(max(value, 0), 80)
+    }
+
+    func updateClockRiffStepOffset(_ value: Int) {
+        externalClockRiffStepOffset = min(max(value, -8), 8)
+    }
+
     func setExternalClockEnabled(_ enabled: Bool) {
         isExternalClockStored = enabled
         clockReceiver.setEnabled(enabled)
@@ -802,6 +829,7 @@ final class MainViewModel: ObservableObject {
     func toggleRiffPerformance() {
         if isRiffPerformanceOn {
             isRiffPerformanceOn = false
+            pendingExternalClockRiffPadID = nil
             sequencerEngine.stopRiff()
         } else {
             sequencerEngine.stopSeq()
@@ -820,6 +848,7 @@ final class MainViewModel: ObservableObject {
     func toggleRiffSlot(_ index: Int) {
         if isRiffPerformanceOn, riffSettings.selectedSlotIndex == index {
             isRiffPerformanceOn = false
+            pendingExternalClockRiffPadID = nil
             sequencerEngine.stopRiff()
             return
         }
@@ -1118,13 +1147,49 @@ final class MainViewModel: ObservableObject {
         padControlMode == .riff && isRiffPerformanceOn && !isPadEditMode
     }
 
-    private func startRiff(for pad: PadDefinition) {
+    private func startRiff(for pad: PadDefinition, initialStepIndex: Int = 0) {
         let voices = riffVoices(for: pad)
         sequencerEngine.startRiff(
             padID: pad.id,
             voices: voices,
-            pattern: riffPlaybackSlot(preset.sequencerSettings.riff.selectedSlot)
+            pattern: riffPlaybackSlot(preset.sequencerSettings.riff.selectedSlot),
+            initialStepIndex: initialStepIndex
         )
+    }
+
+    private func queueRiffStartOnExternalBeat(for pad: PadDefinition) {
+        pendingExternalClockRiffPadID = pad.id
+        sequencerEngine.stopRiff()
+    }
+
+    private func startPendingExternalClockRiffIfNeeded() {
+        guard let padID = pendingExternalClockRiffPadID,
+              let pad = preset.pads.first(where: { $0.id == padID }),
+              isRiffPlaybackActive else {
+            pendingExternalClockRiffPadID = nil
+            return
+        }
+        pendingExternalClockRiffPadID = nil
+        startRiffFromExternalClock(for: pad)
+    }
+
+    private func startRiffFromExternalClock(for pad: PadDefinition) {
+        let stepOffset = externalClockRiffStepOffset
+        let initialStepIndex = stepOffset < 0 ? abs(stepOffset) : 0
+        let stepOffsetDelay = stepOffset > 0 ? currentStepInterval * Double(stepOffset) : 0
+        let delay = Double(externalClockDelayMilliseconds) / 1000.0 + stepOffsetDelay
+        guard delay > 0 else {
+            startRiff(for: pad, initialStepIndex: initialStepIndex)
+            return
+        }
+
+        externalClockRiffStartGeneration += 1
+        let generation = externalClockRiffStartGeneration
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(Int((delay * 1000).rounded())))
+            guard let self, generation == self.externalClockRiffStartGeneration else { return }
+            self.startRiff(for: pad, initialStepIndex: initialStepIndex)
+        }
     }
 
     private func updateRunningRiff(to pad: PadDefinition) {
@@ -1145,13 +1210,21 @@ final class MainViewModel: ObservableObject {
 
     private func padOn(_ pad: PadDefinition) {
         if isRiffPlaybackActive {
-            startRiff(for: pad)
+            if shouldQuantizeRiffToExternalClock {
+                queueRiffStartOnExternalBeat(for: pad)
+            } else {
+                startRiff(for: pad)
+            }
         } else {
             midiService.sendPadOn(pad)
         }
     }
 
     private func padOff(_ pad: PadDefinition) {
+        if pendingExternalClockRiffPadID == pad.id {
+            pendingExternalClockRiffPadID = nil
+            externalClockRiffStartGeneration += 1
+        }
         if sequencerEngine.riffActivePadID == pad.id {
             sequencerEngine.stopRiff()
         } else {
@@ -1161,7 +1234,10 @@ final class MainViewModel: ObservableObject {
 
     private func padTransition(from oldPad: PadDefinition, to newPad: PadDefinition) {
         let oldPadWasRiffDriven = sequencerEngine.riffActivePadID == oldPad.id
-        if oldPadWasRiffDriven {
+        if pendingExternalClockRiffPadID == oldPad.id {
+            queueRiffStartOnExternalBeat(for: newPad)
+            return
+        } else if oldPadWasRiffDriven {
             updateRunningRiff(to: newPad)
             return
         } else if isRiffPlaybackActive {
@@ -1173,6 +1249,35 @@ final class MainViewModel: ObservableObject {
         } else {
             midiService.transitionPad(from: oldPad, to: newPad)
         }
+    }
+
+    private func handleExternalClockTransport(_ event: MidiClockTransportEvent) {
+        guard isExternalClockStored else { return }
+
+        switch event {
+        case .start:
+            guard padControlMode == .riff, !isPadEditMode else { return }
+            isRiffPerformanceOn = true
+            if let pad = currentPlayablePadForExternalTransport() {
+                pendingExternalClockRiffPadID = pad.id
+                startPendingExternalClockRiffIfNeeded()
+            }
+        case .stop:
+            pendingExternalClockRiffPadID = nil
+            externalClockRiffStartGeneration += 1
+            if padControlMode == .riff {
+                isRiffPerformanceOn = false
+                sequencerEngine.stopRiff()
+            }
+        case .beat:
+            startPendingExternalClockRiffIfNeeded()
+        }
+    }
+
+    private func currentPlayablePadForExternalTransport() -> PadDefinition? {
+        let padID = playingPadID ?? holdLatchedPadID
+        guard let padID else { return nil }
+        return preset.pads.first(where: { $0.id == padID })
     }
 
     func updateKeyTranspose(_ newValue: Int) {
@@ -1208,6 +1313,8 @@ final class MainViewModel: ObservableObject {
         isHoldEnabled = false
         playingPadID = nil
         holdLatchedPadID = nil
+        pendingExternalClockRiffPadID = nil
+        externalClockRiffStartGeneration += 1
         sequencerEngine.stopAll()
         markPendingTransposeReadyIfNeeded()
         midiService.sendAllNotesOff()

@@ -2,6 +2,7 @@ import os
 
 enum MidiDiagnostics {
     private static let log = Logger(subsystem: "com.flickerproduct.jchord", category: "MIDI")
+    private static let verboseSendLogging = false
 
     static func captureStarted(sourceName: String) {
         log.info("Note capture started: \(sourceName, privacy: .public)")
@@ -44,7 +45,12 @@ enum MidiDiagnostics {
         packetStatus: String,
         eventStatus: String
     ) {
-        log.info("MIDI send route=\(route, privacy: .public) dest=\(destination, privacy: .public) preferred=\(preferred, privacy: .public) used=\(used, privacy: .public) status=\(status, privacy: .public) packet=\(packetStatus, privacy: .public) event=\(eventStatus, privacy: .public) msg=\(message, privacy: .public)")
+        if status == "ok" {
+            guard verboseSendLogging else { return }
+            log.debug("MIDI send route=\(route, privacy: .public) dest=\(destination, privacy: .public) preferred=\(preferred, privacy: .public) used=\(used, privacy: .public) status=\(status, privacy: .public) packet=\(packetStatus, privacy: .public) event=\(eventStatus, privacy: .public) msg=\(message, privacy: .public)")
+        } else {
+            log.error("MIDI send failed route=\(route, privacy: .public) dest=\(destination, privacy: .public) preferred=\(preferred, privacy: .public) used=\(used, privacy: .public) status=\(status, privacy: .public) packet=\(packetStatus, privacy: .public) event=\(eventStatus, privacy: .public) msg=\(message, privacy: .public)")
+        }
     }
 
     static func midiSendUnavailable(route: String, reason: String) {

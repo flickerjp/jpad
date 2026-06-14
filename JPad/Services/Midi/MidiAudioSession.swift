@@ -22,6 +22,7 @@ enum MidiAudioSession {
 
         let session = AVAudioSession.sharedInstance()
         do {
+            try session.setPreferredIOBufferDuration(0.005)
             try session.overrideOutputAudioPort(.speaker)
             return noErr
         } catch {
@@ -47,6 +48,7 @@ enum MidiAudioSession {
             if let preferredSampleRate {
                 try session.setPreferredSampleRate(preferredSampleRate)
             }
+            try session.setPreferredIOBufferDuration(0.005)
             try session.setActive(true)
             return noErr
         } catch {

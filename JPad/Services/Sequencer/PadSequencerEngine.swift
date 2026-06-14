@@ -157,15 +157,15 @@ final class PadSequencerEngine: ObservableObject {
     private var riffGeneration = 0
     private var pendingRiffPatternChange: PendingRiffPatternChange?
 
-    func startRiff(padID: Int, voices: [[UInt8]], pattern: RiffPatternSlot) {
+    func startRiff(padID: Int, voices: [[UInt8]], pattern: RiffPatternSlot, initialStepIndex: Int = 0) {
         stopRiffNotes()
         riffActivePadID = padID
         riffVoices = voices
         riffPattern = pattern
-        riffStepIndex = 0
+        riffStepIndex = ((initialStepIndex % RiffPatternSlot.stepCount) + RiffPatternSlot.stepCount) % RiffPatternSlot.stepCount
         riffGeneration += 1
         pendingRiffPatternChange = nil
-        riffCurrentRawStep = 0
+        riffCurrentRawStep = riffStepIndex
         let generation = riffGeneration
         fireRiffStep()
         scheduleNextRiffStep(after: ContinuousClock.now, generation: generation)

@@ -210,7 +210,7 @@ struct PresetRiffSettings: Codable, Equatable {
     init(
         slots: [RiffPatternSlot] = [],
         selectedSlotIndex: Int = 0,
-        baseKey: UInt8 = 48
+        baseKey: UInt8 = 12
     ) {
         self.slots = Self.normalizedSlots(slots)
         self.selectedSlotIndex = max(0, min(selectedSlotIndex, Self.slotCount - 1))
@@ -225,7 +225,7 @@ struct PresetRiffSettings: Codable, Equatable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let slots = try container.decodeIfPresent([RiffPatternSlot].self, forKey: .slots) ?? []
         let index = try container.decodeIfPresent(Int.self, forKey: .selectedSlotIndex) ?? 0
-        let baseKey = try container.decodeIfPresent(UInt8.self, forKey: .baseKey) ?? 48
+        let baseKey = try container.decodeIfPresent(UInt8.self, forKey: .baseKey) ?? 12
         self.init(slots: slots, selectedSlotIndex: index, baseKey: baseKey)
     }
 

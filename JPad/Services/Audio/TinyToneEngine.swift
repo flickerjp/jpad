@@ -16,7 +16,7 @@ final class TinyToneEngine: InternalPreviewSynth, @unchecked Sendable {
         core = TinyToneAudioEngine(
             configuration: TinyToneAudioConfiguration(
                 initialPatch: .jpadFactory,
-                outputGateRampSeconds: 0.5,
+                outputGateRampSeconds: 0.04,
                 preparePlayback: {
                     guard MidiAudioSession.activateForInternalPreview() == noErr else { return nil }
                     return MidiAudioSession.playbackFormatForInternalPreview()

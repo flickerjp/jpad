@@ -467,10 +467,10 @@ final class MidiOutputService: ObservableObject {
     /// 内蔵エンジン起動後、無音で FX バッファと出力ゲートを落ち着かせる時間。
     private static func previewEnginePrimeDelayMs(for presetID: String) -> UInt64 {
         if PreviewSoundPresetIDs.usesHeavyDSP(id: presetID) {
-            // `TinyToneEngine` outputGateRampSeconds (0.5s) + reverb/delay ライン
-            return 520
+            // `TinyToneEngine` outputGateRampSeconds + reverb/delay ライン
+            return 180
         }
-        return 180
+        return 60
     }
 
     private var hasPrimedPreviewDSP = false
@@ -998,6 +998,18 @@ final class MidiOutputService: ObservableObject {
         }
         guard !messages.isEmpty else { return }
         dispatch(messages)
+    }
+
+    func sendPreviewNotesPulse(_ notes: [UInt8], duration: Duration = .milliseconds(180)) {
+        var seenNotes = Set<UInt8>()
+        let orderedNotes = notes.sorted().filter { $0 <= 127 && seenNotes.insert($0).inserted }
+        guard !orderedNotes.isEmpty else { return }
+
+        sendPreviewNotesOn(orderedNotes)
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: duration)
+            self?.sendPreviewNotesOff(orderedNotes)
+        }
     }
 
     func sendPadOff(_ pad: PadDefinition) {

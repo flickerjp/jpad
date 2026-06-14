@@ -4,6 +4,7 @@ struct MidiSettingsView: View {
     @ObservedObject var midiService: MidiOutputService
     var onClockSourceChanged: ((Bool) -> Void)? = nil
     var internalClockBpm: Binding<Int>? = nil
+    var clockDelayMilliseconds: Binding<Int>? = nil
     @Environment(\.dismiss) private var dismiss
     @StateObject private var proPurchaseService = ProPurchaseService()
     @AppStorage(ProPurchaseService.purchasedAppStorageKey) private var hasPresetSavePurchased = false
@@ -33,7 +34,8 @@ struct MidiSettingsView: View {
                         compactPanelMaxWidth: nil,
                         availableContentWidth: contentWidth,
                         onClockSourceChanged: onClockSourceChanged,
-                        internalClockBpm: internalClockBpm
+                        internalClockBpm: internalClockBpm,
+                        clockDelayMilliseconds: clockDelayMilliseconds
                     )
                     .padding(.horizontal, outerHorizontalPadding)
                     .padding(.top, 52)
