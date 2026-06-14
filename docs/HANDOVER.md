@@ -940,3 +940,13 @@
 
 **参照:** `git show 2dbc4a8` / `git log -1 2dbc4a8`
 
+
+<!-- handover:auto:406d3e8e172cd4b6736440fb387de3f5dfc97dbc -->
+### 2026-06-14 09:00:39 +0900 — `406d3e8` — main
+
+**件名:** Add riff edit tie undo and x2 mask
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show 406d3e8` / `git log -1 406d3e8`
+
