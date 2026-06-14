@@ -960,3 +960,13 @@
 
 **参照:** `git show bd766a7` / `git log -1 bd766a7`
 
+
+<!-- handover:auto:c9b060a6774d89f77940a9d2611a3031299f2ed6 -->
+### 2026-06-14 17:45:29 +0900 — `c9b060a` — main
+
+**件名:** Add external clock riff sync offset
+
+**作者:** tone <tone@tonem4max.local>
+
+**参照:** `git show c9b060a` / `git log -1 c9b060a`
+
