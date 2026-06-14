@@ -13,7 +13,7 @@ options:
 
 packages:
   TinyToneCore:
-    path: ../ToneEditor/Packages/TinyToneCore
+    path: ../TinyTone/Packages/TinyToneCore
 
 targets:
   JPad:
@@ -46,17 +46,17 @@ targets:
       base:
         # Same App Store app as JChord — do not reset CURRENT_PROJECT_VERSION / bundle ID.
         PRODUCT_BUNDLE_IDENTIFIER: com.flickerproduct.jchord
-        PRODUCT_NAME: TinyTone
-        MARKETING_VERSION: 1.5.01
-        CURRENT_PROJECT_VERSION: 153
+        PRODUCT_NAME: TinyRiff
+        MARKETING_VERSION: 1.5.2
+        CURRENT_PROJECT_VERSION: 155
         SWIFT_VERSION: 6.0
         DEVELOPMENT_TEAM: G942ZU3CGC
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: JPad/JPad.entitlements
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: JPad/Info.plist
-        INFOPLIST_KEY_CFBundleDisplayName: TinyTone
-        INFOPLIST_KEY_CFBundleName: TinyTone
+        INFOPLIST_KEY_CFBundleDisplayName: TinyRiff
+        INFOPLIST_KEY_CFBundleName: TinyRiff
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_UIBackgroundModes: audio

@@ -624,7 +624,7 @@
 			mainGroup = 8AA5E825C5DCFA7CD0CD9406;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				B00E070AE198A6B1D2721320 /* XCLocalSwiftPackageReference "../ToneEditor/Packages/TinyToneCore" */,
+				C47ED4B9B681E7D70342F98D /* XCLocalSwiftPackageReference "../TinyTone/Packages/TinyToneCore" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8D7C3F42799DBA0B5882BB52 /* Products */;
@@ -779,12 +779,12 @@
 				CODE_SIGN_ENTITLEMENTS = JPad/JPad.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 153;
+				CURRENT_PROJECT_VERSION = 155;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TinyTone;
-				INFOPLIST_KEY_CFBundleName = TinyTone;
+				INFOPLIST_KEY_CFBundleDisplayName = TinyRiff;
+				INFOPLIST_KEY_CFBundleName = TinyRiff;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = audio;
@@ -796,9 +796,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.01;
+				MARKETING_VERSION = 1.5.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
-				PRODUCT_NAME = TinyTone;
+				PRODUCT_NAME = TinyRiff;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -812,12 +812,12 @@
 				CODE_SIGN_ENTITLEMENTS = JPad/JPad.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 153;
+				CURRENT_PROJECT_VERSION = 155;
 				DEVELOPMENT_TEAM = G942ZU3CGC;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JPad/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TinyTone;
-				INFOPLIST_KEY_CFBundleName = TinyTone;
+				INFOPLIST_KEY_CFBundleDisplayName = TinyRiff;
+				INFOPLIST_KEY_CFBundleName = TinyRiff;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = audio;
@@ -829,9 +829,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.01;
+				MARKETING_VERSION = 1.5.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.flickerproduct.jchord;
-				PRODUCT_NAME = TinyTone;
+				PRODUCT_NAME = TinyRiff;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -981,16 +981,16 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		B00E070AE198A6B1D2721320 /* XCLocalSwiftPackageReference "../ToneEditor/Packages/TinyToneCore" */ = {
+		C47ED4B9B681E7D70342F98D /* XCLocalSwiftPackageReference "../TinyTone/Packages/TinyToneCore" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../ToneEditor/Packages/TinyToneCore;
+			relativePath = ../TinyTone/Packages/TinyToneCore;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		39B901804BD009599147614C /* TinyToneCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B00E070AE198A6B1D2721320 /* XCLocalSwiftPackageReference "../ToneEditor/Packages/TinyToneCore" */;
+			package = C47ED4B9B681E7D70342F98D /* XCLocalSwiftPackageReference "../TinyTone/Packages/TinyToneCore" */;
 			productName = TinyToneCore;
 		};
 /* End XCSwiftPackageProductDependency section */

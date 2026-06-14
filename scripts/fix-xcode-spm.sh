@@ -15,7 +15,7 @@ path = Path(sys.argv[1])
 text = path.read_text()
 
 package_ref_match = re.search(
-    r"\t\t([A-F0-9]+) /\* XCLocalSwiftPackageReference \"\.\./ToneEditor/Packages/TinyToneCore\" \*/ =",
+    r"\t\t([A-F0-9]+) /\* XCLocalSwiftPackageReference \"\.\./TinyTone/Packages/TinyToneCore\" \*/ =",
     text,
 )
 if not package_ref_match:
@@ -23,7 +23,7 @@ if not package_ref_match:
 package_ref_id = package_ref_match.group(1)
 package_ref = (
     f"{package_ref_id} "
-    '/* XCLocalSwiftPackageReference "../ToneEditor/Packages/TinyToneCore" */'
+    '/* XCLocalSwiftPackageReference "../TinyTone/Packages/TinyToneCore" */'
 )
 
 product_block = re.compile(
@@ -48,7 +48,7 @@ if product_count != 1:
 # local package folder.
 text = re.sub(
     r"\t\t[A-F0-9]+ /\* TinyToneCore \*/ = \{isa = PBXFileReference; lastKnownFileType = folder; "
-    r"name = TinyToneCore; path = \.\./ToneEditor/Packages/TinyToneCore; sourceTree = SOURCE_ROOT; \};\n",
+    r"name = TinyToneCore; path = \.\./TinyTone/Packages/TinyToneCore; sourceTree = SOURCE_ROOT; \};\n",
     "",
     text,
 )

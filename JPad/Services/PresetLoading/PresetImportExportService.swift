@@ -36,7 +36,7 @@ enum PresetImportExportService {
   private static let legacyFileSuffixes = [
     ".jpd", ".jch", ".jchord.zip", ".jchord.json", ".jchord", ".json", ".zip",
   ]
-  private static let exportFileNamePrefixes = ["TinyTone.", "JPad."]
+  private static let exportFileNamePrefixes = ["TinyRiff.", "TinyTone.", "JPad."]
 
   static func makeExportEnvelope(slotName: String, origin: PresetSlotOrigin, preset: Preset) -> PresetExportEnvelope {
     PresetExportEnvelope(

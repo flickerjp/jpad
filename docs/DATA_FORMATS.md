@@ -1,6 +1,6 @@
 # DATA_FORMATS.md
 
-JPad が扱う主要データ形式のメモ。
+JPad checkout（アプリ表示名 TinyRiff）が扱う主要データ形式のメモ。
 保存形式を変える前に、対象の encode / decode 実装を必ず読む。
 
 ## 実装参照
@@ -16,7 +16,7 @@ JPad が扱う主要データ形式のメモ。
 
 ## 1. `.jpd`
 
-- JPad の共有・取り込み用ファイル。
+- TinyRiff / JPad 系の共有・取り込み用ファイル。
 - 中身は JSON ベースの export envelope を ZIP で包む形式。
 - 共有シート、AirDrop、外部ファイル受け渡しで使う。
 - ローカル保存の正本ではない。

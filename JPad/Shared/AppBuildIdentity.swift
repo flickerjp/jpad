@@ -6,11 +6,11 @@ enum AppBuildIdentity {
     static let layoutRevision = "perf-pads-v1"
 
     /// 設定フッターのクレジット（マルシー表示）
-    static let settingsCreditMarqueeText = "TinyTone © FLICKER PRODUCT, Tokyo Japan"
+    static let settingsCreditMarqueeText = "TinyRiff © FLICKER PRODUCT, Tokyo Japan"
 
     static var settingsFooterLine: String {
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
         let marketing = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-        return "TinyTone \(marketing) (\(build)) · \(layoutRevision)"
+        return "TinyRiff \(marketing) (\(build)) · \(layoutRevision)"
     }
 }

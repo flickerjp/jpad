@@ -5,7 +5,7 @@ JPad 全体の構造メモ。実装の境界を確認するときの正本。
 
 ## 全体像
 
-JPad は「パッド演奏」「MIDI 出力」「プリセット保存」「課金判定」「TinyTone 共有」を分けて持つ。
+JPad checkout のアプリ表示名は TinyRiff。内部では「パッド演奏」「MIDI 出力」「プリセット保存」「課金判定」「TinyTone 共有」を分けて持つ。
 
 ```mermaid
 flowchart LR
@@ -59,7 +59,7 @@ flowchart LR
 
 ## TinyTone
 
-- TinyTone は JPad の内蔵音色・プレビュー音源として扱う。
+- TinyTone は TinyRiff の内蔵音色・プレビュー音源として扱う。
 - ここは UI とは別に、音色パラメータと再生準備を持つ。
 - JPad の保存データと TinyTone の共有データは同一ではない。
 - App Group を使う場合でも、TinyTone 共有は「追加経路」であり、既存 JSON 経路を消さない。

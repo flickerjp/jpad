@@ -1,7 +1,7 @@
 # AGENTS.md
 
 このリポジトリで coding agent が作業する場合は、最初に `docs/AGENTS.md` を読む。
-JPad / ToneEditor / web をまたぐ作業では、先に `/Users/tone/work/AGENTS.md` も読む。
+TinyRiff / TinyTone / web をまたぐ作業では、先に `/Users/tone/work/AGENTS.md` も読む。
 
 必読順:
 
